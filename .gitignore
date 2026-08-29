@@ -7,3 +7,4 @@ out-test/
 .mcp.json
 lat.md/.cache/
 .github/
+.omc/
