@@ -23,7 +23,7 @@
     <a href="mapping.html">Mapping</a>
     <a href="reference.html">Reference</a>
     <a href="faq.html">FAQ</a>
-    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
   </nav>
 </div></header>
 
@@ -31,12 +31,23 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
-<h2 id="unreleased">Unreleased</h2>
+<h2 id="0-2-0">0.2.0</h2>
+<p>File format version 2: metadata, schema generation hints and a published JSON Schema.</p>
 <ul>
+  <li><strong>File format version 2.</strong> Every element may now carry <code>meta</code> (descriptive metadata: <code>guid</code>, <code>uri</code>, <code>title</code>, <code>shortDescription</code>, <code>description</code>, <code>synonyms</code>, <code>tags</code>, <code>aiContext</code>, <code>source</code>) and <code>hints</code> (per-target schema generation guidance). Version 2 is additive over version 1, so existing files load unchanged and are written back as version 2.</li>
+  <li>Published a <a href="schema/orm-model-2.schema.json">JSON Schema</a> (2020-12) for <code>.orm.json</code>, registered through <code>contributes.jsonValidation</code>, so VS Code validates and completes a model in the plain text editor. New models write a <code>$schema</code> line pointing at it.</li>
+  <li>Generation hints are honoured by the mappers: <code>hints.relational</code> (<code>schemaName</code>, <code>tableName</code>, <code>columnName</code>, <code>sqlType</code>, <code>mapping</code>) and <code>hints.graph</code> (<code>label</code>, <code>labels</code>, <code>propertyName</code>, <code>mapping</code>). A hint that would lose facts — asking for a <code>property</code> mapping on a value type played many-to-many — is refused and explained in the mapping notes. <code>meta.description</code> becomes the comment on the generated table and node table.</li>
+  <li>Any key beginning with <code>x-</code> is a vendor extension, preserved verbatim on load and save. The loader keeps every unrecognised top-level key, so nothing another tool wrote is lost on the next save.</li>
+  <li>Readings may carry a BCP 47 <code>lang</code>, with a model-level default, so multilingual models survive a round trip.</li>
+  <li>The NORMA importer records provenance in <code>generator</code> and <code>meta.source</code>.</li>
+  <li>Fixed generated SQL DDL being invalid whenever a column carried a comment: the separating comma was emitted after the <code>--</code>, so the comment swallowed it and the column list lost its separator.</li>
+  <li>New <a href="interop.html">File formats</a> page comparing <code>.orm.json</code> with NORMA <code>.orm</code>, the FBM Exchange MetaModel, the Unified Modelling Schema and Apache Ossie, covering why Factum keeps its own format and which standards it follows.</li>
   <li>Renamed the extension to <strong>Factum</strong> (<code>factum-orm</code>); the diagram custom editor view type is now <code>factum.diagram</code>. Command identifiers (<code>orm.*</code>) and settings (<code>orm.*</code>) are unchanged.</li>
   <li>Added a marketplace icon.</li>
-  <li>Labeled property graph mapping with LadybugDB Cypher DDL generation (<code>ORM: Generate Property Graph Schema (LadybugDB)</code>) and a *Graph* tab in the side panel. Uniqueness constraints become relationship multiplicities, lexical value types become properties, and n-ary or objectified fact types are reified into nodes with one relationship per role. Constraints the schema cannot enforce are emitted as verbalized comments.</li>
+  <li>Labeled property graph mapping with LadybugDB Cypher DDL generation (<code>ORM: Generate Property Graph Schema (LadybugDB)</code>) and a <em>Graph</em> tab in the side panel. Uniqueness constraints become relationship multiplicities, lexical value types become properties, and n-ary or objectified fact types are reified into nodes with one relationship per role. Constraints the schema cannot enforce are emitted as verbalized comments.</li>
   <li>New settings <code>orm.graph.subtypeStrategy</code> and <code>orm.graph.ifNotExists</code>.</li>
+  <li>Objectified fact types are now drawn correctly: the frame around the fact type <em>is</em> the object type, so connectors target the frame instead of a duplicate box beside it.</li>
+  <li>Unary fact types show their predicate without a leading ellipsis.</li>
   <li>Fixed <code>npm test</code> matching no test files, so the suite reported success without running.</li>
 </ul>
 <h2 id="0-1-0">0.1.0</h2>
@@ -51,7 +62,7 @@
   <li>SVG and PNG export, force-directed auto-layout.</li>
   <li>Importer for NORMA / ORM 2 <code>.orm</code> XML files.</li>
 </ul>
-<p style="margin-top:40px"><a href="https://github.com/USERNAME/factum-orm/releases">All releases on GitHub</a></p>
+<p style="margin-top:40px"><a href="https://github.com/Volland/factum-orm/releases">All releases on GitHub</a></p>
 </div></section>
 
 </main>
@@ -72,14 +83,15 @@
         <li><a href="mapping.html">Mapping rules</a></li>
         <li><a href="reference.html">Commands &amp; settings</a></li>
         <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
         <li><a href="faq.html">FAQ</a></li>
       </ul>
     </div>
     <div>
       <h4>Project</h4>
       <ul>
-        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
-        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
         <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
         <li><a href="privacy.html">Privacy</a></li>
       </ul>

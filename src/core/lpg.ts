@@ -1,5 +1,5 @@
 import { DataType, FactType, Id, ObjectType, OrmModel, Role, ValueRange } from '../model/types.js';
-import { indexModel, ModelIndex, predicateText, primaryReading } from '../model/model.js';
+import { describe, indexModel, ModelIndex, predicateText, primaryReading, stringHint } from '../model/model.js';
 import { factTypeName, verbalizeConstraint } from './verbalize.js';
 
 /* -------------------------------------------------------------------------- */
@@ -32,6 +32,8 @@ export interface NodeTable {
   isReified: boolean;
   properties: GraphProperty[];
   comment?: string;
+  /** Extra labels from `hints.graph.labels`, for stores that allow several. */
+  extraLabels?: string[];
 }
 
 /** One `FROM ... TO ...` pair of a relationship table. */
@@ -185,11 +187,22 @@ function planValueTypes(context: GraphContext): void {
       // Nothing refers to it; keep it out of the schema rather than emit an empty node.
       continue;
     }
+    // @lat: [[file-format#Hints#Refusing a hint]]
+    const hinted = stringHint(ot, 'graph', 'mapping');
+    if (hinted === 'node') {
+      context.promoted.add(ot.id);
+      context.notes.push(`Value type "${ot.name}" became a node because hints.graph.mapping asks for one.`);
+      continue;
+    }
     const absorbable = roles.every((role) => absorbableAsProperty(context, role));
     if (!absorbable) {
       context.promoted.add(ot.id);
+      // A `property` hint is refused here rather than obeyed: a single-valued
+      // property cannot hold a value played many-to-many without losing facts.
       context.notes.push(
-        `Value type "${ot.name}" became a node because it is played many-to-many or in an n-ary fact type; it cannot be a single-valued property.`,
+        hinted === 'property'
+          ? `Value type "${ot.name}" asks for hints.graph.mapping "property", but it is played many-to-many or in an n-ary fact type, so it became a node instead.`
+          : `Value type "${ot.name}" became a node because it is played many-to-many or in an n-ary fact type; it cannot be a single-valued property.`,
       );
     }
   }
@@ -215,13 +228,15 @@ function createEntityNodes(context: GraphContext): void {
     if (context.absorbedInto.has(ot.id)) continue;
     if (ot.objectifiedFactTypeId) continue; // created as a reified node instead
 
+    const extraLabels = labelsHint(ot);
     const table: NodeTable = {
-      name: uniqueNodeName(context, nodeLabel(ot.name)),
+      name: uniqueNodeName(context, stringHint(ot, 'graph', 'label') ?? nodeLabel(ot.name)),
       sourceKind: 'objectType',
       sourceId: ot.id,
       isReified: false,
       properties: [identityProperty(context, ot)],
-      comment: `${ot.kind === 'value' ? 'Value' : 'Entity'} type ${ot.name}`,
+      comment: describe(ot) ?? `${ot.kind === 'value' ? 'Value' : 'Entity'} type ${ot.name}`,
+      ...(extraLabels.length ? { extraLabels } : {}),
     };
     context.nodes.set(ot.id, table);
   }
@@ -334,7 +349,11 @@ function createReifiedNodes(context: GraphContext): void {
     const isNary = ft.roles.length > 2;
     if (!objectifier && !isNary) continue;
 
-    const label = objectifier ? nodeLabel(objectifier.name) : nodeLabel(factLabel(context, ft));
+    const label =
+      stringHint(ft, 'graph', 'label') ??
+      (objectifier
+        ? stringHint(objectifier, 'graph', 'label') ?? nodeLabel(objectifier.name)
+        : nodeLabel(factLabel(context, ft)));
     const table: NodeTable = {
       name: uniqueNodeName(context, label),
       sourceKind: 'factType',
@@ -472,7 +491,12 @@ function mapBinary(context: GraphContext, ft: FactType): void {
       // Holding the value in a single-valued property is the uniqueness constraint.
       markEnforced(context, ownerRole.id);
       node.properties.push({
-        name: uniquePropertyName(node, propertyName(valueRole.name ?? valuePlayer.name)),
+        name: uniquePropertyName(
+          node,
+          stringHint(valueRole, 'graph', 'propertyName') ??
+            stringHint(valuePlayer, 'graph', 'propertyName') ??
+            propertyName(valueRole.name ?? valuePlayer.name),
+        ),
         dataType: valuePlayer.dataType ?? 'string',
         length: valuePlayer.dataTypeLength,
         scale: valuePlayer.dataTypeScale,
@@ -493,12 +517,15 @@ function mapBinary(context: GraphContext, ft: FactType): void {
   const reading = primaryReading(ft);
   const predicate = reading ? predicateText(reading) : '';
   context.rels.push({
-    name: uniqueRelName(context, relType(predicate || `${fromNode.name} ${toNode.name}`)),
+    name: uniqueRelName(
+      context,
+      stringHint(ft, 'graph', 'label') ?? relType(predicate || `${fromNode.name} ${toNode.name}`),
+    ),
     sources: [{ kind: 'factType', id: ft.id }],
     pairs: [{ from: fromNode.name, to: toNode.name }],
     multiplicity: multiplicityOf(context, ft, first, second),
     properties: [],
-    comment: `Fact type "${readingLabel(context, ft)}"`,
+    comment: describe(ft) ?? `Fact type "${readingLabel(context, ft)}"`,
   });
 }
 
@@ -701,6 +728,12 @@ function uniquePropertyName(node: NodeTable, base: string): string {
     suffix += 1;
   }
   return name;
+}
+
+/** Extra node labels declared in `hints.graph.labels`, used as written. */
+function labelsHint(element: Parameters<typeof stringHint>[0]): string[] {
+  const value = element?.hints?.graph?.labels;
+  return Array.isArray(value) ? value.filter((l): l is string => typeof l === 'string' && !!l.trim()) : [];
 }
 
 /** Node labels are PascalCase, the usual property-graph convention. */

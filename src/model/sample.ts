@@ -1,4 +1,4 @@
-import { OrmModel } from './types.js';
+import { MODEL_FORMAT_VERSION, MODEL_SCHEMA_URL, OrmModel } from './types.js';
 
 /**
  * The model created by "New ORM Model": a small, complete schema that shows a
@@ -7,7 +7,8 @@ import { OrmModel } from './types.js';
  */
 export function sampleModel(name = 'New Model'): OrmModel {
   return {
-    version: 1,
+    $schema: MODEL_SCHEMA_URL,
+    version: MODEL_FORMAT_VERSION,
     name,
     objectTypes: [
       { id: 'ot_person', name: 'Person', kind: 'entity', refMode: 'nr', dataType: 'integer', isPersonal: true },

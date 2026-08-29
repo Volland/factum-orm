@@ -46,6 +46,10 @@ export function importNormaFile(xml: string): ImportResult {
 
   const warnings: string[] = [];
   const model = emptyModel(str(ormModel['@Name']) ?? 'Imported Model');
+  // Element ids are the NORMA GUIDs verbatim, so a model keeps its cross-tool
+  // identity without a second copy of every id in `meta.guid`.
+  model.generator = { name: 'Factum NORMA importer' };
+  model.meta = { source: { tool: 'NORMA', ref: str(ormModel['@id']) } };
 
   const dataTypes = collectDataTypes(ormModel);
   const objects = (first(ormModel.Objects) ?? {}) as XmlNode;

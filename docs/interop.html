@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File formats · Factum</title>
+<meta name="description" content="How Factum's .orm.json compares with NORMA .orm, the FBM Exchange MetaModel, the Unified Modelling Schema and Apache Ossie — and why Factum keeps its own format.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="File formats · Factum">
+<meta property="og:description" content="How Factum's .orm.json compares with NORMA .orm, the FBM Exchange MetaModel, the Unified Modelling Schema and Apache Ossie — and why Factum keeps its own format.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>File formats</h1><p>Four ways the fact-based modelling community exchanges models — and where Factum sits among them.</p></div>
+
+<section><div class="wrap prose">
+
+<div class="toc">
+  <strong>On this page</strong>
+  <ul>
+    <li><a href="#landscape">The landscape</a></li>
+    <li><a href="#norma">NORMA <code>.orm</code></a></li>
+    <li><a href="#fbm">FBM Exchange MetaModel</a></li>
+    <li><a href="#ums">Unified Modelling Schema</a></li>
+    <li><a href="#ossie">Apache Ossie</a></li>
+    <li><a href="#side-by-side">One fact type, four ways</a></li>
+    <li><a href="#what-each-carries">What each format carries</a></li>
+    <li><a href="#why-our-own">Why Factum keeps its own format</a></li>
+    <li><a href="#closest">Which standard it is closest to</a></li>
+    <li><a href="#bridge">The bridge to each format</a></li>
+    <li><a href="#status">Status</a></li>
+  </ul>
+</div>
+
+<h2 id="landscape">The landscape</h2>
+<p>There is no agreed exchange standard for fact-based models. There are four serious formats, and
+   the first thing to notice is that they do not all describe the same kind of thing. Two are
+   <strong>conceptual</strong> — they talk about object types, fact types and roles. Two are
+   <strong>logical</strong> — they talk about tables, columns and keys, with the fact-based content
+   surviving as annotations.</p>
+<p>That distinction decides everything about which format can losslessly hold a model and which can
+   only receive one.</p>
+
+<div class="table-scroll"><table>
+<thead><tr><th>Format</th><th>Level</th><th>Syntax</th><th>Machine-readable contract</th><th>Origin</th></tr></thead>
+<tbody>
+<tr><td><strong>Factum <code>.orm.json</code></strong></td><td>Conceptual</td><td>JSON</td><td>JSON Schema 2020-12</td><td>This project</td></tr>
+<tr><td>NORMA <code>.orm</code></td><td>Conceptual</td><td>XML</td><td>XSD</td><td>ORM Foundation / NORMA</td></tr>
+<tr><td>FBM Exchange MetaModel <code>.fbm</code></td><td>Conceptual</td><td>XML</td><td>XSD + .NET classes</td><td>FactEngine community</td></tr>
+<tr><td>Unified Modelling Schema</td><td>Logical</td><td>YAML</td><td>JSON Schema 2020-12 + Delphi / VB.NET classes</td><td>FactEngine community</td></tr>
+<tr><td>Apache Ossie</td><td>Logical core, <strong>conceptual ontology</strong></td><td>YAML / JSON</td><td>JSON Schema 2020-12</td><td>Apache Software Foundation (incubating)</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="norma">NORMA <code>.orm</code></h2>
+<p>The ORM 2 XML written by NORMA, and the de-facto archive format for the community. It is the most
+   faithful ORM 2 metamodel of the four: everything the notation can draw is in there, including the
+   join paths of external constraints and the full diagram geometry.</p>
+<p>Its costs are verbosity, a strong tie to Visual Studio, and a great deal of tool state stored
+   alongside the model. Factum reads it — <code>ORM: Import NORMA (.orm) File</code> — and keeps the
+   NORMA element GUIDs as its own ids, so a model imported from NORMA keeps its cross-tool identity.</p>
+
+<h2 id="fbm">FBM Exchange MetaModel</h2>
+<p>An XML format published by the FactEngine community as a deliberate exchange standard for
+   fact-based models — Object-Role Modeling and FCO-IM alike — with an XSD and ready-made .NET
+   classes. It is markedly simpler than NORMA's format while covering the same conceptual ground.</p>
+<p>It carries value and entity types, fact types with role groups, readings decomposed into
+   predicate parts, role constraints with join paths, subtype relationships, model notes, synonyms,
+   sample populations, and a multi-page diagram section where each page has a language.</p>
+<div class="note">
+  Four of its per-element attributes are the reason Factum's format grew a <code>meta</code> and a
+  <code>hints</code> object: <code>GUID</code> (an identity separate from the readable id),
+  <code>DBName</code> (a physical name for relational generation), <code>GraphLabel</code> (a label
+  for property graph generation), and <code>LongDescription</code> / <code>ShortDescription</code>.
+</div>
+
+<h2 id="ums">Unified Modelling Schema</h2>
+<p>A YAML format, also from the FactEngine community, with a JSON Schema and generated Delphi and
+   VB.NET classes. Unlike the other three it is <em>logical</em> rather than conceptual: the unit is
+   a type with properties, primary keys and relationships, and the fact-based content survives as
+   <code>FactTypeReadings</code> attached to those properties and relationships.</p>
+<p>That makes it a good <em>target</em> for generation and a lossy <em>source</em>. By the time a
+   model is expressed as types with properties, the attributes have already been formed — the design
+   decisions ORM exists to postpone have been taken, and you cannot recover which ones they were.</p>
+
+<h2 id="ossie">Apache Ossie</h2>
+<p>An incubating ASF specification for exchanging semantic metadata across analytics, AI and BI
+   platforms, defined as YAML with a published JSON Schema and a growing set of vendor converters.</p>
+<p>Its core specification is a logical semantic model — datasets, fields, relationships, metrics —
+   but its <strong>ontology section is conceptual, and it is ORM in all but name</strong>:</p>
+<ul>
+  <li>concepts typed <code>EntityType</code> or <code>ValueType</code> — object types and value types;</li>
+  <li>relationships with ordered <code>roles</code> and optionally named role players — fact types with role names;</li>
+  <li><code>multiplicity</code> of <code>ManyToOne</code> or <code>OneToOne</code> — uniqueness constraints;</li>
+  <li><code>identify_by</code> — the preferred identifier;</li>
+  <li><code>extends</code> — subtyping;</li>
+  <li><code>requires</code> — value and other constraints, as expressions;</li>
+  <li><code>derived_by</code> — derivation rules;</li>
+  <li><code>verbalizes</code> — readings, complete with the hyphen-binding convention
+      (<code>has description- {String}</code>) that ORM uses when a reading binds tightly to its
+      role player.</li>
+</ul>
+<p>Its <code>ontology_mappings</code> then bind concepts and relationships down to fields of a
+   logical dataset — the same job Factum's relational and graph mappings do, expressed as data
+   rather than as code.</p>
+<div class="note">
+  Ossie is the most likely of the three to be widely adopted, because it has an ASF home and vendor
+  converters rather than a single implementer. It is also the only one of the four that treats the
+  conceptual model and its mapping to physical storage as two separate, linked artifacts — which is
+  the same separation Factum draws between the model and its <code>hints</code>.
+</div>
+
+<h2 id="side-by-side">One fact type, four ways</h2>
+<p><em>Person works for Company</em>, each role mandatory on the Person side and functional — one
+   elementary fact, written in each format.</p>
+
+<p><strong>Factum <code>.orm.json</code></strong> — roles and readings are separate, and the
+   uniqueness constraint that makes the fact type functional is its own addressable element:</p>
+<pre><code>{
+  "id": "ft_works",
+  "roles": [
+    { "id": "r1", "objectTypeId": "ot_person" },
+    { "id": "r2", "objectTypeId": "ot_company" }
+  ],
+  "readings": [
+    { "id": "rd1", "roleOrder": ["r1", "r2"], "text": "{0} works for {1}", "isPrimary": true },
+    { "id": "rd2", "roleOrder": ["r2", "r1"], "text": "{0} employs {1}" }
+  ]
+}
+<span class="c">// elsewhere, in constraints:</span>
+{ "id": "uc1", "kind": "uniqueness", "roles": ["r1"] }
+{ "id": "mc1", "kind": "mandatory",  "roles": ["r1"] }</code></pre>
+
+<p><strong>FBM Exchange MetaModel</strong> — the same content, with readings broken into predicate
+   parts and constraints in a separate <code>RoleConstraints</code> collection:</p>
+<pre><code>&lt;FactType Id="WorksFor" GUID="_64A69DFB-..." Name="PersonWorksForCompany" DBName=""
+          IsObjectified="false" IsDerived="false" LongDescription=""&gt;
+  &lt;GraphLabel /&gt;
+  &lt;RoleGroup&gt;
+    &lt;Role Id="_3678ED9A-..." SequenceNr="1" Mandatory="true"  JoinedObjectTypeId="Person" /&gt;
+    &lt;Role Id="_785CF2B5-..." SequenceNr="2" Mandatory="false" JoinedObjectTypeId="Company" /&gt;
+  &lt;/RoleGroup&gt;
+  &lt;FactTypeReadings&gt;
+    &lt;FactTypeReading Id="..."&gt;
+      &lt;PredicateParts&gt;
+        &lt;PredicatePart SequenceNr="1" Role_Id="_3678ED9A-..."&gt;
+          &lt;PredicatePartText&gt;works for&lt;/PredicatePartText&gt;
+        &lt;/PredicatePart&gt;
+        &lt;PredicatePart SequenceNr="2" Role_Id="_785CF2B5-..." /&gt;
+      &lt;/PredicateParts&gt;
+    &lt;/FactTypeReading&gt;
+  &lt;/FactTypeReadings&gt;
+&lt;/FactType&gt;</code></pre>
+
+<p><strong>Unified Modelling Schema</strong> — already a foreign key. The fact is recoverable only
+   from the readings:</p>
+<pre><code>- Type: Person
+  Labels: [Person]
+  PrimaryKey: [Person_Id]
+  Properties:
+    - Name: Company_Id
+      DataType: Integer
+      Constraints: [NotNull]
+      FactTypeReadings:
+        - Language: Not Defined
+          Readings: [Person works for Company]
+  Relationships:
+    - Name: WORKS_FOR
+      Source: Person
+      Target: Company
+      From: [Company_Id]
+      To:   [Company_Id]
+      Readings: [Person works for Company, Company employs Person]
+  IsRelationshipType: false</code></pre>
+
+<p><strong>Apache Ossie ontology</strong> — conceptual again, with the relationship grouped under
+   the concept that plays its first role:</p>
+<pre><code>- concept: Person
+  type: EntityType
+  identify_by: [nr]
+  relationships:
+    - name: works_for
+      roles:
+        - concept: Company
+      multiplicity: ManyToOne
+      verbalizes:
+        - '{Person} works for {Company}'
+        - '{Company} employs {Person}'</code></pre>
+
+<p>Read those four in order and the trade-off is visible. FBM says the most per element and costs the
+   most to write. UMS has already decided that Company is a foreign key on Person. Ossie says almost
+   exactly what Factum says, in half the space, by hanging relationships off concepts and folding
+   the uniqueness constraint into a <code>multiplicity</code> keyword.</p>
+
+<h2 id="what-each-carries">What each format carries</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Concept</th><th>Factum</th><th>NORMA</th><th>FBM</th><th>UMS</th><th>Ossie</th></tr></thead>
+<tbody>
+<tr><td>Object types and value types</td><td>yes</td><td>yes</td><td>yes</td><td>partial</td><td>yes</td></tr>
+<tr><td>N-ary fact types</td><td>yes</td><td>yes</td><td>yes</td><td>no</td><td>yes</td></tr>
+<tr><td>Multiple readings per fact type</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+<tr><td>Full constraint family</td><td>yes</td><td>yes</td><td>yes</td><td>no</td><td>as expressions</td></tr>
+<tr><td>Join paths on set-comparison constraints</td><td>no</td><td>yes</td><td>yes</td><td>no</td><td>as expressions</td></tr>
+<tr><td>Subtyping and objectification</td><td>yes</td><td>yes</td><td>yes</td><td>no</td><td>subtyping only</td></tr>
+<tr><td>Derivation rules</td><td>stored, not evaluated</td><td>yes</td><td>yes</td><td>no</td><td>yes</td></tr>
+<tr><td>Diagram geometry</td><td>yes</td><td>yes</td><td>yes, multi-page</td><td>no</td><td>no</td></tr>
+<tr><td>Stable GUIDs</td><td><code>meta.guid</code></td><td>yes</td><td>yes</td><td>no</td><td>names are the identity</td></tr>
+<tr><td>Descriptions per element</td><td><code>meta.description</code></td><td>notes</td><td>yes</td><td>no</td><td>yes</td></tr>
+<tr><td>Synonyms</td><td><code>meta.synonyms</code></td><td>no</td><td>yes</td><td>Alias</td><td><code>ai_context.synonyms</code></td></tr>
+<tr><td>Physical name for generation</td><td><code>hints.relational.tableName</code></td><td>no</td><td><code>DBName</code></td><td>Labels</td><td>mappings</td></tr>
+<tr><td>Graph label for generation</td><td><code>hints.graph.label</code></td><td>no</td><td><code>GraphLabel</code></td><td>Label / Labels</td><td>no</td></tr>
+<tr><td>Guidance for AI tools</td><td><code>meta.aiContext</code></td><td>no</td><td>no</td><td>no</td><td><code>ai_context</code></td></tr>
+<tr><td>Multilingual readings</td><td><code>lang</code></td><td>no</td><td>page language</td><td>per reading</td><td>no</td></tr>
+<tr><td>Sample populations</td><td>no</td><td>yes</td><td>yes</td><td>yes</td><td>no</td></tr>
+<tr><td>Vendor extension namespace</td><td><code>x-</code></td><td>no</td><td>no</td><td>no</td><td><code>custom_extensions</code></td></tr>
+</tbody>
+</table></div>
+
+<h2 id="why-our-own">Why Factum keeps its own format</h2>
+<p>Adopting one of the others outright was considered and rejected, for four reasons.</p>
+
+<h3>A conceptual model must stay conceptual</h3>
+<p>UMS is out immediately: saving to it would mean deciding, at save time, which fact types become
+   columns and which become tables. That is precisely the decision ORM exists to defer, and it is
+   the decision Factum's two mappings exist to let you make twice, differently, from the same model.
+   A format that cannot hold an unmapped model cannot be the native format of a conceptual modelling
+   tool.</p>
+
+<h3>Text that diffs and merges</h3>
+<p>Factum's premise is that a model is source code: it lives in the repository next to everything
+   else and goes through review. Both XML formats defeat that. A NORMA or FBM document is a single
+   deep tree where an element's identity is its position as much as its id, so a two-line conceptual
+   change produces a diff nobody can read and a merge conflict nobody can resolve.</p>
+<p>Factum's structure is deliberately flat and id-addressed for exactly this reason. Adding a
+   constraint appends one object to one array; nothing else in the file moves.</p>
+
+<h3>The editor is a custom editor over a text document</h3>
+<p>The diagram is a VS Code custom editor backed by the file's text. That is what makes the dirty
+   indicator, the undo stack, file watching and source control work without any special handling,
+   and what makes <code>ORM: Open Model Source (JSON)</code> possible at all. It requires a format
+   VS Code can parse, validate and hand back as text — which in practice means JSON.</p>
+
+<h3>An exchange format and a working format are different jobs</h3>
+<p>The last reason is the most important one, and it is why this is not a rejection of the others.
+   The FBM Exchange MetaModel is explicitly an <em>exchange</em> format: its job is to be written
+   once, read once, and lose nothing in between. A working format is edited a hundred times a day by
+   a human and a program in turn, and is judged on how well it diffs and how easy it is to fix by
+   hand at two in the morning.</p>
+<p>These are different jobs and they want different shapes. The right relationship between them is a
+   converter, not a merger — and a converter needs the source format to <em>carry</em> what the
+   target format expects. That is the whole reason for
+   <a href="file-format.html#metadata"><code>meta</code></a> and
+   <a href="file-format.html#schema-generation-hints"><code>hints</code></a>.</p>
+
+<h2 id="closest">Which standard it is closest to</h2>
+<p>Two different answers, because two different things are being standardised.</p>
+
+<h3>Conceptually: Apache Ossie's ontology</h3>
+<p>Of everything surveyed, Ossie's ontology section is the closest match to what Factum stores, and
+   the alignment is close to term-for-term:</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Factum</th><th>Ossie ontology</th></tr></thead>
+<tbody>
+<tr><td><code>objectTypes[].kind</code></td><td><code>concept.type</code>: <code>EntityType</code> / <code>ValueType</code></td></tr>
+<tr><td><code>factTypes[].roles[]</code></td><td><code>relationships[].roles[]</code></td></tr>
+<tr><td><code>roles[].name</code></td><td><code>roles[].name</code></td></tr>
+<tr><td><code>readings[].text</code> with <code>{0}</code> placeholders</td><td><code>verbalizes[]</code> with <code>{Concept}</code> placeholders</td></tr>
+<tr><td>uniqueness constraint on one role</td><td><code>multiplicity: ManyToOne</code></td></tr>
+<tr><td><code>isPreferredIdentifier</code></td><td><code>identify_by</code></td></tr>
+<tr><td><code>subtypeRelations</code></td><td><code>extends</code></td></tr>
+<tr><td>value constraint</td><td><code>requires</code> expression</td></tr>
+<tr><td><code>derivationRule</code></td><td><code>derived_by</code></td></tr>
+<tr><td><code>meta.aiContext</code></td><td><code>ai_context</code></td></tr>
+</tbody>
+</table></div>
+<p>The differences are real but narrow. Ossie groups each relationship under the concept playing its
+   first role, where Factum keeps fact types in a flat list; Ossie has no diagram, no objectification
+   and no explicit constraint objects, expressing constraints as expressions instead. Everything
+   Factum stores that Ossie also models can be written out; the reverse is nearly true too.</p>
+
+<h3>Structurally: the JSON Schema and OpenAPI conventions</h3>
+<p>For the shape of the file rather than its content, Factum follows the conventions that have
+   actually been adopted across the wider ecosystem, not anything specific to fact-based modelling:</p>
+<ul>
+  <li><strong>JSON Schema 2020-12</strong> as the published contract, referenced from the document
+      by <code>$schema</code> — the same choice UMS and Ossie both made, and the one that gives
+      validation and completion in any editor and a compilable contract in any language.</li>
+  <li><strong><code>x-</code> prefixed extensions</strong> for anything outside the specification,
+      the convention used by OpenAPI, AsyncAPI and CloudEvents. Ossie solves the same problem with a
+      <code>custom_extensions</code> list of vendor blobs; the <code>x-</code> prefix keeps
+      extensions in place, next to what they extend.</li>
+  <li><strong>An additive major version.</strong> Version 2 only adds optional keys, so every
+      version 1 file is a valid version 2 file.</li>
+</ul>
+<div class="note">
+  The combination is what matters: the schema is <em>strict</em> about unknown keys, except in the
+  <code>x-</code> namespace and in <code>hints</code>, where unknown target keys are legal. A typo
+  is caught; a deliberate extension is not.
+</div>
+
+<h2 id="bridge">The bridge to each format</h2>
+<p>The point of the metadata added in format version 2 is that a converter to any of these three now
+   has somewhere to put what it reads, and somewhere to read what it writes.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Factum</th><th>FBM</th><th>UMS</th><th>Ossie</th></tr></thead>
+<tbody>
+<tr><td><code>meta.guid</code></td><td><code>GUID</code></td><td>—</td><td>—</td></tr>
+<tr><td><code>meta.description</code></td><td><code>LongDescription</code></td><td>—</td><td><code>description</code></td></tr>
+<tr><td><code>meta.shortDescription</code></td><td><code>ShortDescription</code></td><td>—</td><td>—</td></tr>
+<tr><td><code>meta.synonyms</code></td><td><code>Synonyms</code></td><td><code>Alias</code></td><td><code>ai_context.synonyms</code></td></tr>
+<tr><td><code>meta.aiContext</code></td><td>—</td><td>—</td><td><code>ai_context</code></td></tr>
+<tr><td><code>meta.uri</code></td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td><code>hints.relational.tableName</code></td><td><code>DBName</code></td><td><code>Labels</code></td><td><code>datasets[].source</code></td></tr>
+<tr><td><code>hints.graph.label</code></td><td><code>GraphLabel</code></td><td><code>Label</code></td><td>—</td></tr>
+<tr><td><code>hints.graph.labels</code></td><td>—</td><td><code>Labels</code></td><td>—</td></tr>
+<tr><td><code>readings[].lang</code></td><td><code>Page/@Language</code></td><td><code>FactTypeReadings[].Language</code></td><td>—</td></tr>
+<tr><td><code>hints.&lt;target&gt;</code> (open)</td><td>—</td><td>—</td><td><code>concept_mappings</code></td></tr>
+</tbody>
+</table></div>
+<p>The last row is the one worth planning around. An Ossie <code>concept_mapping</code> binds a
+   concept to a dataset and an expression — a per-element binding to a generation target, which is
+   the shape of a <code>hints</code> entry. An Ossie exporter would read <code>hints.ossie</code>
+   and need no change to the format to do it.</p>
+
+<h2 id="status">Status</h2>
+<p>What exists today: Factum reads NORMA <code>.orm</code> and writes <code>.orm.json</code>, and the
+   format carries the metadata and hints the other converters need.</p>
+<p>What does not exist yet: an FBM <code>.fbm</code> exporter, an Ossie ontology exporter, and a
+   <code>.orm</code> writer that would make the NORMA import two-way. All three are expressible
+   against the format as it now stands — that was the point of version 2 — but none of them is
+   written.</p>
+<div class="note">
+  Factum is an independent implementation and speaks for none of these projects. If you are working
+  on fact-based model interchange, the gap worth closing first is a shared conceptual core that FBM
+  and Ossie's ontology can both round-trip; the two are much closer to each other than either is to
+  a logical schema.
+</div>
+
+<p class="section-lede"><a class="button ghost" href="file-format.html">The <code>.orm.json</code> format in detail</a></p>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

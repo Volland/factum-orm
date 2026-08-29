@@ -8,7 +8,139 @@
 
 export type Id = string;
 
-export const MODEL_FORMAT_VERSION = 1;
+/**
+ * Major version of the on-disk format. Version 2 adds `meta` and `hints` to
+ * every element; version 1 files are valid version 2 files and are upgraded in
+ * place on load.
+ */
+export const MODEL_FORMAT_VERSION = 2;
+
+/** Canonical location of the JSON Schema that validates a `.orm.json` file. */
+export const MODEL_SCHEMA_URL =
+  'https://volland.github.io/factum-orm/schema/orm-model-2.schema.json';
+
+/* -------------------------------------------------------------------------- */
+/* Metadata and extensions                                                     */
+/* -------------------------------------------------------------------------- */
+
+// @lat: [[file-format#Extensions]]
+/**
+ * Vendor extension keys. Anything starting with `x-` is ignored by the editor
+ * and preserved verbatim on load and save, following the OpenAPI convention.
+ */
+export interface Extensible {
+  [key: `x-${string}`]: unknown;
+}
+
+/**
+ * Guidance for language models and other consumers, mirroring the `ai_context`
+ * object of the Apache Ossie semantic model specification.
+ */
+export interface AiContext extends Extensible {
+  instructions?: string;
+  synonyms?: string[];
+  examples?: string[];
+}
+
+// @lat: [[file-format#Metadata]]
+/**
+ * Descriptive metadata carried by the model and by every element in it. None
+ * of it changes the meaning of the schema; it exists to survive a round trip
+ * through other fact-based modeling tools and to feed generators.
+ */
+export interface Meta extends Extensible {
+  /**
+   * Stable cross-tool identity. Element `id`s are short and readable so that
+   * diffs stay small; a `guid` is what other tools — NORMA, Boston, the FBM
+   * Exchange MetaModel — key on, and is preserved across a round trip.
+   */
+  guid?: string;
+  /** IRI denoting this element, for RDF/OWL and ontology alignment. */
+  uri?: string;
+  /** Display name when it differs from the technical `name`. */
+  title?: string;
+  /** One-line summary. Maps to FBM `ShortDescription`. */
+  shortDescription?: string;
+  /** Long-form documentation. Maps to FBM `LongDescription`. */
+  description?: string;
+  /** Alternative names. Maps to FBM `Synonyms` and Ossie `ai_context.synonyms`. */
+  synonyms?: string[];
+  /** Free-form classification, e.g. `pii`, `deprecated`. */
+  tags?: string[];
+  aiContext?: AiContext;
+  /** Where this element came from, set by importers. */
+  source?: MetaSource;
+}
+
+/** Provenance recorded by an importer or generator. */
+export interface MetaSource extends Extensible {
+  /** Tool that produced the element, e.g. `NORMA`, `Boston`, `Ossie`. */
+  tool?: string;
+  /** Version of that tool or of its exchange format. */
+  version?: string;
+  /** Identifier the element had in the source document. */
+  ref?: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Schema generation hints                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Overrides for the relational mapping. A hint never changes the conceptual
+ * schema — it only decides how that schema is rendered as tables.
+ */
+export interface RelationalHints extends Extensible {
+  /** Schema/database qualifier for generated tables. Model level only. */
+  schemaName?: string;
+  /** Physical table name. Maps to FBM `DBName` on object and fact types. */
+  tableName?: string;
+  /** Physical column name for a value type or a role. */
+  columnName?: string;
+  /** Verbatim SQL type, used instead of the type derived from `dataType`. */
+  sqlType?: string;
+  /**
+   * Forces how a functional fact type maps: `absorb` as a column into the
+   * player's table, or `separateTable` as a table of its own.
+   */
+  mapping?: 'absorb' | 'separateTable';
+}
+
+/**
+ * Overrides for the property graph mapping, covering the same ground as the
+ * FBM `GraphLabel` element and the UMS `Labels` / `Label` fields.
+ */
+export interface GraphHints extends Extensible {
+  /** Node label for an object type, or relationship type for a fact type. */
+  label?: string;
+  /** Additional node labels, for stores that allow more than one. */
+  labels?: string[];
+  /** Property name when a value type is absorbed as a property. */
+  propertyName?: string;
+  /**
+   * Forces a value type to become a node of its own or stay a property,
+   * overriding the many-to-many test the mapper would otherwise apply.
+   */
+  mapping?: 'node' | 'property';
+}
+
+// @lat: [[file-format#Hints]]
+/**
+ * Per-target hints consulted by the generators. Unknown target keys are legal
+ * and are preserved, so a downstream tool can carry its own without a format
+ * change — `hints.ossie`, `hints.typedb` and so on.
+ */
+export interface Hints extends Extensible {
+  relational?: RelationalHints;
+  graph?: GraphHints;
+  [target: string]: unknown;
+}
+
+/** Everything that can carry metadata, hints and vendor extensions. */
+export interface Annotated extends Extensible {
+  meta?: Meta;
+  hints?: Hints;
+}
 
 export type DataType =
   | 'string'
@@ -28,7 +160,7 @@ export type DataType =
 /** How a reference mode expands into a reference scheme. */
 export type RefModeKind = 'popular' | 'unit' | 'general';
 
-export interface ObjectType {
+export interface ObjectType extends Annotated {
   id: Id;
   name: string;
   /** Entity types have a reference scheme; value types are lexical. */
@@ -51,7 +183,7 @@ export interface ObjectType {
   note?: string;
 }
 
-export interface Role {
+export interface Role extends Annotated {
   id: Id;
   /** Object type playing this role. Empty while a role is being connected. */
   objectTypeId: Id | null;
@@ -63,14 +195,20 @@ export interface Role {
  * A predicate reading. `text` uses `{0}`, `{1}`, ... placeholders that index
  * into `roleOrder`, matching the NORMA convention.
  */
-export interface Reading {
+export interface Reading extends Annotated {
   id: Id;
   roleOrder: Id[];
   text: string;
   isPrimary?: boolean;
+  /**
+   * BCP 47 tag of the language this reading is written in. Absent means the
+   * model's `lang`. Several tools key readings by language; carrying the tag
+   * keeps a multilingual model from collapsing on a round trip.
+   */
+  lang?: string;
 }
 
-export interface FactType {
+export interface FactType extends Annotated {
   id: Id;
   roles: Role[];
   readings: Reading[];
@@ -81,7 +219,7 @@ export interface FactType {
   note?: string;
 }
 
-export interface SubtypeRelation {
+export interface SubtypeRelation extends Annotated {
   id: Id;
   subtypeId: Id;
   supertypeId: Id;
@@ -111,7 +249,7 @@ export interface ValueRange {
   maxInclusive?: boolean;
 }
 
-interface ConstraintBase {
+interface ConstraintBase extends Annotated {
   id: Id;
   name?: string;
   note?: string;
@@ -197,7 +335,7 @@ export type Constraint =
 
 export type ConstraintKind = Constraint['kind'];
 
-export interface Shape {
+export interface Shape extends Extensible {
   x: number;
   y: number;
   /** Fact types are laid out horizontally or vertically. */
@@ -209,17 +347,28 @@ export interface Shape {
   hidden?: boolean;
 }
 
-export interface Diagram {
+export interface Diagram extends Extensible {
   name?: string;
   /** Keyed by object type / fact type / constraint / subtype relation id. */
   shapes: Record<Id, Shape>;
 }
 
-export interface OrmModel {
+/** Identifies the software that wrote the file, for interchange provenance. */
+export interface Generator extends Extensible {
+  name: string;
+  version?: string;
+}
+
+export interface OrmModel extends Annotated {
+  /** URL of the JSON Schema this document claims to satisfy. */
   $schema?: string;
+  /** Major format version. See {@link MODEL_FORMAT_VERSION}. */
   version: number;
   name: string;
+  /** BCP 47 tag for readings that carry no `lang` of their own. */
+  lang?: string;
   note?: string;
+  generator?: Generator;
   objectTypes: ObjectType[];
   factTypes: FactType[];
   subtypeRelations: SubtypeRelation[];

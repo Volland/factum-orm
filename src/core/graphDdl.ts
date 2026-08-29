@@ -79,6 +79,11 @@ export function generateGraphDdl(schema: GraphSchema, options: GraphDdlOptions =
 function renderNodeTable(node: NodeTable, guard: string, comments: boolean): string {
   const lines: string[] = [];
   if (comments && node.comment) lines.push(`// ${node.comment}`);
+  // LadybugDB gives a node table exactly one label, so additional labels asked
+  // for in hints.graph.labels are carried as a comment rather than dropped.
+  if (comments && node.extraLabels?.length) {
+    lines.push(`//   [labels] also labelled ${node.extraLabels.join(', ')}`);
+  }
   lines.push(`CREATE NODE TABLE ${guard}${node.name}(`);
   // The separating comma has to precede the trailing comment, or the comment
   // would swallow it and the statement would lose the separator.

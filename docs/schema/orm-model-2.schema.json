@@ -1,0 +1,883 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://volland.github.io/factum-orm/schema/orm-model-2.schema.json",
+  "title": "Factum ORM 2 conceptual schema",
+  "description": "An Object-Role Modeling (ORM 2) conceptual schema and its diagram layout, as stored in a .orm.json file. Every element may carry `meta` (descriptive metadata), `hints` (per-target schema-generation guidance) and `x-` prefixed vendor extensions.",
+  "type": "object",
+  "required": [
+    "name",
+    "objectTypes",
+    "factTypes"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of this schema, so editors validate the file as you type."
+    },
+    "version": {
+      "description": "Major version of the file format. Version 1 documents are valid version 2 documents and are upgraded on load.",
+      "type": "integer",
+      "enum": [
+        1,
+        2
+      ],
+      "default": 2
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the model."
+    },
+    "lang": {
+      "type": "string",
+      "description": "BCP 47 tag for readings that carry no `lang` of their own, e.g. \"en\"."
+    },
+    "note": {
+      "type": "string",
+      "description": "Free text about the model. Prefer meta.description for anything a generator should see."
+    },
+    "generator": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "Software that wrote this file.",
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "objectTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objectType"
+      }
+    },
+    "factTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/factType"
+      }
+    },
+    "subtypeRelations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/subtypeRelation"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/constraint"
+      }
+    },
+    "diagram": {
+      "$ref": "#/$defs/diagram"
+    },
+    "meta": {
+      "$ref": "#/$defs/meta"
+    },
+    "hints": {
+      "$ref": "#/$defs/hints"
+    }
+  },
+  "patternProperties": {
+    "^x-": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier, unique within the file and referenced from constraints and the diagram."
+    },
+    "dataType": {
+      "type": "string",
+      "enum": [
+        "string",
+        "text",
+        "integer",
+        "decimal",
+        "float",
+        "money",
+        "boolean",
+        "date",
+        "time",
+        "dateTime",
+        "guid",
+        "binary",
+        "autoCounter"
+      ]
+    },
+    "aiContext": {
+      "type": "object",
+      "properties": {
+        "instructions": {
+          "type": "string",
+          "description": "How a language model should use this element."
+        },
+        "synonyms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Guidance for language models, mirroring the `ai_context` object of the Apache Ossie semantic model specification.",
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "guid": {
+          "type": "string",
+          "description": "Stable cross-tool identity. Preserved through a round trip with NORMA, Boston and the FBM Exchange MetaModel, which key on GUIDs rather than on readable ids."
+        },
+        "uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "IRI denoting this element, for RDF/OWL and ontology alignment."
+        },
+        "title": {
+          "type": "string",
+          "description": "Display name when it differs from the technical name."
+        },
+        "shortDescription": {
+          "type": "string",
+          "description": "One-line summary. Maps to FBM ShortDescription."
+        },
+        "description": {
+          "type": "string",
+          "description": "Long-form documentation. Maps to FBM LongDescription, and is emitted as a comment by the generators."
+        },
+        "synonyms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Alternative names. Maps to FBM Synonyms and Ossie ai_context.synonyms."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Free-form classification, e.g. \"pii\"."
+        },
+        "aiContext": {
+          "$ref": "#/$defs/aiContext"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "type": "string",
+              "description": "Tool the element came from, e.g. \"NORMA\", \"Boston\"."
+            },
+            "version": {
+              "type": "string"
+            },
+            "ref": {
+              "type": "string",
+              "description": "Identifier the element had in the source document."
+            }
+          },
+          "description": "Provenance recorded by an importer.",
+          "patternProperties": {
+            "^x-": true
+          },
+          "additionalProperties": false
+        }
+      },
+      "description": "Descriptive metadata. None of it changes the meaning of the conceptual schema.",
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "relationalHints": {
+      "type": "object",
+      "properties": {
+        "schemaName": {
+          "type": "string",
+          "description": "Schema qualifier for generated tables. Model level only."
+        },
+        "tableName": {
+          "type": "string",
+          "description": "Physical table name, used verbatim. Maps to FBM DBName."
+        },
+        "columnName": {
+          "type": "string",
+          "description": "Physical column name for a value type, or for a role that maps to a single column."
+        },
+        "sqlType": {
+          "type": "string",
+          "description": "Verbatim SQL type, emitted instead of the type derived from dataType."
+        },
+        "mapping": {
+          "type": "string",
+          "enum": [
+            "absorb",
+            "separateTable"
+          ],
+          "description": "Forces how a functional binary maps: absorbed as a column, or given a table of its own."
+        }
+      },
+      "description": "Overrides for the relational mapping.",
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "graphHints": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Node label for an object type, or relationship type for a fact type. Maps to FBM GraphLabel and UMS Label."
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional node labels, for stores that allow more than one. Maps to UMS Labels."
+        },
+        "propertyName": {
+          "type": "string",
+          "description": "Property name when a value type is absorbed as a property."
+        },
+        "mapping": {
+          "type": "string",
+          "enum": [
+            "node",
+            "property"
+          ],
+          "description": "Forces a value type to become a node or stay a property. A \"property\" hint is refused when the value is played many-to-many, since a single-valued property would lose facts."
+        }
+      },
+      "description": "Overrides for the property graph mapping.",
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "hints": {
+      "type": "object",
+      "description": "Per-target guidance for schema generation. A hint never changes the conceptual schema, only how it is rendered. Unknown target keys are legal and preserved, so a downstream tool can carry its own without a format change.",
+      "properties": {
+        "relational": {
+          "$ref": "#/$defs/relationalHints"
+        },
+        "graph": {
+          "$ref": "#/$defs/graphHints"
+        }
+      },
+      "additionalProperties": true
+    },
+    "objectType": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "entity",
+            "value"
+          ],
+          "description": "Entity types have a reference scheme; value types are lexical."
+        },
+        "refMode": {
+          "type": "string",
+          "description": "Reference mode, e.g. `nr` in Person(.nr). Entity types only."
+        },
+        "refModeKind": {
+          "type": "string",
+          "enum": [
+            "popular",
+            "unit",
+            "general"
+          ]
+        },
+        "dataType": {
+          "$ref": "#/$defs/dataType"
+        },
+        "dataTypeLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dataTypeScale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "isIndependent": {
+          "type": "boolean",
+          "description": "Instances may play no fact roles (\"!\")."
+        },
+        "isPersonal": {
+          "type": "boolean",
+          "description": "Verbalized with \"who\" rather than \"that\"."
+        },
+        "objectifiedFactTypeId": {
+          "$ref": "#/$defs/id"
+        },
+        "isImplicitObjectification": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "hints": {
+          "$ref": "#/$defs/hints"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "role": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "objectTypeId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Object type playing this role; null while the role is being connected."
+        },
+        "name": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "hints": {
+          "$ref": "#/$defs/hints"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "reading": {
+      "type": "object",
+      "required": [
+        "id",
+        "roleOrder",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "roleOrder": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "text": {
+          "type": "string",
+          "description": "Predicate reading using {0}, {1}, ... placeholders indexing into roleOrder, the same convention NORMA uses."
+        },
+        "isPrimary": {
+          "type": "boolean"
+        },
+        "lang": {
+          "type": "string",
+          "description": "BCP 47 tag of this reading's language; absent means the model's lang."
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "hints": {
+          "$ref": "#/$defs/hints"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "factType": {
+      "type": "object",
+      "required": [
+        "id",
+        "roles",
+        "readings"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/role"
+          }
+        },
+        "readings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reading"
+          }
+        },
+        "isDerived": {
+          "type": "boolean"
+        },
+        "isStored": {
+          "type": "boolean",
+          "description": "Derived and stored, rather than purely derived."
+        },
+        "derivationRule": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "hints": {
+          "$ref": "#/$defs/hints"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "subtypeRelation": {
+      "type": "object",
+      "required": [
+        "id",
+        "subtypeId",
+        "supertypeId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "subtypeId": {
+          "$ref": "#/$defs/id"
+        },
+        "supertypeId": {
+          "$ref": "#/$defs/id"
+        },
+        "isPreferredIdentificationPath": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "hints": {
+          "$ref": "#/$defs/hints"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "valueRange": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Discrete single value; mutually exclusive with min/max."
+        },
+        "min": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "max": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "minInclusive": {
+          "type": "boolean"
+        },
+        "maxInclusive": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "constraint": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "uniqueness",
+            "mandatory",
+            "frequency",
+            "ring",
+            "subset",
+            "exclusion",
+            "equality",
+            "value",
+            "cardinality",
+            "subtypeSet"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "modality": {
+          "type": "string",
+          "enum": [
+            "alethic",
+            "deontic"
+          ],
+          "description": "Alethic constraints cannot be violated; deontic ones should not be."
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1
+        },
+        "roleSequences": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/id"
+            },
+            "minItems": 1
+          },
+          "description": "For subset the first sequence is the subset, the second the superset."
+        },
+        "isPreferredIdentifier": {
+          "type": "boolean"
+        },
+        "isImplied": {
+          "type": "boolean"
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "null means unbounded (n)."
+        },
+        "types": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "irreflexive",
+              "reflexive",
+              "purelyReflexive",
+              "symmetric",
+              "asymmetric",
+              "antisymmetric",
+              "transitive",
+              "intransitive",
+              "strictlyIntransitive",
+              "acyclic"
+            ]
+          }
+        },
+        "objectTypeId": {
+          "$ref": "#/$defs/id"
+        },
+        "roleId": {
+          "$ref": "#/$defs/id"
+        },
+        "ranges": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/valueRange"
+          }
+        },
+        "supertypeId": {
+          "$ref": "#/$defs/id"
+        },
+        "subtypeRelationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1
+        },
+        "isExclusive": {
+          "type": "boolean"
+        },
+        "isExhaustive": {
+          "type": "boolean"
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "hints": {
+          "$ref": "#/$defs/hints"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "title": "uniqueness",
+          "properties": {
+            "kind": {
+              "const": "uniqueness"
+            }
+          },
+          "required": [
+            "kind",
+            "roles"
+          ]
+        },
+        {
+          "title": "mandatory",
+          "properties": {
+            "kind": {
+              "const": "mandatory"
+            }
+          },
+          "required": [
+            "kind",
+            "roles"
+          ]
+        },
+        {
+          "title": "frequency",
+          "properties": {
+            "kind": {
+              "const": "frequency"
+            }
+          },
+          "required": [
+            "kind",
+            "roles",
+            "min",
+            "max"
+          ]
+        },
+        {
+          "title": "ring",
+          "properties": {
+            "kind": {
+              "const": "ring"
+            },
+            "roles": {
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "kind",
+            "roles",
+            "types"
+          ]
+        },
+        {
+          "title": "setComparison",
+          "properties": {
+            "kind": {
+              "enum": [
+                "subset",
+                "exclusion",
+                "equality"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "roleSequences"
+          ]
+        },
+        {
+          "title": "value",
+          "properties": {
+            "kind": {
+              "const": "value"
+            }
+          },
+          "required": [
+            "kind",
+            "ranges"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "objectTypeId"
+              ]
+            },
+            {
+              "required": [
+                "roleId"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "cardinality",
+          "properties": {
+            "kind": {
+              "const": "cardinality"
+            }
+          },
+          "required": [
+            "kind",
+            "min",
+            "max"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "objectTypeId"
+              ]
+            },
+            {
+              "required": [
+                "roleId"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "subtypeSet",
+          "properties": {
+            "kind": {
+              "const": "subtypeSet"
+            }
+          },
+          "required": [
+            "kind",
+            "supertypeId",
+            "subtypeRelationIds"
+          ]
+        }
+      ]
+    },
+    "shape": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical"
+          ],
+          "description": "How a fact type is laid out."
+        },
+        "w": {
+          "type": "number"
+        },
+        "h": {
+          "type": "number"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Exists in the model but not on this diagram."
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "diagram": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "shapes": {
+          "type": "object",
+          "description": "Keyed by object type, fact type, constraint or subtype relation id.",
+          "additionalProperties": {
+            "$ref": "#/$defs/shape"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    }
+  }
+}

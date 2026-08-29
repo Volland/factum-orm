@@ -1,11 +1,13 @@
 import { DataType, FactType, Id, ObjectType, OrmModel, Role, ValueRange } from '../model/types.js';
 import {
+  describe,
   factTypeOfRole,
   indexModel,
   ModelIndex,
   predicateText,
   primaryReading,
   readingStartingAt,
+  stringHint,
 } from '../model/model.js';
 
 /* -------------------------------------------------------------------------- */
@@ -22,6 +24,8 @@ export interface Column {
   sourceRoleId?: Id;
   sourceObjectTypeId?: Id;
   comment?: string;
+  /** Verbatim SQL type from a `hints.relational.sqlType`, used as written. */
+  sqlType?: string;
 }
 
 export interface ForeignKey {
@@ -51,6 +55,8 @@ export interface Table {
 
 export interface RelationalSchema {
   name: string;
+  /** Schema qualifier from `hints.relational.schemaName` on the model. */
+  schemaName?: string;
   tables: Table[];
   /** Human-readable notes about mapping choices, shown next to the schema. */
   notes: string[];
@@ -96,7 +102,8 @@ export function mapToRelational(model: OrmModel): RelationalSchema {
   );
   for (const table of tables) dedupeColumns(table);
 
-  return { name: model.name, tables, notes: context.notes };
+  const schemaName = stringHint(model, 'relational', 'schemaName');
+  return { name: model.name, ...(schemaName ? { schemaName } : {}), tables, notes: context.notes };
 }
 
 function planSubtypeAbsorption(context: MapContext): void {
@@ -133,7 +140,7 @@ function createBaseTables(context: MapContext): void {
     if (ot.objectifiedFactTypeId) continue; // handled with its fact type
 
     const table: Table = {
-      name: tableName(ot.name),
+      name: hintedTableName(ot, ot.name),
       sourceKind: 'objectType',
       sourceId: ot.id,
       columns: [],
@@ -141,7 +148,7 @@ function createBaseTables(context: MapContext): void {
       uniques: [],
       foreignKeys: [],
       checks: [],
-      comment: `Object type ${ot.name}`,
+      comment: describe(ot) ?? `Object type ${ot.name}`,
     };
     for (const column of identifyingColumns(context, ot, new Set())) {
       table.columns.push({ ...column, nullable: false });
@@ -156,7 +163,7 @@ function createBaseTables(context: MapContext): void {
     const ft = index.factTypes.get(ot.objectifiedFactTypeId);
     if (!ft) continue;
     const table: Table = {
-      name: tableName(ot.name),
+      name: hintedTableName(ot, ot.name),
       sourceKind: 'factType',
       sourceId: ft.id,
       columns: [],
@@ -191,7 +198,7 @@ function mapFactTypes(context: MapContext): void {
       continue;
     }
     const functionalRole = functionalRoleOf(context, ft);
-    if (arity === 2 && functionalRole) {
+    if (arity === 2 && functionalRole && stringHint(ft, 'relational', 'mapping') !== 'separateTable') {
       absorbBinary(context, ft, functionalRole);
       continue;
     }
@@ -250,7 +257,7 @@ function absorbBinary(context: MapContext, ft: FactType, functionalRole: Role): 
 
 function mapAsTable(context: MapContext, ft: FactType): void {
   const table: Table = {
-    name: tableName(factTableName(context, ft)),
+    name: hintedTableName(ft, factTableName(context, ft)),
     sourceKind: 'factType',
     sourceId: ft.id,
     columns: [],
@@ -258,7 +265,7 @@ function mapAsTable(context: MapContext, ft: FactType): void {
     uniques: [],
     foreignKeys: [],
     checks: [],
-    comment: `Fact type "${readingLabel(ft)}"`,
+    comment: describe(ft) ?? `Fact type "${readingLabel(ft)}"`,
   };
   const keyRoles = preferredKeyRoles(context, ft);
   for (const role of ft.roles) {
@@ -299,9 +306,18 @@ function columnsForRole(context: MapContext, role: Role, nullable: boolean, ft?:
   const player = context.index.objectTypes.get(role.objectTypeId);
   if (!player) return [];
   const prefix = role.name ?? (ft ? roleReadingPrefix(ft, role) : undefined);
-  return identifyingColumns(context, player, new Set()).map((column) => ({
+  // A column-name hint on the role names the whole column, prefix included, so
+  // it is applied only when the role maps to exactly one column.
+  const override = stringHint(role, 'relational', 'columnName');
+  const columns = identifyingColumns(context, player, new Set());
+  return columns.map((column) => ({
     ...column,
-    name: prefix ? columnName(`${prefix} ${column.name}`) : column.name,
+    name:
+      override && columns.length === 1
+        ? override
+        : prefix
+          ? columnName(`${prefix} ${column.name}`)
+          : column.name,
     nullable,
     sourceRoleId: role.id,
     comment: ft ? `From "${readingLabel(ft)}"` : column.comment,
@@ -316,14 +332,16 @@ function identifyingColumns(context: MapContext, ot: ObjectType, visiting: Set<I
   visiting.add(ot.id);
 
   if (ot.kind === 'value') {
+    const sql = stringHint(ot, 'relational', 'sqlType');
     return [
       {
-        name: columnName(ot.name),
+        name: stringHint(ot, 'relational', 'columnName') ?? columnName(ot.name),
         dataType: ot.dataType ?? 'string',
         length: ot.dataTypeLength,
         scale: ot.dataTypeScale,
         nullable: false,
         sourceObjectTypeId: ot.id,
+        ...(sql ? { sqlType: sql } : {}),
       },
     ];
   }
@@ -548,6 +566,14 @@ function dedupeColumns(table: Table): void {
 
 export function tableName(name: string): string {
   return pascal(name) || 'Table';
+}
+
+/**
+ * A `hints.relational.tableName` is a physical name and is used exactly as
+ * written; otherwise the conceptual name is converted to the usual convention.
+ */
+function hintedTableName(element: Parameters<typeof stringHint>[0], fallback: string): string {
+  return stringHint(element, 'relational', 'tableName') ?? tableName(fallback);
 }
 
 export function columnName(name: string): string {

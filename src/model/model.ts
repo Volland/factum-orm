@@ -1,12 +1,18 @@
 import {
+  Annotated,
   Constraint,
   Diagram,
   FactType,
+  GraphHints,
+  Hints,
   Id,
   MODEL_FORMAT_VERSION,
+  MODEL_SCHEMA_URL,
+  Meta,
   ObjectType,
   OrmModel,
   Reading,
+  RelationalHints,
   Role,
   Shape,
   SubtypeRelation,
@@ -24,6 +30,7 @@ export function newId(prefix: string): Id {
 
 export function emptyModel(name = 'New Model'): OrmModel {
   return {
+    $schema: MODEL_SCHEMA_URL,
     version: MODEL_FORMAT_VERSION,
     name,
     objectTypes: [],
@@ -250,24 +257,52 @@ export function predicateText(reading: Reading): string {
 /* Serialization                                                               */
 /* -------------------------------------------------------------------------- */
 
+/** Top-level keys the editor owns; everything else is a caller's extension. */
+const KNOWN_MODEL_KEYS = new Set([
+  '$schema',
+  'version',
+  'name',
+  'lang',
+  'note',
+  'meta',
+  'hints',
+  'generator',
+  'objectTypes',
+  'factTypes',
+  'subtypeRelations',
+  'constraints',
+  'diagram',
+]);
+
 export function serializeModel(model: OrmModel): string {
   // Key order is fixed so that saving a model produces a stable, diffable file.
   const ordered: OrmModel = {
     ...(model.$schema ? { $schema: model.$schema } : {}),
     version: MODEL_FORMAT_VERSION,
     name: model.name,
+    ...(model.lang ? { lang: model.lang } : {}),
     ...(model.note ? { note: model.note } : {}),
+    ...(model.meta ? { meta: model.meta } : {}),
+    ...(model.hints ? { hints: model.hints } : {}),
+    ...(model.generator ? { generator: model.generator } : {}),
     objectTypes: model.objectTypes,
     factTypes: model.factTypes,
     subtypeRelations: model.subtypeRelations,
     constraints: model.constraints,
     diagram: model.diagram,
   };
-  return `${JSON.stringify(ordered, undefined, 2)}\n`;
+  // Unrecognised top-level keys are written back last, so a document that
+  // travelled through another tool loses nothing by being opened here.
+  const extras = Object.entries(model as unknown as Record<string, unknown>).filter(
+    ([key]) => !KNOWN_MODEL_KEYS.has(key),
+  );
+  const withExtras = extras.length ? { ...ordered, ...Object.fromEntries(extras) } : ordered;
+  return `${JSON.stringify(withExtras, undefined, 2)}\n`;
 }
 
 export class ModelParseError extends Error {}
 
+// @lat: [[file-format#Versioning]]
 /**
  * Parses and repairs a `.orm.json` document. Missing collections are tolerated
  * so that hand-written files stay easy to start from.
@@ -289,8 +324,14 @@ export function parseModel(text: string): OrmModel {
     shapes: isRecord(source.diagram?.shapes) ? (source.diagram!.shapes as Record<Id, Shape>) : {},
   };
   if (typeof source.diagram?.name === 'string') diagram.name = source.diagram.name;
+  const extras = Object.fromEntries(
+    Object.entries(source as Record<string, unknown>).filter(([key]) => !KNOWN_MODEL_KEYS.has(key)),
+  );
   const model: OrmModel = {
-    version: typeof source.version === 'number' ? source.version : MODEL_FORMAT_VERSION,
+    ...extras,
+    // A version 1 document is a valid version 2 document: version 2 only adds
+    // optional `meta`, `hints` and `lang`, so upgrading is a version bump.
+    version: MODEL_FORMAT_VERSION,
     name: typeof source.name === 'string' ? source.name : 'Untitled Model',
     objectTypes: asArray(source.objectTypes),
     factTypes: asArray<FactType>(source.factTypes).map((ft) => ({
@@ -303,8 +344,59 @@ export function parseModel(text: string): OrmModel {
     diagram,
   };
   if (typeof source.$schema === 'string') model.$schema = source.$schema;
+  if (typeof source.lang === 'string') model.lang = source.lang;
   if (typeof source.note === 'string') model.note = source.note;
+  if (isRecord(source.meta)) model.meta = source.meta as Meta;
+  if (isRecord(source.hints)) model.hints = source.hints as Hints;
+  if (isRecord(source.generator) && typeof source.generator.name === 'string') {
+    model.generator = source.generator;
+  }
   return model;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Metadata and hints                                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Hints for one generation target. Unknown targets are legal, so a caller can
+ * read `hintsFor(element, 'ossie')` for a target this editor knows nothing
+ * about.
+ */
+export function hintsFor(element: Annotated | undefined, target: 'relational'): RelationalHints | undefined;
+export function hintsFor(element: Annotated | undefined, target: 'graph'): GraphHints | undefined;
+export function hintsFor(element: Annotated | undefined, target: string): Record<string, unknown> | undefined;
+export function hintsFor(element: Annotated | undefined, target: string): unknown {
+  const value = element?.hints?.[target];
+  return isRecord(value) ? value : undefined;
+}
+
+/**
+ * A single string hint, or `undefined` when it is absent or not a string.
+ * Hand-edited files are not trusted to have the right types.
+ */
+export function stringHint(
+  element: Annotated | undefined,
+  target: string,
+  key: string,
+): string | undefined {
+  const value = (hintsFor(element, target) as Record<string, unknown> | undefined)?.[key];
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+/**
+ * The best human-readable description of an element: the long description, the
+ * short one, then the legacy `note`. Used by generators for comments.
+ */
+export function describe(element: Annotated & { note?: string }): string | undefined {
+  return element.meta?.description ?? element.meta?.shortDescription ?? element.note;
+}
+
+/** Every name an element answers to, for search and for AI context. */
+export function synonymsOf(element: Annotated): string[] {
+  const fromMeta = element.meta?.synonyms ?? [];
+  const fromAi = element.meta?.aiContext?.synonyms ?? [];
+  return [...new Set([...fromMeta, ...fromAi].filter((s) => typeof s === 'string' && s.trim()))];
 }
 
 function asArray<T>(value: unknown): T[] {

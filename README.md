@@ -150,11 +150,14 @@ SVG and PNG export of the diagram, plus force-directed auto-layout.
 
 ## File format
 
-`*.orm.json` holds the conceptual schema and its diagram layout in one id-addressed structure:
+`*.orm.json` holds the conceptual schema and its diagram layout in one id-addressed structure,
+described by a published [JSON Schema](schema/orm-model-2.schema.json) that VS Code uses to validate
+and complete the file in the plain text editor:
 
 ```jsonc
 {
-  "version": 1,
+  "$schema": "https://volland.github.io/factum-orm/schema/orm-model-2.schema.json",
+  "version": 2,
   "name": "HR",
   "objectTypes": [
     { "id": "ot_person", "name": "Person", "kind": "entity", "refMode": "nr", "dataType": "integer" }
@@ -184,6 +187,66 @@ Readings use `{0}`, `{1}`, … placeholders indexing into `roleOrder`, the same 
 The file is safe to hand-edit; the editor repairs missing collections on load. Because the diagram is
 a custom editor over a text document, VS Code's dirty state, undo stack and file watching all work
 normally — and `ORM: Open Model Source (JSON)` shows the text behind the picture at any time.
+
+### Metadata
+
+Every element may carry a `meta` object — `guid`, `uri`, `title`, `shortDescription`, `description`,
+`synonyms`, `tags`, `aiContext` and `source`. None of it changes what the conceptual schema means. It
+is there so a model survives a round trip through another fact-based modeling tool, and so generators
+have something to say beyond an element's name: `meta.description` becomes the comment on the
+generated table and node table.
+
+The fields have counterparts in the formats Factum has to interoperate with rather than being
+invented — `guid` and the two descriptions are the FBM Exchange MetaModel's `GUID`,
+`ShortDescription` and `LongDescription`; `synonyms` is its `Synonyms` and Apache Ossie's
+`ai_context.synonyms`; `aiContext` is Ossie's `ai_context`.
+
+### Schema generation hints
+
+A `hints` object steers generation per target. A hint never changes the conceptual schema, only how
+that schema is rendered — strip every hint from a file and the model still says the same thing. A
+name given in a hint is a physical name and is used verbatim.
+
+```jsonc
+{
+  "id": "ot_person", "name": "Person", "kind": "entity", "refMode": "nr",
+  "meta": { "description": "A human being known to the business." },
+  "hints": {
+    "relational": { "tableName": "HR_PERSON", "columnName": "PERSON_NR" },
+    "graph": { "label": "Employee", "labels": ["Party"] }
+  }
+}
+```
+
+| Hint | Applies to | Effect |
+| --- | --- | --- |
+| `relational.schemaName` | model | Qualifies every generated table |
+| `relational.tableName` | object type, fact type | Physical table name |
+| `relational.columnName` | value type, role | Physical column name |
+| `relational.sqlType` | value type | SQL type, instead of the one derived from `dataType` |
+| `relational.mapping` | fact type | `absorb` or `separateTable` |
+| `graph.label` | object type, fact type | Node label or relationship type |
+| `graph.labels` | object type | Additional node labels |
+| `graph.propertyName` | value type, role | Name of an absorbed property |
+| `graph.mapping` | value type | `node` or `property` |
+
+A hint that would make the generated schema lose facts is refused rather than obeyed, and the
+refusal appears in the mapping notes: asking for `graph.mapping: "property"` on a value type played
+many-to-many leaves it a node, because a single-valued property cannot hold many values.
+
+Unknown target keys are legal and preserved, so another tool can carry `hints.ossie` or
+`hints.typedb` without a change to this format.
+
+### Extensions and versioning
+
+Any key beginning with `x-` is an extension: legal anywhere, ignored by the editor and written back
+unchanged, following the OpenAPI convention. The loader is deliberately more permissive than the
+schema — it preserves *every* unrecognised top-level key, so a misspelled key is a warning in the
+editor rather than data lost on the next save.
+
+`version` is the format's major version, currently `2`. Version 2 only adds optional `meta`, `hints`
+and `lang` keys, so a version 1 file is a valid version 2 file: it is upgraded on load and written
+back as version 2.
 
 ## Mapping rules
 
@@ -220,6 +283,9 @@ Mapping notes explaining each choice appear beside the schema and as comments in
 ## Known limitations
 
 - The NORMA importer is one-way; models are saved as `.orm.json`, not written back to `.orm` XML.
+- There is no exporter yet for the FBM Exchange MetaModel (`.fbm`) or for Apache Ossie's ontology
+  YAML. The `meta` and `hints` a converter would need are in the format; the converters are not
+  written.
 - Derivation rules are stored and verbalized but not evaluated.
 - The graph mapping targets LadybugDB's Cypher DDL. Other property graph databases will need small
   syntax adjustments.

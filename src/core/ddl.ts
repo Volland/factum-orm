@@ -94,6 +94,11 @@ const SIZED: DataType[] = ['string', 'decimal'];
 
 export function generateDdl(schema: RelationalSchema, options: DdlOptions = {}): string {
   const dialect = options.dialect ?? 'postgres';
+  // `hints.relational.schemaName` qualifies every generated table name.
+  const qualify = (name: string): string =>
+    schema.schemaName
+      ? `${quote(schema.schemaName, dialect, options)}.${quote(name, dialect, options)}`
+      : quote(name, dialect, options);
   const out: string[] = [
     `-- Relational schema generated from the ORM model "${schema.name}".`,
     `-- Dialect: ${dialect}`,
@@ -107,27 +112,25 @@ export function generateDdl(schema: RelationalSchema, options: DdlOptions = {}):
 
   if (options.includeDrops) {
     for (const table of [...schema.tables].reverse()) {
-      out.push(`DROP TABLE IF EXISTS ${quote(table.name, dialect, options)};`);
+      out.push(`DROP TABLE IF EXISTS ${qualify(table.name)};`);
     }
     out.push('');
   }
 
   for (const table of schema.tables) {
-    out.push(renderTable(table, dialect, options));
+    out.push(renderTable(table, dialect, options, qualify));
     out.push('');
   }
 
   const alters = schema.tables.flatMap((table) =>
     table.foreignKeys.map(
       (fk) =>
-        `ALTER TABLE ${quote(table.name, dialect, options)} ADD CONSTRAINT ${quote(
+        `ALTER TABLE ${qualify(table.name)} ADD CONSTRAINT ${quote(
           truncate(fk.name),
           dialect,
           options,
-        )}\n    FOREIGN KEY (${fk.columns.map((c) => quote(c, dialect, options)).join(', ')})\n    REFERENCES ${quote(
+        )}\n    FOREIGN KEY (${fk.columns.map((c) => quote(c, dialect, options)).join(', ')})\n    REFERENCES ${qualify(
           fk.refTable,
-          dialect,
-          options,
         )} (${fk.refColumns.map((c) => quote(c, dialect, options)).join(', ')});`,
     ),
   );
@@ -138,22 +141,36 @@ export function generateDdl(schema: RelationalSchema, options: DdlOptions = {}):
   return out.join('\n');
 }
 
-function renderTable(table: Table, dialect: SqlDialect, options: DdlOptions): string {
+function renderTable(
+  table: Table,
+  dialect: SqlDialect,
+  options: DdlOptions,
+  qualify: (name: string) => string,
+): string {
   const lines: string[] = [];
   if (table.comment) lines.push(`-- ${table.comment}`);
-  lines.push(`CREATE TABLE ${quote(table.name, dialect, options)} (`);
+  lines.push(`CREATE TABLE ${qualify(table.name)} (`);
 
-  const body: string[] = table.columns.map((column) => `    ${renderColumn(column, dialect, options)}`);
+  // The declaration and its trailing comment are kept apart, because the
+  // separating comma has to precede the comment — inside it, the comment
+  // swallows the separator and the statement loses it.
+  const body: { declaration: string; note?: string }[] = table.columns.map((column) => ({
+    declaration: `    ${renderColumn(column, dialect, options)}`,
+    note: column.comment,
+  }));
+  const push = (declaration: string): void => {
+    body.push({ declaration });
+  };
 
   if (table.primaryKey.length) {
-    body.push(
+    push(
       `    CONSTRAINT ${quote(truncate(`PK_${table.name}`), dialect, options)} PRIMARY KEY (${table.primaryKey
         .map((c) => quote(c, dialect, options))
         .join(', ')})`,
     );
   }
   table.uniques.forEach((unique, position) => {
-    body.push(
+    push(
       `    CONSTRAINT ${quote(
         truncate(`UQ_${table.name}_${position + 1}`),
         dialect,
@@ -164,23 +181,33 @@ function renderTable(table: Table, dialect: SqlDialect, options: DdlOptions): st
   for (const check of table.checks) {
     const expression = renderCheck(check.column, check.ranges, dialect, options);
     if (expression) {
-      body.push(`    CONSTRAINT ${quote(truncate(check.name), dialect, options)} CHECK (${expression})`);
+      push(`    CONSTRAINT ${quote(truncate(check.name), dialect, options)} CHECK (${expression})`);
     }
   }
 
-  lines.push(body.join(',\n'));
+  lines.push(
+    body
+      .map((entry, position) => {
+        const separator = position < body.length - 1 ? ',' : '';
+        const trailing = entry.note ? `   -- ${entry.note}` : '';
+        return `${entry.declaration}${separator}${trailing}`;
+      })
+      .join('\n'),
+  );
   lines.push(');');
   return lines.join('\n');
 }
 
+/** The column declaration alone; its comment is placed by {@link renderTable}. */
 function renderColumn(column: Column, dialect: SqlDialect, options: DdlOptions): string {
   const parts = [quote(column.name, dialect, options), sqlType(column, dialect)];
   parts.push(column.nullable ? 'NULL' : 'NOT NULL');
-  const comment = column.comment ? ` -- ${column.comment}` : '';
-  return `${parts.join(' ')}${comment}`;
+  return parts.join(' ');
 }
 
 function sqlType(column: Column, dialect: SqlDialect): string {
+  // A `hints.relational.sqlType` is a physical type and is emitted verbatim.
+  if (column.sqlType) return column.sqlType;
   const base = TYPE_MAP[dialect][column.dataType];
   if (!SIZED.includes(column.dataType)) return base;
   if (column.dataType === 'decimal') {
