@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { context, build } from 'esbuild';
+
+const { version } = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -6,6 +9,9 @@ const watch = process.argv.includes('--watch');
 /** @type {import('esbuild').BuildOptions} */
 const shared = {
   bundle: true,
+  // So the MCP server advertises the package's real version rather than a
+  // literal that drifts every release.
+  define: { __FACTUM_VERSION__: JSON.stringify(version) },
   minify: production,
   sourcemap: production ? false : 'inline',
   logLevel: 'info',

@@ -72,8 +72,12 @@ function outline(model: OrmModel): string {
   return lines.join('\n');
 }
 
+/** Injected from package.json at build time; falls back when run from source. */
+declare const __FACTUM_VERSION__: string | undefined;
+
 export function createServer(): McpServer {
-  const server = new McpServer({ name: 'factum', version: '0.4.0' });
+  const version = typeof __FACTUM_VERSION__ === 'string' ? __FACTUM_VERSION__ : '0.0.0-dev';
+  const server = new McpServer({ name: 'factum', version });
 
   server.registerTool(
     'read_model',

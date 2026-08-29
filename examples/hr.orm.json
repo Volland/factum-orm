@@ -1,5 +1,5 @@
 {
-  "$schema": "https://volland.github.io/factum-orm/schema/orm-model-2.schema.json",
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
   "version": 2,
   "name": "HR",
   "objectTypes": [

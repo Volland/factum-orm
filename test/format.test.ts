@@ -8,7 +8,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 const root = join(__dirname, '..', '..');
 import { parseModel, serializeModel } from '../src/model/model.js';
 import { sampleModel } from '../src/model/sample.js';
-import { MODEL_FORMAT_VERSION, MODEL_SCHEMA_URL, OrmModel } from '../src/model/types.js';
+import { LEGACY_SCHEMA_URLS, MODEL_FORMAT_VERSION, MODEL_SCHEMA_URL, OrmModel } from '../src/model/types.js';
 
 const schema = JSON.parse(readFileSync(join(root, 'schema/orm-model-2.schema.json'), 'utf8'));
 
@@ -98,6 +98,17 @@ test('the schema URL the model declares resolves to the published copy', () => {
     MODEL_SCHEMA_URL.endsWith('/schema/orm-model-2.schema.json'),
     'the published path must match the docs/schema layout',
   );
+});
+
+// @lat: [[tests#File format#A legacy schema url is upgraded on load]]
+test('a document naming the schema at its old address is upgraded on load', () => {
+  for (const legacy of LEGACY_SCHEMA_URLS) {
+    const model = parseModel(JSON.stringify({ $schema: legacy, name: 'Old', objectTypes: [], factTypes: [] }));
+    assert.equal(model.$schema, MODEL_SCHEMA_URL);
+  }
+  // Any other value is the caller's, and is left exactly as it was.
+  const custom = parseModel('{"$schema":"https://example.org/mine.json","name":"X"}');
+  assert.equal(custom.$schema, 'https://example.org/mine.json');
 });
 
 // @lat: [[tests#File format#A new model declares its schema and version]]

@@ -42,6 +42,12 @@ Losing an unknown key would silently discard another tool's data on the next sav
 
 The schema's own `$id` equals [[src/model/types.ts#MODEL_SCHEMA_URL]], and that URL ends in the path the docs site serves. This is what keeps the declared URL, the schema's identity and the published location one thing.
 
+### A legacy schema url is upgraded on load
+
+A document naming the schema at an address it used to live at comes back naming the current one, while any other `$schema` value is left untouched.
+
+The schema has moved host once and the old address still redirects, so both are valid. Upgrading on load is what stops the ecosystem drifting into two URLs for one contract.
+
 ### A new model declares its schema and version
 
 A newly created model carries the `$schema` URL and the current format version, and serializes with `$schema` first. Editors key completion and validation off that first line.

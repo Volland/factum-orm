@@ -7,6 +7,7 @@ import {
   GraphHints,
   Hints,
   Id,
+  LEGACY_SCHEMA_URLS,
   MODEL_FORMAT_VERSION,
   MODEL_SCHEMA_URL,
   Meta,
@@ -344,7 +345,12 @@ export function parseModel(text: string): OrmModel {
     constraints: asArray(source.constraints),
     diagram,
   };
-  if (typeof source.$schema === 'string') model.$schema = source.$schema;
+  if (typeof source.$schema === 'string') {
+    // The schema has moved host once. A document naming the old address is
+    // still valid — it redirects — but it is upgraded so that every file the
+    // editor touches converges on the current URL.
+    model.$schema = LEGACY_SCHEMA_URLS.includes(source.$schema) ? MODEL_SCHEMA_URL : source.$schema;
+  }
   if (typeof source.lang === 'string') model.lang = source.lang;
   if (typeof source.note === 'string') model.note = source.note;
   if (isRecord(source.meta)) model.meta = source.meta as Meta;

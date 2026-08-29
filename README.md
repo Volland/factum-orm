@@ -8,7 +8,7 @@ and map it to a relational **or** property graph schema — without leaving the 
 In the spirit of [NORMA](https://www.ormfoundation.org/), but native to VS Code and storing models as
 plain JSON, so they diff and merge like the rest of your source.
 
-**[Documentation and guide →](https://volland.github.io/factum-orm/)**
+**[Documentation and guide →](https://www.factum-orm.com/)**
 
 ![The ORM diagram editor with live FORML verbalization](media/screenshot-diagram.png)
 
@@ -102,7 +102,7 @@ four back out.
 
 Both directions report what they could not carry rather than dropping it silently, so an export to
 Ossie tells you it left your objectified fact type behind. See
-[the format comparison](https://volland.github.io/factum-orm/interop.html) for what each format
+[the format comparison](https://www.factum-orm.com/interop.html) for what each format
 holds and why Factum keeps one of its own.
 
 ### Start from examples, not from a blank diagram
@@ -245,7 +245,7 @@ and complete the file in the plain text editor:
 
 ```jsonc
 {
-  "$schema": "https://volland.github.io/factum-orm/schema/orm-model-2.schema.json",
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
   "version": 2,
   "name": "HR",
   "objectTypes": [
@@ -387,18 +387,18 @@ Mapping notes explaining each choice appear beside the schema and as comments in
 
 ## Documentation
 
-The site includes a **[mini book on ORM 2](https://volland.github.io/factum-orm/book.html)** — ten
+The site includes a **[mini book on ORM 2](https://www.factum-orm.com/book.html)** — ten
 short chapters covering elementary facts, the constraint family, subtyping and objectification, and
 Halpin's seven-step design procedure worked end to end. Every figure in it is rendered by the
 extension's own renderer and links to the model file behind it, so any example can be opened and
 taken apart in the editor. Regenerate the figures with `npm run figures`.
 
 The full documentation site lives in [`docs/`](docs/) and is published with GitHub Pages:
-[book](https://volland.github.io/factum-orm/book.html),
-[getting started](https://volland.github.io/factum-orm/getting-started.html),
-[mapping rules](https://volland.github.io/factum-orm/mapping.html),
-[reference](https://volland.github.io/factum-orm/reference.html) and the
-[file format](https://volland.github.io/factum-orm/file-format.html).
+[book](https://www.factum-orm.com/book.html),
+[getting started](https://www.factum-orm.com/getting-started.html),
+[mapping rules](https://www.factum-orm.com/mapping.html),
+[reference](https://www.factum-orm.com/reference.html) and the
+[file format](https://www.factum-orm.com/file-format.html).
 
 ## Development
 

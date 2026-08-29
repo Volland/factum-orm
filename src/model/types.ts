@@ -16,8 +16,16 @@ export type Id = string;
 export const MODEL_FORMAT_VERSION = 2;
 
 /** Canonical location of the JSON Schema that validates a `.orm.json` file. */
-export const MODEL_SCHEMA_URL =
-  'https://volland.github.io/factum-orm/schema/orm-model-2.schema.json';
+export const MODEL_SCHEMA_URL = 'https://www.factum-orm.com/schema/orm-model-2.schema.json';
+
+/**
+ * Addresses the schema has been published at before. The old host still
+ * redirects, so a document naming one is valid; the loader upgrades it so the
+ * ecosystem converges on one URL rather than drifting into two.
+ */
+export const LEGACY_SCHEMA_URLS: readonly string[] = [
+  'https://volland.github.io/factum-orm/schema/orm-model-2.schema.json',
+];
 
 /* -------------------------------------------------------------------------- */
 /* Metadata and extensions                                                     */

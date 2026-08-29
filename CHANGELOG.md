@@ -1,7 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.4.1 — 2026-08-29
 
+- The JSON Schema moved to the project's own domain: models now declare
+  `https://www.factum-orm.com/schema/orm-model-2.schema.json`. The previous address still redirects,
+  and a document naming it is upgraded on load, so nothing breaks and the ecosystem converges on one
+  URL rather than drifting into two.
+- The MCP server advertises the package's real version instead of a literal that drifted each
+  release.
+- Documentation site: a German **Datenschutzerklärung** in the structure Art. 13 DSGVO expects,
+  alongside the existing English privacy page.
 - Documentation site: German **Impressum** (§ 5 DDG) and **Nutzungsbedingungen (AGB)** pages, linked
   from the footer of every page.
 - Documentation site: a new **Why Factum** page comparing the tool with NORMA, FactEngine Boston and

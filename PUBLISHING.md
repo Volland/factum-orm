@@ -5,7 +5,7 @@ Everything below is repo-only; none of it ships to users. Work top to bottom.
 ## 1. Push the repository
 
 The manifest points at `https://github.com/Volland/factum-orm`, matching the `origin` remote, and the
-Marketplace homepage points at `https://volland.github.io/factum-orm/`.
+Marketplace homepage points at `https://www.factum-orm.com/`.
 
 Push `main` — **including `media/`** — before publishing. `vsce` rewrites the relative image paths in
 `README.md` (`media/screenshot-diagram.png`, `media/screenshot-graph.png`) to raw URLs under this

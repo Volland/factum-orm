@@ -22,5 +22,6 @@
   <url><loc>https://www.factum-orm.com/changelog.html</loc><priority>0.7</priority></url>
   <url><loc>https://www.factum-orm.com/privacy.html</loc><priority>0.7</priority></url>
   <url><loc>https://www.factum-orm.com/impressum.html</loc><priority>0.4</priority></url>
+  <url><loc>https://www.factum-orm.com/datenschutz.html</loc><priority>0.4</priority></url>
   <url><loc>https://www.factum-orm.com/agb.html</loc><priority>0.4</priority></url>
 </urlset>

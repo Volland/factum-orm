@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://volland.github.io/factum-orm/schema/orm-model-2.schema.json",
+  "$id": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
   "title": "Factum ORM 2 conceptual schema",
   "description": "An Object-Role Modeling (ORM 2) conceptual schema and its diagram layout, as stored in a .orm.json file. Every element may carry `meta` (descriptive metadata), `hints` (per-target schema-generation guidance) and `x-` prefixed vendor extensions.",
   "type": "object",
