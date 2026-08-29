@@ -45,6 +45,19 @@ The fields are chosen to have a counterpart in the formats Factum has to interop
 
 `meta.description` is not inert: the relational and graph mappers prefer it over their generated comment, so documentation written once in the model reaches the SQL and the Cypher. [[src/model/model.ts#describe]] resolves it.
 
+## Populations
+
+A fact type may carry `population`: sample tuples, one value per role in the fact type's own role order. A value type may carry a flat list of the values it takes.
+
+Populations are what fact-based modelling starts from — the modeller writes example sentences and the model is derived from them. Keeping them in the file makes four things possible that are otherwise out of reach:
+
+- [[src/core/population.ts#verbalizePopulation]] substitutes the real values back into the reading, which is the check a domain expert can actually perform;
+- [[src/core/population.ts#checkPopulation]] tests the drawn constraints against the examples, so a uniqueness constraint the data contradicts is reported rather than believed;
+- the examples become seed data and test fixtures;
+- FBM and NORMA round trips stop discarding the `Instance` and `Fact` elements they carry.
+
+A population disagreeing with a constraint is an error, not a warning: one of the two is wrong, and either answer is worth having. See [[tooling#Tooling#Deriving a model from examples]] for the other direction, where the model is derived from the data.
+
 ## Hints
 
 A `hints` object attaches per-target guidance for schema generation.

@@ -176,6 +176,8 @@ export interface ObjectType extends Annotated {
   isIndependent?: boolean;
   /** Personal object types are verbalized with "who" rather than "that". */
   isPersonal?: boolean;
+  /** Sample instances: the values a value type takes, or an entity type's identifiers. */
+  population?: (string | number | boolean)[];
   /** Set when this entity type objectifies a fact type (nesting). */
   objectifiedFactTypeId?: Id;
   /** True when the objectification is implied rather than explicitly named. */
@@ -208,10 +210,28 @@ export interface Reading extends Annotated {
   lang?: string;
 }
 
+/**
+ * One tuple of a fact type's sample population — a concrete example of the fact,
+ * with one value per role in the fact type's own role order.
+ *
+ * Populations are what fact-based modelling starts from: the modeller writes
+ * example sentences, and the model is derived from them. Keeping them in the
+ * file lets the verbalizer substitute real values back in, lets the validator
+ * check the constraints against the examples, and gives the generators seed
+ * data and test fixtures.
+ */
+export interface FactInstance extends Extensible {
+  id?: Id;
+  /** One entry per role, positionally. `null` means the value is unknown. */
+  values: (string | number | boolean | null)[];
+}
+
 export interface FactType extends Annotated {
   id: Id;
   roles: Role[];
   readings: Reading[];
+  /** Sample tuples, in the fact type's role order. */
+  population?: FactInstance[];
   isDerived?: boolean;
   /** Derived fact types may be stored ("derived and stored") or purely derived. */
   isStored?: boolean;

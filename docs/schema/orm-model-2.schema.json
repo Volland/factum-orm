@@ -339,6 +339,17 @@
           "type": "integer",
           "minimum": 0
         },
+        "population": {
+          "type": "array",
+          "description": "Sample instances: the values a value type takes, or an entity type's identifiers.",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
         "isIndependent": {
           "type": "boolean",
           "description": "Instances may play no fact roles (\"!\")."
@@ -460,6 +471,13 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/reading"
+          }
+        },
+        "population": {
+          "type": "array",
+          "description": "Sample tuples, in the fact type's role order. Checked against the constraints and usable as seed data.",
+          "items": {
+            "$ref": "#/$defs/factInstance"
           }
         },
         "isDerived": {
@@ -871,6 +889,34 @@
           "description": "Keyed by object type, fact type, constraint or subtype relation id.",
           "additionalProperties": {
             "$ref": "#/$defs/shape"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "factInstance": {
+      "type": "object",
+      "description": "One tuple of a fact type's sample population, with one value per role in the fact type's role order.",
+      "required": [
+        "values"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "values": {
+          "type": "array",
+          "description": "One entry per role, positionally. null means the value is unknown.",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
           }
         }
       },

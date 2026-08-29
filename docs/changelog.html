@@ -31,6 +31,17 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
+<h2 id="0-4-0">0.4.0</h2>
+<p>The model as source code: a command line, a pull request check, sample populations and an MCP server.</p>
+<ul>
+  <li><strong><code>factum</code>, a command line over the same core the editor runs.</strong> <code>validate</code>, <code>verbalize</code>, <code>ddl</code>, <code>graph</code>, <code>diff</code>, <code>drift</code>, <code>convert</code> and <code>derive</code>. <code>validate --format github</code> emits workflow commands so problems annotate a CI run, and <code>--exit-code</code> lets a job fail on a finding.</li>
+  <li><strong>A GitHub Action</strong> that validates a model and comments on the pull request with the sentences that changed — a tightened constraint reads as <code>- at most one</code> / <code>+ exactly one</code> rather than as a JSON diff.</li>
+  <li><strong>Sample populations.</strong> Fact types carry example tuples and value types carry their instances. The verbalizer substitutes them back into the readings, and the validator checks the constraints against them, so a constraint the examples contradict is reported. Populations also survive the FBM round trip, which previously discarded them.</li>
+  <li><strong>Model derivation from example data.</strong> <code>ORM: Derive Model from Example Data (CSV)</code> proposes a first-draft schema from a table: an identifying column becomes the entity&rsquo;s reference mode, types and enumerations are inferred, and every row is kept as a sample fact.</li>
+  <li><strong>Schema drift detection.</strong> <code>factum drift</code> compares the schema a model maps to against existing SQL and emits the statements that would reconcile them, reading SQL text rather than connecting to a database.</li>
+  <li><strong>An MCP server</strong> (<code>factum-mcp</code>) exposing the model to coding agents: read, verbalize, validate, map, diff, detect drift, read the population, and apply a new model.</li>
+</ul>
+
 <h2 id="0-3-0">0.3.0</h2>
 <p>Import and export for the other fact-based modelling formats.</p>
 <ul>

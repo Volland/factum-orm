@@ -1,0 +1,77 @@
+name: Factum ORM
+description: Validate an ORM model, and comment on a pull request with what the model now says.
+author: Volodymyr Pavlyshyn
+branding:
+  icon: check-square
+  color: purple
+
+inputs:
+  model:
+    description: Path to the .orm.json model to check.
+    required: true
+  strict:
+    description: Treat warnings as errors.
+    required: false
+    default: 'false'
+  base:
+    description: >
+      Path to the previous version of the model. When set, the verbalization
+      difference between the two is written to the step summary and, on a pull
+      request, posted as a comment.
+    required: false
+  sql:
+    description: Path to a SQL schema file to check the model against for drift.
+    required: false
+  comment:
+    description: Post the result as a pull request comment.
+    required: false
+    default: 'true'
+
+outputs:
+  changed:
+    description: '"true" when the model says something different from the base version.'
+    value: ${{ steps.run.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        FACTUM: ${{ github.action_path }}/bin/factum.js
+      run: |
+        set -uo pipefail
+        report=$(mktemp)
+
+        # Problems are emitted as workflow commands so they annotate the diff.
+        node "$FACTUM" validate "${{ inputs.model }}" --format github || true
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          node "$FACTUM" validate "${{ inputs.model }}" --strict > /dev/null
+        else
+          node "$FACTUM" validate "${{ inputs.model }}" > /dev/null
+        fi
+        status=$?
+
+        changed=false
+        if [ -n "${{ inputs.base }}" ] && [ -f "${{ inputs.base }}" ]; then
+          node "$FACTUM" diff "${{ inputs.base }}" "${{ inputs.model }}" --format markdown >> "$report"
+          node "$FACTUM" diff "${{ inputs.base }}" "${{ inputs.model }}" --exit-code > /dev/null || changed=true
+        fi
+
+        if [ -n "${{ inputs.sql }}" ] && [ -f "${{ inputs.sql }}" ]; then
+          printf '\n' >> "$report"
+          node "$FACTUM" drift "${{ inputs.model }}" "${{ inputs.sql }}" >> "$report"
+        fi
+
+        echo "changed=$changed" >> "$GITHUB_OUTPUT"
+        if [ -s "$report" ]; then
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          echo "report=$report" >> "$GITHUB_OUTPUT"
+        fi
+        exit $status
+
+    - if: ${{ inputs.comment == 'true' && github.event_name == 'pull_request' && steps.run.outputs.report != '' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh pr comment "${{ github.event.number }}" --body-file "${{ steps.run.outputs.report }}" --repo "${{ github.repository }}"

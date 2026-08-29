@@ -40,6 +40,7 @@
     <li><a href="#fact-types">Fact types, roles and readings</a></li>
     <li><a href="#constraints">Constraints</a></li>
     <li><a href="#diagram">Diagram</a></li>
+    <li><a href="#populations">Sample populations</a></li>
     <li><a href="#metadata">Metadata</a></li>
     <li><a href="#schema-generation-hints">Schema generation hints</a></li>
     <li><a href="#extensions">Extensions</a></li>
@@ -156,6 +157,33 @@
    <code>horizontal</code> or <code>vertical</code>. External constraints may carry their own
    position; anything without one is placed automatically. Deleting a shape entry simply re-places
    the element — the model itself is unaffected.</p>
+
+<h2 id="populations">Sample populations</h2>
+<p>A fact type may carry a <code>population</code>: sample tuples, one value per role in the fact
+   type&rsquo;s own role order. A value type may carry a flat list of the values it takes.</p>
+<pre><code>{
+  "id": "ft_works",
+  "roles": [ … ],
+  "readings": [ { "text": "{0} works for {1}", … } ],
+  "population": [
+    { "values": ["101", "Acme"] },
+    { "values": ["102", "Globex"] }
+  ]
+}</code></pre>
+<p>Populations are what fact-based modelling starts from — the modeller writes example sentences and
+   the model follows. Keeping them in the file makes four things possible:</p>
+<ul>
+  <li>the verbalizer substitutes the real values back into the reading, so a domain expert reads
+      <em>&ldquo;101 works for Acme&rdquo;</em> rather than a placeholder;</li>
+  <li>the validator checks the constraints you drew against the examples you gave — a uniqueness,
+      mandatory, frequency or value constraint the data contradicts is reported;</li>
+  <li>the examples become seed data and test fixtures;</li>
+  <li>FBM and NORMA round trips stop discarding the instances they carry.</li>
+</ul>
+<div class="note">
+  A population disagreeing with a constraint is an <strong>error</strong>, not a warning. One of the
+  two is wrong, and either answer is worth having.
+</div>
 
 <h2 id="metadata">Metadata</h2>
 <p>Every element — the model, object types, fact types, roles, readings, subtype relations and

@@ -105,9 +105,81 @@ Ossie tells you it left your objectified fact type behind. See
 [the format comparison](https://volland.github.io/factum-orm/interop.html) for what each format
 holds and why Factum keeps one of its own.
 
+### Start from examples, not from a blank diagram
+
+`ORM: Derive Model from Example Data (CSV)` reads a table and proposes a first-draft schema — the
+step both Halpin's design procedure and FCO-IM begin with. An identifying column becomes the
+entity's reference mode, types and enumerations are inferred from the values, every row is kept as a
+sample fact, and each assumption comes back as a note to confirm.
+
+Nothing is proposed that the data does not support: a column distinct across three rows is not
+called unique, because at that size it is coincidence.
+
+### Check the model against its own examples
+
+Fact types carry a **sample population** — real tuples, stored in the same file. The verbalizer
+substitutes them back into the readings, so a domain expert reads *"101 works for Acme"* rather than
+a placeholder, and the validator checks the constraints you drew against the examples you gave. A
+uniqueness constraint your own data contradicts is reported, not believed.
+
 ### Export
 
 SVG and PNG export of the diagram, plus force-directed auto-layout.
+
+## The command line
+
+The model is a text file, so a build can check it. `factum` runs the same core the editor does.
+
+```bash
+factum validate model.orm.json --format github   # annotate a CI run
+factum verbalize model.orm.json --population     # read it back, examples and all
+factum diff before.orm.json after.orm.json       # what the model now says
+factum drift model.orm.json schema.sql           # where the database disagrees
+factum derive people.csv -o people.orm.json      # a first draft from examples
+factum ddl model.orm.json --dialect postgres
+factum convert model.orm.json --to fbm
+```
+
+### In a pull request
+
+The bundled GitHub Action validates the model and comments with the sentences that changed — not
+`"roles": ["r1"]` appearing in a diff, but:
+
+```diff
+- Each Person works for at most one Company.
++ Each Person works for exactly one Company.
+```
+
+```yaml
+- uses: Volland/factum-orm@v0
+  with:
+    model: model/domain.orm.json
+    base: /tmp/base.orm.json   # the same file from the base branch
+    strict: 'true'
+```
+
+A complete workflow is in [`examples/model-check.workflow.yml`](examples/model-check.workflow.yml);
+copy it into `.github/workflows/`.
+
+### Schema drift
+
+`factum drift model.orm.json schema.sql` compares the schema the model maps to against one that
+already exists — a `pg_dump --schema-only`, a migration, anything with `CREATE TABLE` in it — and
+prints the differences with the `ALTER` statements that would reconcile them. No database driver is
+needed, because it reads SQL rather than connecting.
+
+## For coding agents
+
+`factum-mcp` is an MCP server over a model, so Claude Code, Copilot or any MCP client can read the
+conceptual schema rather than guessing at it from the tables:
+
+```jsonc
+{ "mcpServers": { "factum": { "command": "factum-mcp" } } }
+```
+
+It exposes `read_model`, `verbalize_model`, `validate_model`, `generate_schema`, `diff_models`,
+`detect_drift`, `read_population` and `apply_model`. Everything is read-only except the last, which
+validates first and refuses to write a model with blocking errors.
 
 ## Quick start
 
@@ -142,6 +214,7 @@ SVG and PNG export of the diagram, plus force-directed auto-layout.
 | `ORM: Import NORMA (.orm) File` | Convert a NORMA ORM 2 XML file |
 | `ORM: Import Model (NORMA, FBM, Ossie, UMS)` | Convert any supported interchange document |
 | `ORM: Export Model As (NORMA, FBM, Ossie, UMS)` | Write the model out in an interchange format |
+| `ORM: Derive Model from Example Data (CSV)` | Propose a first-draft model from a table of examples |
 | `ORM: Verbalize Model` | Full FORML verbalization as Markdown |
 | `ORM: Show Relational Mapping` | Mapped tables as a Markdown table |
 | `ORM: Generate Relational Schema (SQL DDL)` | SQL DDL in a new editor |
@@ -305,9 +378,12 @@ Mapping notes explaining each choice appear beside the schema and as comments in
 - Apache Ossie's `ontology_mappings` — the binding from concepts down to dataset fields — is neither
   read nor written. It is the natural home for a `hints.ossie` target.
 - Derivation rules are stored and verbalized but not evaluated.
+- Drift detection reads SQL text rather than connecting to a database, and understands
+  `CREATE TABLE` only — indexes, views and triggers are ignored.
+- Model derivation makes every column a binary fact type about one entity type. Splitting the
+  columns that are really about something else is still the modeller's job.
 - The graph mapping targets LadybugDB's Cypher DDL. Other property graph databases will need small
   syntax adjustments.
-- Sample populations and fact instances are not yet modeled.
 
 ## Documentation
 

@@ -2,7 +2,7 @@
   "name": "factum-orm",
   "displayName": "Factum \u2014 Object-Role Modeling (ORM 2)",
   "description": "Visual Object-Role Modeling (ORM 2) editor for VS Code: draw conceptual schemas, verbalize them in FORML, validate them, and map them to relational and property graph schemas. Imports NORMA .orm files.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "pavlyshyn",
   "license": "MIT",
   "icon": "media/logo/icon-256.png",
@@ -43,6 +43,10 @@
     "verbalization"
   ],
   "main": "./out/extension.js",
+  "bin": {
+    "factum": "./bin/factum.js",
+    "factum-mcp": "./bin/factum-mcp.js"
+  },
   "activationEvents": [],
   "contributes": {
     "customEditors": [
@@ -94,6 +98,11 @@
       {
         "command": "orm.exportModel",
         "title": "Export Model As (NORMA, FBM, Ossie, UMS)",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.deriveModel",
+        "title": "Derive Model from Example Data (CSV)",
         "category": "ORM"
       },
       {
@@ -302,6 +311,7 @@
     "typescript": "^5.5.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "fast-xml-parser": "^4.4.1",
     "yaml": "^2.9.0"
   }

@@ -11,6 +11,7 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import {
   Constraint,
+  FactInstance,
   FactType,
   Id,
   MODEL_SCHEMA_URL,
@@ -94,6 +95,8 @@ function importObjectTypes(ormModel: XmlNode, model: OrmModel): void {
         dataTypeScale: scale && scale > 0 ? scale : undefined,
         isIndependent: bool(vt['@IsIndependent']) || undefined,
       };
+      const instances = instanceValues(vt);
+      if (instances.length) ot.population = instances;
       applyMeta(ot, vt);
       model.objectTypes.push(ot);
 
@@ -122,6 +125,8 @@ function importObjectTypes(ormModel: XmlNode, model: OrmModel): void {
         isIndependent: bool(et['@IsIndependent']) || undefined,
         isPersonal: bool(et['@IsPersonal']) || undefined,
       };
+      const instances = instanceValues(et);
+      if (instances.length) ot.population = instances;
       applyMeta(ot, et);
       const graphLabel = firstString(et.GraphLabel);
       if (graphLabel) ot.hints = { graph: { label: graphLabel } };
@@ -154,10 +159,12 @@ function importFactTypes(ormModel: XmlNode, model: OrmModel, warnings: string[])
         continue;
       }
 
+      const population = populationOf(ft, roles);
       const factType: FactType = {
         id: str(ft['@Id']) ?? newId('ft'),
         roles,
         readings: readingsOf(ft, roles),
+        ...(population.length ? { population } : {}),
         isDerived: bool(ft['@IsDerived']) || undefined,
         isStored: bool(ft['@IsStored']) || undefined,
         derivationRule: nonEmpty(str(ft['@DerivationText'])),
@@ -241,6 +248,45 @@ function readingsOf(ft: XmlNode, roles: Role[]): Reading[] {
   }
   if (!readings.length && roles.length) return [];
   return readings;
+}
+
+/**
+ * FBM stores a fact type's population as `Fact/Data/FactData[@RoleId]/Value`,
+ * addressed by role rather than positionally.
+ */
+function populationOf(ft: XmlNode, roles: Role[]): FactInstance[] {
+  const out: FactInstance[] = [];
+  for (const container of list(ft.Facts)) {
+    for (const factNode of list((container as XmlNode).Fact)) {
+      const fact = factNode as XmlNode;
+      for (const dataNode of list(fact.Data)) {
+        const byRole = new Map<Id, string>();
+        for (const cell of list((dataNode as XmlNode).FactData)) {
+          const roleId = str((cell as XmlNode)['@RoleId']);
+          const value = textOf((cell as XmlNode).Value) ?? str((cell as XmlNode).Value);
+          if (roleId && value !== undefined) byRole.set(roleId, value);
+        }
+        if (!byRole.size) continue;
+        out.push({
+          ...(str(fact['@Id']) ? { id: str(fact['@Id']) } : {}),
+          values: roles.map((role) => byRole.get(role.id) ?? null),
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/** An object type's `Instance` elements, each a list of `string` values. */
+function instanceValues(node: XmlNode): string[] {
+  const out: string[] = [];
+  for (const container of list(node.Instance)) {
+    for (const value of list((container as XmlNode).string)) {
+      const text = typeof value === 'string' ? value : str((value as XmlNode)?.['#text']);
+      if (text !== undefined && text !== '') out.push(text);
+    }
+  }
+  return out;
 }
 
 function placeholderReading(roles: Role[]): Reading {
@@ -557,7 +603,7 @@ function valueTypeNode(ot: ObjectType, model: OrmModel): XmlNode {
     '@IsMDAModelElement': 'false',
     '@LongDescription': ot.meta?.description ?? ot.note ?? '',
     '@ShortDescription': ot.meta?.shortDescription ?? '',
-    Instance: {},
+    Instance: ot.population?.length ? { string: ot.population.map(String) } : {},
     ValueConstraint: constraint ? { string: rangeStrings(constraint.ranges) } : {},
     SubtypeRelationships: {},
   };
@@ -584,7 +630,7 @@ function entityTypeNode(ot: ObjectType, model: OrmModel): XmlNode {
     '@LongDescription': ot.meta?.description ?? ot.note ?? '',
     '@ShortDescription': ot.meta?.shortDescription ?? '',
     GraphLabel: ot.hints?.graph?.label ? { string: ot.hints.graph.label } : {},
-    Instance: {},
+    Instance: ot.population?.length ? { string: ot.population.map(String) } : {},
     SubtypeRelationships: parents.length
       ? {
           SubtypeRelationship: parents.map((s) => ({
@@ -633,7 +679,19 @@ function factTypeNode(
         ValueConstraint: {},
       })),
     },
-    Facts: {},
+    Facts: ft.population?.length
+      ? {
+          Fact: ft.population.map((instance, row) => ({
+            '@Id': instance.id ?? `${ft.id}_f${row + 1}`,
+            Data: {
+              FactData: ft.roles
+                .map((role, position) => ({ role, value: instance.values[position] }))
+                .filter((cell) => cell.value !== null && cell.value !== undefined)
+                .map((cell) => ({ '@RoleId': cell.role.id, Value: String(cell.value) })),
+            },
+          })),
+        }
+      : {},
     FactTypeReadings: { FactTypeReading: ft.readings.map(readingNode) },
     SubtypeRelationships: {},
   };

@@ -2,6 +2,7 @@ import {
   Annotated,
   Constraint,
   Diagram,
+  FactInstance,
   FactType,
   GraphHints,
   Hints,
@@ -390,6 +391,31 @@ export function stringHint(
  */
 export function describe(element: Annotated & { note?: string }): string | undefined {
   return element.meta?.description ?? element.meta?.shortDescription ?? element.note;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Populations                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/** The sample tuples of a fact type, or an empty list when it has none. */
+export function populationOf(factType: FactType): FactInstance[] {
+  return Array.isArray(factType.population) ? factType.population : [];
+}
+
+/** A tuple's value for one role, or `null` when the role is not covered. */
+export function instanceValue(
+  factType: FactType,
+  instance: FactInstance,
+  roleId: Id,
+): string | number | boolean | null {
+  const position = factType.roles.findIndex((r) => r.id === roleId);
+  if (position < 0) return null;
+  return instance.values[position] ?? null;
+}
+
+/** How many sample tuples the whole model carries. */
+export function populationSize(model: OrmModel): number {
+  return model.factTypes.reduce((total, ft) => total + populationOf(ft).length, 0);
 }
 
 /** Every name an element answers to, for search and for AI context. */

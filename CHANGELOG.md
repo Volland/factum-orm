@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.4.0 — 2026-08-29
+
+- **`factum`, a command line over the same core the editor runs.** `validate`, `verbalize`, `ddl`,
+  `graph`, `diff`, `drift`, `convert` and `derive`. `validate --format github` emits workflow
+  commands so problems annotate a CI run, and `--exit-code` lets a job fail on a finding.
+- **A GitHub Action** that validates a model and comments on the pull request with the sentences
+  that changed — a tightened constraint reads as `- at most one` / `+ exactly one` rather than as a
+  JSON diff.
+- **Sample populations.** Fact types carry example tuples and value types carry their instances, in
+  the same file. The verbalizer substitutes them back into the readings, and the validator checks
+  the constraints against them: a uniqueness, mandatory, frequency or value constraint the examples
+  contradict is now reported. Populations also survive the FBM round trip, which previously
+  discarded them.
+- **Model derivation from example data.** `ORM: Derive Model from Example Data (CSV)` and
+  `factum derive` propose a first-draft schema from a table: an identifying column becomes the
+  entity's reference mode, types and enumerations are inferred, and every row is kept as a sample
+  fact. Each assumption is reported as a note.
+- **Schema drift detection.** `factum drift` compares the schema a model maps to against existing
+  SQL and emits the statements that would reconcile them. It reads SQL text, so no database driver
+  is required.
+- **An MCP server** (`factum-mcp`) exposing the model to coding agents: read, verbalize, validate,
+  map, diff, detect drift, read the population, and apply a new model. Only `apply_model` writes,
+  and it refuses a model with blocking errors.
+
 ## 0.3.0 — 2026-08-29
 
 - **Import and export for the other fact-based modelling formats.** `ORM: Import Model` reads NORMA

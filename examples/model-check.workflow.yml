@@ -1,0 +1,40 @@
+# Example workflow for the Factum action.
+#
+# Copy this file to .github/workflows/ in your own repository. It lives here
+# rather than under .github/workflows because pushing a workflow file needs a
+# token with the `workflow` scope, which the release tooling does not hold.
+#
+# It validates the model on every change to it and, on a pull request, comments
+# with the sentences that changed.
+name: Model check
+
+on:
+  pull_request:
+    paths: ['**.orm.json']
+  push:
+    branches: [main]
+    paths: ['**.orm.json']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Recover the model as the base branch has it
+        if: github.event_name == 'pull_request'
+        run: |
+          git show "${{ github.event.pull_request.base.sha }}:examples/hr.orm.json" \
+            > /tmp/base.orm.json || true
+
+      - name: Check the model
+        uses: Volland/factum-orm@v0
+        with:
+          model: examples/hr.orm.json
+          base: /tmp/base.orm.json
+          strict: 'true'

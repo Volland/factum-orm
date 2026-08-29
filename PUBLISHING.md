@@ -36,6 +36,19 @@ The PAT needs **Marketplace → Manage** scope and must be scoped to *all access
 `"preview": true` marks the listing as a preview release, which is honest for `0.1.0`. Remove it when
 you consider the extension stable.
 
+## 4b. Rebuild the committed bundles
+
+`bin/factum.js` and `bin/factum-mcp.js` are **committed build artifacts**, not ignored output: the
+GitHub Action in `action.yml` runs `bin/factum.js` from `$GITHUB_ACTION_PATH`, which only works if
+the built file is in the repository. This is the usual arrangement for a JavaScript action.
+
+Run the production build and commit the result *before* tagging, or the action ships stale:
+
+```bash
+npm run package     # minified bundles into out/ and bin/
+git add bin out
+```
+
 ## 5. Verify the package
 
 ```bash
@@ -48,7 +61,7 @@ Install the built `.vsix` locally and click through the diagram, the Verbalizati
 Graph tabs, and both generate commands before publishing:
 
 ```bash
-code --install-extension factum-orm-0.3.0.vsix
+code --install-extension factum-orm-0.4.0.vsix
 ```
 
 ## 6. Publish
@@ -65,7 +78,18 @@ Add `--pre-release` if you want the pre-release channel instead of a normal rele
   `![Version](https://img.shields.io/visual-studio-marketplace/v/pavlyshyn.factum-orm)` and the
   matching `/i/` (installs) and `/r/` (rating) badges. They 404 until the first publish, which is why
   they are not there yet.
+- **npm.** The CLI and the MCP server are only useful once they are on a user's `PATH`, which means
+  publishing the package to npm. The name `factum-orm` is unclaimed. `.npmignore` is already set up
+  to ship `bin/`, `out/` and `schema/` only:
+
+  ```bash
+  npm login
+  npm publish --access public
+  ```
+
+  Until this is done, `factum` and `factum-mcp` ship inside the `.vsix` but are not installable
+  as commands.
 - **Open VSX.** For VSCodium, Cursor and Windsurf users, mirror the release with
-  `npx ovsx publish factum-orm-0.3.0.vsix -p <token>`.
+  `npx ovsx publish factum-orm-0.4.0.vsix -p <token>`.
 - **A short GIF** of drawing a fact type and watching the verbalization update would carry the
   listing further than the two static screenshots.

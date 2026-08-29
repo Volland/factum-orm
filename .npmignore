@@ -1,0 +1,20 @@
+# The npm package ships the built CLI and MCP server, not the sources.
+src/
+test/
+out-test/
+docs/
+examples/
+lat.md/
+openspec/
+.claude/
+.omc/
+.github/
+.vscode/
+media/screenshot-*.png
+*.vsix
+esbuild.mjs
+tsconfig*.json
+.mcp.json
+CLAUDE.md
+PUBLISHING.md
+scripts/

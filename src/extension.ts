@@ -16,6 +16,7 @@ import { exportFbmFile, importFbmFile } from './io/fbm.js';
 import { exportOssieFile, importOssieFile } from './io/ossie.js';
 import { exportUmsFile, importUmsFile } from './io/ums.js';
 import { detectFormat, ExportResult, FORMAT_INFO, ImportResult, InteropFormat } from './io/interop.js';
+import { deriveModel, parseDelimited, tableFromRows } from './core/derive.js';
 
 export function activate(context: vscode.ExtensionContext): void {
   const diagnostics = new OrmDiagnostics();
@@ -45,6 +46,7 @@ export function activate(context: vscode.ExtensionContext): void {
   register('orm.importNorma', (resource?: vscode.Uri) => importModel(resource, 'norma'));
   register('orm.importModel', (resource?: vscode.Uri) => importModel(resource));
   register('orm.exportModel', () => exportModel(provider));
+  register('orm.deriveModel', (resource?: vscode.Uri) => deriveFromTable(resource));
   register('orm.generateDdl', () => generateDdlCommand(provider));
   register('orm.showRelationalSchema', () => showRelationalSchema(provider));
   register('orm.generateGraphSchema', () => generateGraphSchemaCommand(provider));
@@ -200,6 +202,44 @@ async function exportModel(provider: OrmEditorProvider): Promise<void> {
   const document = await vscode.workspace.openTextDocument(target);
   await vscode.window.showTextDocument(document, { preview: false });
   await reportWarnings(`Exported as ${info.label}.`, result.warnings, 'Export');
+}
+
+/**
+ * Builds a first-draft model from a table of examples — step one of the design
+ * procedure, where the facts come before the schema.
+ */
+async function deriveFromTable(resource?: vscode.Uri): Promise<void> {
+  let source = resource;
+  if (!source) {
+    const picked = await vscode.window.showOpenDialog({
+      canSelectMany: false,
+      openLabel: 'Derive model',
+      filters: { 'Delimited data': ['csv', 'tsv', 'txt'], 'All files': ['*'] },
+    });
+    source = picked?.[0];
+  }
+  if (!source) return;
+
+  try {
+    const bytes = await vscode.workspace.fs.readFile(source);
+    const text = Buffer.from(bytes).toString('utf8');
+    const delimiter = source.path.toLowerCase().endsWith('.tsv') ? '\t' : ',';
+    const name = basename(source).replace(/\.[^.]+$/, '');
+    const { model, notes } = deriveModel(tableFromRows(name, parseDelimited(text, delimiter)));
+    if (!model.factTypes.length) {
+      void vscode.window.showWarningMessage(`No columns were found in "${basename(source)}".`);
+      return;
+    }
+
+    const target = source.with({ path: source.path.replace(/\.[^.]+$/, '') + '.orm.json' });
+    await vscode.workspace.fs.writeFile(target, Buffer.from(serializeModel(model), 'utf8'));
+    await vscode.commands.executeCommand('vscode.openWith', target, ORM_VIEW_TYPE);
+
+    const summary = `Derived ${model.objectTypes.length} object types and ${model.factTypes.length} fact types from ${model.factTypes[0]?.population?.length ?? 0} example row(s).`;
+    await reportWarnings(summary, notes, 'Derivation');
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Could not derive a model from "${basename(source)}": ${(error as Error).message}`);
+  }
 }
 
 /** Shows a conversion summary, with the warnings behind a button. */

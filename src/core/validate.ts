@@ -8,6 +8,7 @@ import {
   objectTypeInlineLabel,
 } from '../model/model.js';
 import { factTypeName } from './verbalize.js';
+import { checkPopulation } from './population.js';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -32,6 +33,9 @@ export function validateModel(model: OrmModel): Issue[] {
   checkFactTypes(model, index, issues);
   checkConstraints(model, index, issues);
   checkSubtypes(model, index, issues);
+  // A sample population is checked against the constraints drawn on the model:
+  // where they disagree, one of the two is wrong and the modeller should know.
+  issues.push(...checkPopulation(model));
 
   return issues;
 }

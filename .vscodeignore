@@ -22,3 +22,6 @@ openspec/**
 lat.md/**
 .git/**
 scripts/**
+.github/**
+.npmignore
+action.yml
