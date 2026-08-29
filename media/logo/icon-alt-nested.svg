@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Objectified ORM fact type">
+  <defs>
+    <linearGradient id="tile2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#4338CA"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#tile2)"/>
+  <!-- object type: soft-cornered rectangle -->
+  <rect x="20" y="33" width="88" height="62" rx="16" fill="none" stroke="#FFFFFF" stroke-width="7"/>
+  <!-- objectified fact type: two role boxes nested inside -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round">
+    <rect x="38" y="55" width="52" height="24" rx="3"/>
+    <path d="M64 55 V79"/>
+  </g>
+  <!-- uniqueness bar spanning both roles -->
+  <path d="M40 46 H88" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,16 @@
+.vscode/**
+src/**
+test/**
+out-test/**
+node_modules/**
+examples/**
+esbuild.mjs
+tsconfig*.json
+**/*.map
+.gitignore
+.omc/**
+*.vsix
+PUBLISHING.md
+media/screenshot-*.png
+media/logo/icon-alt-nested.svg
+media/logo/icon-mono.svg

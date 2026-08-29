@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /Users/volodymyrpavlyshyn/Documents/work/norma-vscode\\nfor tab in verbalization graph; do\\ncat > /tmp/ormshot/harness-$tab.html <<EOF\\n<!DOCTYPE html><html lang=\\\"en\\\"><head><meta chars...",
+  "error": "Exit code 1\n(eval):25: command not found: $CHROME\n(eval):25: command not found: $CHROME\n(eval):29: no matches found: /tmp/ormshot/*.png",
+  "timestamp": "2026-08-29T07:52:26.237Z",
+  "retry_count": 1
+}

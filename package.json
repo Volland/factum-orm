@@ -1,0 +1,285 @@
+{
+  "name": "factum-orm",
+  "displayName": "Factum \u2014 Object-Role Modeling (ORM 2)",
+  "description": "Visual Object-Role Modeling (ORM 2) editor for VS Code: draw conceptual schemas, verbalize them in FORML, validate them, and map them to relational and property graph schemas. Imports NORMA .orm files.",
+  "version": "0.1.0",
+  "publisher": "pavlyshyn",
+  "license": "MIT",
+  "icon": "media/logo/icon-256.png",
+  "galleryBanner": {
+    "color": "#241f36",
+    "theme": "dark"
+  },
+  "preview": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USERNAME/factum-orm.git"
+  },
+  "homepage": "https://github.com/USERNAME/factum-orm#readme",
+  "bugs": {
+    "url": "https://github.com/USERNAME/factum-orm/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Data Science",
+    "Education",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "ORM",
+    "Object-Role Modeling",
+    "NORMA",
+    "conceptual schema",
+    "fact-based modeling",
+    "data modeling",
+    "property graph",
+    "LadybugDB",
+    "Cypher",
+    "SQL",
+    "ERD",
+    "verbalization"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "factum.diagram",
+        "displayName": "ORM Diagram",
+        "selector": [
+          {
+            "filenamePattern": "*.orm.json"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "languages": [
+      {
+        "id": "orm-model",
+        "extensions": [
+          ".orm.json"
+        ],
+        "aliases": [
+          "ORM Model"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "orm.newModel",
+        "title": "New ORM Model",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.importNorma",
+        "title": "Import NORMA (.orm) File",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.generateDdl",
+        "title": "Generate Relational Schema (SQL DDL)",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.showRelationalSchema",
+        "title": "Show Relational Mapping",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.generateGraphSchema",
+        "title": "Generate Property Graph Schema (LadybugDB)",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.showVerbalization",
+        "title": "Verbalize Model",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.exportSvg",
+        "title": "Export Diagram as SVG",
+        "category": "ORM",
+        "icon": "$(file-media)"
+      },
+      {
+        "command": "orm.exportPng",
+        "title": "Export Diagram as PNG",
+        "category": "ORM"
+      },
+      {
+        "command": "orm.autoLayout",
+        "title": "Auto-Layout Diagram",
+        "category": "ORM",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "orm.openAsJson",
+        "title": "Open Model Source (JSON)",
+        "category": "ORM",
+        "icon": "$(json)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "orm.exportSvg",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.exportPng",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.autoLayout",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.openAsJson",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.showVerbalization",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.generateDdl",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.showRelationalSchema",
+          "when": "factum.activeDiagram"
+        },
+        {
+          "command": "orm.generateGraphSchema",
+          "when": "factum.activeDiagram"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "orm.autoLayout",
+          "when": "factum.activeDiagram",
+          "group": "navigation@1"
+        },
+        {
+          "command": "orm.exportSvg",
+          "when": "factum.activeDiagram",
+          "group": "navigation@2"
+        },
+        {
+          "command": "orm.openAsJson",
+          "when": "factum.activeDiagram",
+          "group": "navigation@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "orm.importNorma",
+          "when": "resourceExtname == .orm",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Factum",
+      "properties": {
+        "orm.ddl.dialect": {
+          "type": "string",
+          "enum": [
+            "postgres",
+            "sqlserver",
+            "mysql",
+            "sqlite",
+            "ansi"
+          ],
+          "default": "postgres",
+          "description": "SQL dialect used when generating DDL from the relational mapping."
+        },
+        "orm.ddl.quoteIdentifiers": {
+          "type": "boolean",
+          "default": false,
+          "description": "Always quote generated table and column identifiers."
+        },
+        "orm.validation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Report ORM model errors and warnings in the Problems panel."
+        },
+        "orm.diagram.snapToGrid": {
+          "type": "boolean",
+          "default": true,
+          "description": "Snap shapes to the diagram grid while dragging."
+        },
+        "orm.diagram.gridSize": {
+          "type": "number",
+          "default": 10,
+          "minimum": 2,
+          "maximum": 50,
+          "description": "Diagram grid size in pixels."
+        },
+        "orm.diagram.showGrid": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the diagram grid."
+        },
+        "orm.verbalization.mode": {
+          "type": "string",
+          "enum": [
+            "forml",
+            "plain"
+          ],
+          "default": "forml",
+          "description": "Verbalization style: FORML (formal, quantified) or plain English."
+        },
+        "orm.graph.subtypeStrategy": {
+          "type": "string",
+          "enum": [
+            "nodeTable",
+            "absorb"
+          ],
+          "default": "nodeTable",
+          "enumDescriptions": [
+            "Each subtype gets its own node label, joined to its supertype by an IS_A relationship.",
+            "Subtypes are folded into the supertype's node table with optional properties and a discriminator."
+          ],
+          "description": "How subtypes are mapped to a property graph."
+        },
+        "orm.graph.ifNotExists": {
+          "type": "boolean",
+          "default": false,
+          "description": "Emit IF NOT EXISTS in the generated LadybugDB DDL so the script can be re-run."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "orm.autoLayout",
+        "key": "ctrl+alt+l",
+        "mac": "cmd+alt+l",
+        "when": "factum.activeDiagram"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "node esbuild.mjs --production",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test out-test/test/*.test.js",
+    "pretest": "tsc -p tsconfig.test.json",
+    "vsix": "npm run package && npx --yes @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.4.1"
+  }
+}

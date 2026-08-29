@@ -1,0 +1,720 @@
+:root {
+  --orm-ink: var(--vscode-editor-foreground, #1c1c1c);
+  --orm-surface: var(--vscode-editor-background, #ffffff);
+  --orm-constraint: #7b3fbf;
+  --orm-muted: var(--vscode-descriptionForeground, #777);
+  --orm-accent: var(--vscode-focusBorder, #0a7aca);
+  --orm-error: var(--vscode-editorError-foreground, #d13438);
+  --orm-warning: var(--vscode-editorWarning-foreground, #cc8500);
+  --orm-panel: var(--vscode-sideBar-background, #f3f3f3);
+  --orm-border: var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+}
+
+body.vscode-dark,
+body.vscode-high-contrast {
+  --orm-constraint: #c58af9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground);
+  background: var(--orm-surface);
+}
+
+#app {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 24vw);
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+/* --------------------------------------------------------------------- */
+/* Toolbar                                                               */
+/* --------------------------------------------------------------------- */
+
+.toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--orm-border);
+  background: var(--vscode-editorWidget-background, var(--orm-panel));
+}
+
+.tool-group {
+  display: flex;
+  gap: 2px;
+  padding-right: 12px;
+  border-right: 1px solid var(--orm-border);
+}
+
+.tool-group:last-child {
+  border-right: none;
+}
+
+.tool-button {
+  min-width: 30px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--vscode-foreground);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tool-button:hover:not(:disabled) {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
+}
+
+.tool-button.active {
+  background: var(--vscode-toolbar-activeBackground, rgba(128, 128, 128, 0.3));
+  border-color: var(--orm-accent);
+}
+
+.tool-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------------- */
+/* Canvas                                                                */
+/* --------------------------------------------------------------------- */
+
+.canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--orm-surface);
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: default;
+}
+
+.canvas[data-tool='entity'],
+.canvas[data-tool='value'],
+.canvas[data-tool='fact1'],
+.canvas[data-tool='fact2'],
+.canvas[data-tool='fact3'] {
+  cursor: crosshair;
+}
+
+.canvas[data-tool='subtype'],
+.canvas[data-tool='connect'] {
+  cursor: pointer;
+}
+
+.grid-dot {
+  fill: var(--orm-muted);
+  opacity: 0.4;
+}
+
+.grid-background {
+  pointer-events: none;
+}
+
+text {
+  font-family: var(--vscode-font-family);
+  fill: var(--orm-ink);
+  user-select: none;
+}
+
+.ot-box {
+  fill: var(--orm-surface);
+  stroke: var(--orm-ink);
+  stroke-width: 1.4;
+}
+
+.ot-box.value-type {
+  stroke-dasharray: 5 3;
+}
+
+.ot-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ot-refmode {
+  font-size: 10px;
+  fill: var(--orm-muted);
+}
+
+.object-type,
+.fact-type,
+.subtype-link,
+.constraint {
+  cursor: move;
+}
+
+.shape.selected .ot-box,
+.shape.selected .role-box {
+  stroke: var(--orm-accent);
+  stroke-width: 2;
+}
+
+.shape.has-error .ot-box,
+.shape.has-error .role-box,
+.constraint.has-error .constraint-circle {
+  stroke: var(--orm-error);
+}
+
+.shape.has-warning .ot-box,
+.constraint.has-warning .constraint-circle {
+  stroke: var(--orm-warning);
+}
+
+.role-box {
+  fill: var(--orm-surface);
+  stroke: var(--orm-ink);
+  stroke-width: 1.2;
+}
+
+.role-box.unattached {
+  stroke: var(--orm-error);
+  stroke-dasharray: 3 2;
+}
+
+.role-box.role-selected {
+  fill: color-mix(in srgb, var(--orm-accent) 25%, transparent);
+  stroke: var(--orm-accent);
+  stroke-width: 2;
+}
+
+.role-connector {
+  stroke: var(--orm-ink);
+  stroke-width: 1.2;
+}
+
+.reading {
+  font-size: 11px;
+  fill: var(--orm-ink);
+}
+
+.role-name {
+  font-size: 10px;
+  font-style: italic;
+  fill: var(--orm-muted);
+}
+
+.derivation-mark {
+  font-size: 12px;
+}
+
+.mandatory-dot {
+  fill: var(--orm-constraint);
+}
+
+.uniqueness-bar {
+  stroke: var(--orm-constraint);
+  stroke-width: 2;
+}
+
+.uniqueness-gap {
+  stroke: var(--orm-constraint);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.frequency-bar {
+  stroke: var(--orm-constraint);
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+}
+
+.frequency-text,
+.value-constraint,
+.constraint-glyph {
+  font-size: 10px;
+  fill: var(--orm-constraint);
+}
+
+.constraint-glyph {
+  font-size: 11px;
+}
+
+.constraint-circle {
+  fill: var(--orm-surface);
+  stroke: var(--orm-constraint);
+  stroke-width: 1.6;
+}
+
+.constraint-link {
+  stroke: var(--orm-constraint);
+  stroke-width: 1.1;
+  stroke-dasharray: 4 3;
+}
+
+.constraint-arrow {
+  fill: var(--orm-constraint);
+}
+
+.constraint.selected .constraint-circle {
+  stroke: var(--orm-accent);
+  stroke-width: 2.4;
+}
+
+.subtype-line {
+  stroke: var(--orm-ink);
+  stroke-width: 1.4;
+}
+
+.subtype-arrow {
+  fill: var(--orm-ink);
+}
+
+.subtype-link.selected .subtype-line,
+.subtype-link.selected .subtype-arrow {
+  stroke: var(--orm-accent);
+  fill: var(--orm-accent);
+}
+
+.objectification {
+  fill: none;
+  stroke: var(--orm-ink);
+  stroke-width: 1.2;
+}
+
+.objectification-name {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.marquee {
+  fill: color-mix(in srgb, var(--orm-accent) 12%, transparent);
+  stroke: var(--orm-accent);
+  stroke-dasharray: 4 3;
+}
+
+.pending-connector {
+  stroke: var(--orm-accent);
+  stroke-width: 1.4;
+  stroke-dasharray: 5 3;
+}
+
+.inline-editor {
+  position: absolute;
+  z-index: 5;
+  padding: 2px 4px;
+  border: 1px solid var(--orm-accent);
+  border-radius: 3px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: 12px;
+}
+
+.status-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 16px;
+  padding: 3px 10px;
+  border-top: 1px solid var(--orm-border);
+  background: var(--vscode-editorWidget-background, var(--orm-panel));
+  color: var(--orm-muted);
+  font-size: 11px;
+}
+
+.status-problems {
+  cursor: pointer;
+}
+
+.status-problems.has-errors {
+  color: var(--orm-error);
+}
+
+.status-problems.has-warnings {
+  color: var(--orm-warning);
+}
+
+/* --------------------------------------------------------------------- */
+/* Side panel                                                            */
+/* --------------------------------------------------------------------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--orm-border);
+  background: var(--orm-panel);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--orm-border);
+}
+
+.tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 6px 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--orm-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: var(--vscode-foreground);
+  border-bottom-color: var(--orm-accent);
+}
+
+.panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 10px 12px 24px;
+}
+
+.panel-section {
+  margin-bottom: 18px;
+}
+
+.panel-section h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--orm-muted);
+}
+
+.field {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  color: var(--orm-muted);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--orm-muted);
+}
+
+input[type='text'],
+input[type='number'],
+select,
+textarea {
+  width: 100%;
+  padding: 3px 6px;
+  border: 1px solid var(--vscode-input-border, var(--orm-border));
+  border-radius: 3px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, 0.2));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, 0.3));
+}
+
+.wide-button {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row > button {
+  white-space: nowrap;
+}
+
+.checkbox {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.checkbox input {
+  width: auto;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 8px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.stats dt {
+  color: var(--orm-muted);
+}
+
+.stats dd {
+  margin: 0;
+  text-align: right;
+}
+
+.hint {
+  margin: 4px 0;
+  font-size: 11px;
+  color: var(--orm-muted);
+}
+
+.reading-row,
+.role-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.reading-input {
+  flex: 2;
+}
+
+.role-order {
+  flex: 1;
+  font-size: 10px;
+  color: var(--orm-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-index {
+  width: 26px;
+  font-size: 11px;
+  color: var(--orm-muted);
+}
+
+.role-name-input {
+  flex: 1;
+}
+
+.icon-button {
+  padding: 1px 6px;
+  background: transparent;
+}
+
+.link-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+}
+
+.link-list a {
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
+}
+
+.verbalization-group {
+  margin-bottom: 14px;
+}
+
+.verbalization-group h3 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verbalization-group h3.selected {
+  color: var(--orm-accent);
+}
+
+.verbalization-group ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.verbalization-line {
+  margin-bottom: 3px;
+  font-size: 12px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.verbalization-line:hover {
+  color: var(--orm-accent);
+}
+
+.verbalization-line.deontic {
+  color: #3b82f6;
+}
+
+.table-card {
+  margin-bottom: 12px;
+  border: 1px solid var(--orm-border);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.table-card h3 {
+  margin: 0;
+  padding: 5px 8px;
+  background: rgba(128, 128, 128, 0.12);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.table-card table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.table-card td {
+  padding: 2px 8px;
+  border-top: 1px solid var(--orm-border);
+}
+
+.col-type,
+.col-null {
+  color: var(--orm-muted);
+  white-space: nowrap;
+}
+
+.badge {
+  margin-left: 5px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.badge.pk {
+  background: var(--orm-constraint);
+  color: #fff;
+}
+
+.badge.fk {
+  background: rgba(128, 128, 128, 0.35);
+}
+
+/* Graph tab: a mandatory property the schema cannot enforce, and a node that
+   stands for a reified fact rather than an object. */
+.badge.req {
+  background: var(--orm-error, #d64040);
+  color: #fff;
+}
+
+.badge.reified {
+  background: rgba(128, 128, 128, 0.35);
+  font-style: italic;
+}
+
+.graph-schema .rel-row {
+  cursor: pointer;
+}
+
+.graph-schema .rel-row:hover td {
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.graph-schema .col-null {
+  font-variant: small-caps;
+}
+
+.notes .unenforced {
+  cursor: pointer;
+  margin-bottom: 3px;
+}
+
+.notes .unenforced:hover {
+  color: var(--orm-ink);
+}
+
+.notes {
+  font-size: 11px;
+  color: var(--orm-muted);
+}
+
+.problems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.problem {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--orm-border);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.problem.error .problem-icon {
+  color: var(--orm-error);
+}
+
+.problem.warning .problem-icon {
+  color: var(--orm-warning);
+}
+
+.problem-message {
+  flex: 1;
+}
+
+.problem-code {
+  font-size: 10px;
+  color: var(--orm-muted);
+}
+
+.parse-error h2 {
+  font-size: 13px;
+  color: var(--orm-error);
+}

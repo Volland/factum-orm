@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "out-test",
+    "noUnusedLocals": false,
+    "sourceMap": false
+  },
+  "include": [
+    "src/model",
+    "src/core",
+    "src/io",
+    "src/webview/render.ts",
+    "src/webview/geometry.ts",
+    "src/webview/autolayout.ts",
+    "test"
+  ]
+}
