@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Documentation site: German **Impressum** (§ 5 DDG) and **Nutzungsbedingungen (AGB)** pages, linked
+  from the footer of every page.
 - Documentation site: a new **Why Factum** page comparing the tool with NORMA, FactEngine Boston and
   CaseTalk, including a section on where each of them is ahead. The landing page now covers the
   command line, the MCP server, sample populations, model derivation and drift detection, and states
