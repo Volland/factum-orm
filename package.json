@@ -269,6 +269,7 @@
     "watch": "node esbuild.mjs --watch",
     "package": "node esbuild.mjs --production",
     "typecheck": "tsc --noEmit",
+    "figures": "npm run pretest && node scripts/build-figures.mjs",
     "test": "node --test out-test/test/*.test.js",
     "pretest": "tsc -p tsconfig.test.json",
     "vsix": "npm run package && npx --yes @vscode/vsce package --no-dependencies"

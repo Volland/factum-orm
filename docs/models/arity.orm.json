@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "name": "Unary, binary and ternary fact types",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "room",
+      "name": "Room",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "day",
+      "name": "Day",
+      "kind": "entity",
+      "refMode": "code"
+    },
+    {
+      "id": "emp",
+      "name": "Employee",
+      "kind": "entity",
+      "refMode": "nr"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "smokes",
+      "roles": [
+        {
+          "id": "smokes.r0",
+          "objectTypeId": "person"
+        }
+      ],
+      "readings": [
+        {
+          "id": "smokes.rd",
+          "roleOrder": [
+            "smokes.r0"
+          ],
+          "text": "{0} smokes",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "emp"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "company"
+        }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "booked",
+      "roles": [
+        {
+          "id": "booked.r0",
+          "objectTypeId": "emp"
+        },
+        {
+          "id": "booked.r1",
+          "objectTypeId": "room"
+        },
+        {
+          "id": "booked.r2",
+          "objectTypeId": "day"
+        }
+      ],
+      "readings": [
+        {
+          "id": "booked.rd",
+          "roleOrder": [
+            "booked.r0",
+            "booked.r1",
+            "booked.r2"
+          ],
+          "text": "{0} booked {1} on {2}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc0",
+      "kind": "uniqueness",
+      "roles": [
+        "smokes.r0"
+      ]
+    },
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "booked.r1",
+        "booked.r2"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 20
+      },
+      "emp": {
+        "x": 40,
+        "y": 130
+      },
+      "company": {
+        "x": 330,
+        "y": 110
+      },
+      "room": {
+        "x": 330,
+        "y": 210
+      },
+      "day": {
+        "x": 330,
+        "y": 280
+      },
+      "smokes": {
+        "x": 200,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "works": {
+        "x": 210,
+        "y": 118,
+        "orientation": "horizontal"
+      },
+      "booked": {
+        "x": 200,
+        "y": 220,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

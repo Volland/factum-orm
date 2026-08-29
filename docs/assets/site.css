@@ -323,3 +323,76 @@ footer {
     margin-inline: -90px;
   }
 }
+
+/* ------------------------------------------------------------------- book -- */
+
+.chapter-number {
+  margin: 0 0 6px !important;
+  color: var(--accent) !important;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.figure {
+  margin: 30px 0;
+  padding: 20px 20px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  text-align: center;
+}
+.figure img { max-width: 100%; height: auto; }
+.figure { line-height: 0; }
+.figure figcaption { line-height: 1.6; }
+.figure figcaption {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 14px;
+  text-align: left;
+}
+.figure figcaption a { white-space: nowrap; }
+
+@media (min-width: 1128px) {
+  .prose .figure { margin-inline: -90px; }
+}
+
+.chapter-nav {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-top: 52px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border);
+}
+.chapter-nav a {
+  display: block;
+  flex: 1;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 550;
+}
+.chapter-nav a:hover { border-color: var(--accent); text-decoration: none; }
+.chapter-nav a span { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; }
+.chapter-nav .next { text-align: right; }
+
+.contents { counter-reset: chapter; list-style: none; padding: 0; margin: 0; }
+.contents li { margin: 0 0 10px; }
+.contents a {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 15px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.contents a:hover { border-color: var(--accent); text-decoration: none; }
+.contents .num { color: var(--accent); font-family: var(--mono); font-size: 13.5px; }
+.contents .what { color: var(--muted); font-size: 14px; display: block; font-weight: 400; }

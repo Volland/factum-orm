@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predicates, roles and readings — ORM 2 mini book · Factum</title>
+<meta name="description" content="Arity, roles, and how to write predicate readings that verbalize into good English.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Predicates, roles and readings — ORM 2 mini book · Factum">
+<meta property="og:description" content="Arity, roles, and how to write predicate readings that verbalize into good English.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 4 of 10</p>
+  <h1>Predicates, roles and readings</h1>
+  <p>A predicate is a sentence with holes in it. The holes are roles.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>Arity</h2>
+<p>A logical predicate is a sentence with one or more <em>object holes</em>, each of which is filled
+   by a term naming an object. The number of holes is the predicate's <strong>arity</strong>, and each
+   hole is a <strong>role</strong>, drawn as a box.</p>
+
+<figure class="figure">
+  <img src="assets/book/arity.svg" alt="ORM diagram showing a unary fact type, a binary fact type and a ternary fact type" loading="lazy">
+  <figcaption>Unary, binary and ternary fact types. Person smokes has one role; Employee works for Company has two; Employee booked Room on Day has three. <a href="models/arity.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<ul>
+  <li><strong>Unary</strong> — one role. <em>Person smokes.</em> A property, with no second object.
+      This is how ORM records a boolean without inventing a true/false value type.</li>
+  <li><strong>Binary</strong> — two roles. The overwhelming majority of fact types.</li>
+  <li><strong>Ternary and above</strong> — three or more roles, for facts that genuinely cannot be
+      split. Chapter 5 gives the test for whether yours qualifies.</li>
+</ul>
+
+<p>Higher arities are legal but rare, and rarity is a signal: if you have drawn a five-role fact type,
+   the usual explanation is that several facts have been bundled together.</p>
+
+<h2>Roles are positions, not types</h2>
+<p>Nothing requires the roles of a fact type to be played by different object types. <em>Person
+   manages Person</em> has two roles, both played by Person; <em>Person voted for Person</em> is the
+   same shape. Such fact types are called <strong>ring</strong> fact types and they are perfectly
+   ordinary — chapter 7 covers the constraints that apply to them.</p>
+
+<p>When the same type plays two roles, giving the roles names — <em>manager</em>, <em>subordinate</em>
+   — makes the model much easier to read, and gives the mapper something better than
+   <code>person2</code> to call the second column.</p>
+
+<h2>Readings</h2>
+<p>A reading is the text of the predicate with its holes marked. In Factum the holes are numbered
+   placeholders:</p>
+
+<pre><code>{0} works for {1}</code></pre>
+
+<p>The numbers index into the reading's role order, which is what allows the same fact type to be read
+   in more than one direction. Add a second reading with the roles in the other order and the fact
+   type reads both ways:</p>
+
+<figure class="figure">
+  <img src="assets/book/readings.svg" alt="ORM diagram of a binary fact type between Person and Company" loading="lazy">
+  <figcaption>One fact type, two readings: "Person works for Company" and "Company employs Person". Both describe the same facts. <a href="models/readings.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<pre><code>{0} works for {1}     roles: Person, Company
+{0} employs {1}       roles: Company, Person</code></pre>
+
+<p>Inverse readings are not decoration. Verbalization picks whichever reading starts at the role it
+   needs to talk about, so a fact type with only one reading sometimes produces a clumsy sentence
+   like "Each Company is related to at most one Person in …" where a natural one was available. If a
+   verbalization reads badly, the usual fix is to add the reading it wanted.</p>
+
+<h2>Writing readings that verbalize well</h2>
+<p>The verbalizer inserts quantifiers where the placeholders are — <em>each</em>, <em>some</em>,
+   <em>at most one</em> — so the text around them has to survive that substitution. A few habits
+   help:</p>
+
+<ul>
+  <li><strong>Start with the placeholder.</strong> <code>{0} works for {1}</code>, not
+      <code>the employer of {1} is {0}</code>. The first form becomes "Each Person works for
+      exactly one Company"; the second becomes a mess.</li>
+  <li><strong>Use a verb phrase, not a noun.</strong> <code>{0} has {1}</code> is weak but
+      workable; <code>{0} was born on {1}</code> is better. "Has" is the most overused predicate
+      in data modeling and it almost always hides a more specific verb.</li>
+  <li><strong>Do not put the object type names in the text.</strong> Write
+      <code>{0} works for {1}</code>, not <code>Person works for Company</code> — the players are
+      substituted in, and hard-coding them breaks the sentence when the fact type is reused.</li>
+  <li><strong>Say the fact, not the constraint.</strong> <code>{0} works for at most one
+      {1}</code> is wrong: "at most one" belongs to a uniqueness constraint, which will add it for
+      you and would otherwise say it twice.</li>
+</ul>
+
+<p>For ternary and higher fact types the reading carries text between every pair of placeholders:
+   <code>{0} booked {1} on {2}</code>. Getting this right matters more than for binaries,
+   because a badly-worded n-ary reading is very hard to check against examples.</p>
+
+<h2>Naming, briefly</h2>
+<p>Object type names are singular and start with a capital: <em>Person</em>, not <em>People</em> or
+   <em>person</em>. They must be unique within the model, since the name is how the verbalizer refers
+   to the type. Predicate names need not be unique — several fact types may read "has" — because a
+   predicate is identified by its fact type, not its text.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-03-objects.html"><span>Previous</span>Objects and reference schemes</a><a class="next" href="book-05-uniqueness.html"><span>Next</span>Uniqueness</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

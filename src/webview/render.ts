@@ -116,17 +116,29 @@ function renderObjectType(model: OrmModel, ot: ObjectType, options: RenderOption
     transform: `translate(${rect.x}, ${rect.y})`,
   });
 
+  const objectifies = !!ot.objectifiedFactTypeId && model.factTypes.some((f) => f.id === ot.objectifiedFactTypeId);
   group.append(
     el('rect', {
-      class: `ot-box ${ot.kind === 'value' ? 'value-type' : 'entity-type'}`,
+      class: `ot-box ${objectifies ? 'objectified' : ot.kind === 'value' ? 'value-type' : 'entity-type'}`,
       x: 0,
       y: 0,
       width: rect.w,
       height: rect.h,
-      rx: 10,
-      ry: 10,
+      rx: objectifies ? 12 : 10,
+      ry: objectifies ? 12 : 10,
     }),
   );
+
+  const objectified = !!ot.objectifiedFactTypeId && model.factTypes.some((ft) => ft.id === ot.objectifiedFactTypeId);
+  if (objectified) {
+    // The frame is the shape; its name sits above it so the roles stay legible.
+    group.append(
+      el('text', { class: 'objectification-name', x: rect.w / 2, y: -7, 'text-anchor': 'middle' }, [
+        `"${ot.name}${ot.isIndependent ? ' !' : ''}"`,
+      ]),
+    );
+    return group;
+  }
 
   const hasRef = ot.kind === 'entity' && !!ot.refMode;
   const nameY = hasRef ? rect.h / 2 - 3 : rect.h / 2 + 4;
@@ -162,24 +174,6 @@ function renderFactType(model: OrmModel, ft: FactType, options: RenderOptions): 
     'data-id': ft.id,
   });
 
-  const objectifier = model.objectTypes.find((o) => o.objectifiedFactTypeId === ft.id);
-  if (objectifier) {
-    group.append(
-      el('rect', {
-        class: 'objectification',
-        x: rect.x - 12,
-        y: rect.y - 12,
-        width: rect.w + 24,
-        height: rect.h + 24,
-        rx: 12,
-        ry: 12,
-      }),
-      el('text', { class: 'objectification-name', x: rect.x + rect.w / 2, y: rect.y - 17, 'text-anchor': 'middle' }, [
-        `"${objectifier.name}"`,
-      ]),
-    );
-  }
-
   ft.roles.forEach((role, position) => {
     const box = roleRect(model, ft, position);
     const roleSelected = options.selectedRoles.has(role.id);
@@ -204,7 +198,7 @@ function renderFactType(model: OrmModel, ft: FactType, options: RenderOptions): 
 
   const reading = primaryReading(ft);
   if (reading) {
-    const label = ft.roles.length === 2 ? predicateText(reading) : readingLabel(reading.text);
+    const label = ft.roles.length <= 2 ? predicateText(reading) : readingLabel(reading.text);
     const vertical = shapeOf(model, ft.id).orientation === 'vertical';
     group.append(
       el(

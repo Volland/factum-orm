@@ -7,6 +7,7 @@ export const EXPORT_CSS = `
 text { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; fill: #1c1c1c; }
 .ot-box { fill: #ffffff; stroke: #1c1c1c; stroke-width: 1.4; }
 .ot-box.value-type { stroke-dasharray: 5 3; }
+.ot-box.objectified { fill: none; }
 .ot-name { font-size: 12px; font-weight: 600; }
 .ot-refmode { font-size: 10px; fill: #555555; }
 .role-box { fill: #ffffff; stroke: #1c1c1c; stroke-width: 1.2; }

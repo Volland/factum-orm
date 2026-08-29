@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uniqueness — ORM 2 mini book · Factum</title>
+<meta name="description" content="Uniqueness constraints, the three binary patterns, external uniqueness, and the arity check for n-ary fact types.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Uniqueness — ORM 2 mini book · Factum">
+<meta property="og:description" content="Uniqueness constraints, the three binary patterns, external uniqueness, and the arity check for n-ary fact types.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 5 of 10</p>
+  <h1>Uniqueness</h1>
+  <p>If you learn one constraint, learn this one. It carries more meaning than the rest combined.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>What a uniqueness bar says</h2>
+<p>A uniqueness constraint is drawn as a bar over one or more role boxes. It asserts that, in the fact
+   table for that fact type, entries in those roles occur <strong>at most once</strong> — no
+   duplicates for that column combination.</p>
+
+<p>On a binary fact type there are exactly three useful arrangements, and between them they express
+   what other notations call cardinality.</p>
+
+<figure class="figure">
+  <img src="assets/book/uniqueness-n1.svg" alt="ORM diagram of a many-to-one binary fact type" loading="lazy">
+  <figcaption>A bar over the first role: each Person works for at most one Company. Many people may work for the same company. <a href="models/uniqueness-n1.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>This is <strong>many-to-one</strong>. Read it as: the Person role determines the fact, so given a
+   person there is at most one company. Nothing stops a company from having many employees, because
+   no bar constrains the Company role.</p>
+
+<figure class="figure">
+  <img src="assets/book/uniqueness-11.svg" alt="ORM diagram of a one-to-one binary fact type" loading="lazy">
+  <figcaption>Bars over both roles separately: each Person heads at most one Company, and each Company is headed by at most one Person. <a href="models/uniqueness-11.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Two separate bars make it <strong>one-to-one</strong>. Note that these are two constraints, not
+   one — each says something on its own, and you can have either without the other.</p>
+
+<figure class="figure">
+  <img src="assets/book/uniqueness-mn.svg" alt="ORM diagram of a many-to-many binary fact type" loading="lazy">
+  <figcaption>A single bar spanning both roles: the combination is unique, but neither role is unique alone. <a href="models/uniqueness-mn.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>One bar spanning <em>both</em> roles is <strong>many-to-many</strong>: a person may have many
+   skills and a skill may be held by many people, but the same person-skill pair is not recorded
+   twice. This is the constraint people forget to think about, and it is why "many-to-many" is not
+   the same as "no constraint at all".</p>
+
+<div class="note">
+  Every fact type needs at least one uniqueness constraint. A fact type without one says that the
+  same fact may be recorded any number of times, which is almost never what you mean. Factum reports
+  a missing uniqueness constraint as an error.
+</div>
+
+<h2>The arity check</h2>
+<p>Uniqueness constraints do more than describe cardinality: they tell you whether an n-ary fact type
+   deserves to exist. Halpin gives the rule as a sufficient condition for splittability:</p>
+
+<div class="note">
+  A sufficient but not necessary condition for splittability of an <em>n</em>-ary fact type is that
+  it has a uniqueness constraint that <strong>misses two roles</strong>.
+</div>
+
+<p>Consider a ternary that tries to record an academic's rank and department at once:</p>
+
+<figure class="figure">
+  <img src="assets/book/arity-check-bad.svg" alt="ORM diagram of a ternary fact type between Academic, Rank and Dept with a uniqueness constraint on the first role only" loading="lazy">
+  <figcaption>A ternary fact type whose only uniqueness constraint spans the first role. It misses two roles, so the fact type is splittable — open it and Factum reports uniqueness-too-narrow. <a href="models/arity-check-bad.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Each academic has one rank and works for one department, so the uniqueness constraint covers just
+   the Academic role — and misses two. The fact type is not elementary. Split it on the source of the
+   constraint:</p>
+
+<figure class="figure">
+  <img src="assets/book/arity-check-good.svg" alt="ORM diagram showing Academic has Rank and Academic works for Dept as two separate binary fact types" loading="lazy">
+  <figcaption>The same information as two binaries, each with its own uniqueness and mandatory constraints. <a href="models/arity-check-good.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Turned around, this gives the working rule: <strong>on an <em>n</em>-ary fact type, every internal
+   uniqueness constraint must span at least <em>n−1</em> roles.</strong> A ternary may carry a
+   constraint over two of its three roles; a constraint over just one means it should be two
+   binaries. Factum checks this and reports <code>uniqueness-too-narrow</code> when it fails.</p>
+
+<p>The related idea is worth stating: if a fact type is elementary, all of its functional dependencies
+   are implied by its uniqueness constraints. When you find an FD that is not implied, you have found
+   a fact type that needs splitting — which is normalization, arrived at from the conceptual side and
+   without ever mentioning normal forms.</p>
+
+<h2>External uniqueness</h2>
+<p>Sometimes the combination that is unique spans <em>different</em> fact types. Chapter 3 showed the
+   case: a room is identified by its building together with its room number, and those are two
+   separate facts. The constraint is drawn as a circled bar linked to each role it covers, and it
+   applies to the natural join of the predicates.</p>
+
+<p>When an external uniqueness constraint provides the <em>primary</em> way of referring to an object
+   type, mark it as the preferred identifier. Factum draws it with a doubled circle and uses it when
+   mapping to a database.</p>
+
+<h2>A practical way to get these right</h2>
+<p>Do not reason about uniqueness abstractly. Populate the fact type with two rows from the real
+   report and ask the domain expert whether both could be true at once:</p>
+
+<pre><code>Person 715 works for Dept 'Computer Science'
+Person 715 works for Dept 'Mathematics'</code></pre>
+
+<p>"Can the same person appear twice with different departments?" is a question anyone can answer. If
+   the answer is no, the Person role gets a bar. If the answer is "well, joint appointments exist",
+   you have just learned something the original report never showed you.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-04-predicates.html"><span>Previous</span>Predicates, roles and readings</a><a class="next" href="book-06-mandatory.html"><span>Next</span>Mandatory roles</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

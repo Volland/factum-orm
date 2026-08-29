@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "name": "A subset constraint",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "car",
+      "name": "Car",
+      "kind": "entity",
+      "refMode": "vin"
+    },
+    {
+      "id": "licence",
+      "name": "Licence",
+      "kind": "entity",
+      "refMode": "nr"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "drives",
+      "roles": [
+        {
+          "id": "drives.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "drives.r1",
+          "objectTypeId": "car"
+        }
+      ],
+      "readings": [
+        {
+          "id": "drives.rd",
+          "roleOrder": [
+            "drives.r0",
+            "drives.r1"
+          ],
+          "text": "{0} drives {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "holds",
+      "roles": [
+        {
+          "id": "holds.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "holds.r1",
+          "objectTypeId": "licence"
+        }
+      ],
+      "readings": [
+        {
+          "id": "holds.rd",
+          "roleOrder": [
+            "holds.r0",
+            "holds.r1"
+          ],
+          "text": "{0} holds {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "drives.r0",
+        "drives.r1"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "holds.r0"
+      ]
+    },
+    {
+      "id": "sc",
+      "kind": "subset",
+      "roleSequences": [
+        [
+          "drives.r0"
+        ],
+        [
+          "holds.r0"
+        ]
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 110
+      },
+      "car": {
+        "x": 330,
+        "y": 20
+      },
+      "licence": {
+        "x": 330,
+        "y": 200
+      },
+      "drives": {
+        "x": 220,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "holds": {
+        "x": 220,
+        "y": 208,
+        "orientation": "horizontal"
+      },
+      "sc": {
+        "x": 250,
+        "y": 130
+      }
+    }
+  }
+}

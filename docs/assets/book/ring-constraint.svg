@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="34 34 308 180" width="431" height="252" role="img">
+<style>
+text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #ece9f5; }
+.ot-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.5; }
+.ot-box.value-type { stroke-dasharray: 5 3; }
+.ot-box.objectified { fill: none; }
+.ot-name { font-size: 12.5px; font-weight: 600; }
+.ot-refmode { font-size: 10.5px; fill: #a49dbd; }
+.role-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.3; }
+.role-box.unattached { stroke-dasharray: 3 2; stroke: #ff6b6b; }
+.role-connector { stroke: #b9b3cf; stroke-width: 1.3; }
+.reading { font-size: 11.5px; fill: #cfc9e2; }
+.role-name { font-size: 10px; fill: #a49dbd; font-style: italic; }
+.mandatory-dot { fill: #c58af9; stroke: none; }
+.uniqueness-bar { stroke: #c58af9; stroke-width: 2.2; }
+.uniqueness-gap { stroke: #c58af9; stroke-width: 1; stroke-dasharray: 3 3; }
+.frequency-bar { stroke: #c58af9; stroke-width: 2.2; stroke-dasharray: 6 3; }
+.frequency-text { font-size: 10.5px; fill: #c58af9; }
+.constraint-circle { fill: #221d33; stroke: #c58af9; stroke-width: 1.7; }
+.constraint-glyph { font-size: 11px; fill: #c58af9; }
+.constraint-link { stroke: #c58af9; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.constraint-arrow { fill: #c58af9; }
+.subtype-line { stroke: #ded9ef; stroke-width: 1.5; }
+.subtype-arrow { fill: #ded9ef; }
+.objectification { fill: none; stroke: #ded9ef; stroke-width: 1.3; }
+.objectification-name { font-size: 11.5px; font-weight: 600; }
+.value-constraint { font-size: 10.5px; fill: #c58af9; }
+.derivation-mark { font-size: 12px; fill: #cfc9e2; }
+</style>
+<g class="diagram-root"><g class="layer-connectors"><line class="role-connector" data-kind="connector" data-id="manages.r0" x1="250" y1="157.85454545454544" x2="136" y2="160.96363636363637"/><line class="role-connector" data-kind="connector" data-id="manages.r1" x1="276" y1="157.8062827225131" x2="136" y2="161.10471204188482"/></g><g class="layer-shapes"><g class="shape fact-type" data-kind="factType" data-id="manages"><rect class="role-box" data-kind="role" data-id="manages.r0" data-fact-type="manages" x="250" y="148" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="manages.r1" data-fact-type="manages" x="276" y="148" width="26" height="19"/><text class="reading" x="276" y="181" text-anchor="middle">manages</text></g><g class="shape object-type" data-kind="objectType" data-id="person" transform="translate(60, 140)"><rect class="ot-box entity-type" x="0" y="0" width="76" height="44" rx="10" ry="10"/><text class="ot-name" x="38" y="19" text-anchor="middle">Person</text><text class="ot-refmode" x="38" y="35" text-anchor="middle">(.nr)</text></g></g><g class="layer-constraints"><g class="constraint internal-constraint" data-kind="constraint" data-id="uc"><line class="uniqueness-bar" x1="277" y1="142" x2="301" y2="142"/></g><g class="constraint external-constraint" data-kind="constraint" data-id="rc"><line class="constraint-link" x1="276" y1="60" x2="264.26666666666665" y2="148"/><line class="constraint-link" x1="276" y1="60" x2="287.73333333333335" y2="148"/><circle class="constraint-circle" cx="276" cy="60" r="11"/><text class="constraint-glyph" x="276" y="64" text-anchor="middle">↺</text><title>Ring constraint: irreflexive, acyclic</title></g></g><g class="layer-overlays"/></g>
+</svg>

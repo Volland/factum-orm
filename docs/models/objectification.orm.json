@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "name": "Objectification (nesting)",
+  "objectTypes": [
+    {
+      "id": "academic",
+      "name": "Academic",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "subject",
+      "name": "Subject",
+      "kind": "entity",
+      "refMode": "code"
+    },
+    {
+      "id": "teaching",
+      "name": "Teaching",
+      "kind": "entity",
+      "objectifiedFactTypeId": "teaches",
+      "isIndependent": true
+    },
+    {
+      "id": "rating",
+      "name": "Rating",
+      "kind": "entity",
+      "refMode": "nr"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "teaches",
+      "roles": [
+        {
+          "id": "teaches.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "teaches.r1",
+          "objectTypeId": "subject"
+        }
+      ],
+      "readings": [
+        {
+          "id": "teaches.rd",
+          "roleOrder": [
+            "teaches.r0",
+            "teaches.r1"
+          ],
+          "text": "{0} teaches {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "gets",
+      "roles": [
+        {
+          "id": "gets.r0",
+          "objectTypeId": "teaching"
+        },
+        {
+          "id": "gets.r1",
+          "objectTypeId": "rating"
+        }
+      ],
+      "readings": [
+        {
+          "id": "gets.rd",
+          "roleOrder": [
+            "gets.r0",
+            "gets.r1"
+          ],
+          "text": "{0} gets {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "teaches.r0",
+        "teaches.r1"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "gets.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "academic": {
+        "x": 40,
+        "y": 150
+      },
+      "subject": {
+        "x": 350,
+        "y": 150
+      },
+      "rating": {
+        "x": 350,
+        "y": 20
+      },
+      "teaches": {
+        "x": 220,
+        "y": 158,
+        "orientation": "horizontal"
+      },
+      "gets": {
+        "x": 262,
+        "y": 28,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

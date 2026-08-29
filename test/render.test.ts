@@ -4,7 +4,7 @@ import { installDomShim, countByClass, textsOf, StubNode } from './domShim.js';
 import { renderDiagram, diagramBounds } from '../src/webview/render.js';
 import { sampleModel } from '../src/model/sample.js';
 import { autoLayout } from '../src/webview/autolayout.js';
-import { objectTypeRect, roleRect, borderPoint } from '../src/webview/geometry.js';
+import { objectTypeRect, factTypeRect, roleRect, borderPoint } from '../src/webview/geometry.js';
 
 // The renderer only touches `document` when it runs, so the shim can be
 // installed after the imports.
@@ -50,7 +50,7 @@ test('value constraints and reference modes appear as text', () => {
   assert.ok(texts.includes('works for'), texts.join(' | '));
 });
 
-test('an objectified fact type is drawn inside a frame', () => {
+test('an objectified fact type is drawn as a frame around the fact type', () => {
   const model = sampleModel();
   model.objectTypes.push({
     id: 'ot_employment',
@@ -59,8 +59,32 @@ test('an objectified fact type is drawn inside a frame', () => {
     objectifiedFactTypeId: 'ft_works',
   });
   const root = draw(model);
-  assert.equal(countByClass(root, 'objectification'), 1);
+  // The frame *is* the object type: it must not also get a box of its own.
+  assert.equal(countByClass(root, 'objectified'), 1);
+  assert.equal(countByClass(root, 'ot-box'), model.objectTypes.length);
+  assert.equal(
+    countByClass(root, 'entity-type'),
+    model.objectTypes.filter((o) => o.kind === 'entity' && !o.objectifiedFactTypeId).length,
+  );
   assert.ok(textsOf(root).includes('"Employment"'));
+});
+
+test('an objectified object type takes the bounds of the fact type it frames', () => {
+  const model = sampleModel();
+  const objectifier = {
+    id: 'ot_employment',
+    name: 'Employment',
+    kind: 'entity' as const,
+    objectifiedFactTypeId: 'ft_works',
+  };
+  model.objectTypes.push(objectifier);
+  const factType = model.factTypes.find((f) => f.id === 'ft_works')!;
+  const inner = factTypeRect(model, factType);
+  const frame = objectTypeRect(model, objectifier);
+  // The frame encloses the roles, so connectors stop on the frame's border.
+  assert.ok(frame.x < inner.x && frame.y < inner.y, JSON.stringify({ frame, inner }));
+  assert.ok(frame.x + frame.w > inner.x + inner.w);
+  assert.ok(frame.y + frame.h > inner.y + inner.h);
 });
 
 test('external uniqueness constraints get a circle with links to each role', () => {

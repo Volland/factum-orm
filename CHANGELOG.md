@@ -11,6 +11,9 @@
   and n-ary or objectified fact types are reified into nodes with one relationship per role.
   Constraints the schema cannot enforce are emitted as verbalized comments.
 - New settings `orm.graph.subtypeStrategy` and `orm.graph.ifNotExists`.
+- Objectified fact types are now drawn correctly: the frame around the fact type *is* the object
+  type, so connectors target the frame instead of a duplicate box beside it.
+- Unary fact types show their predicate without a leading ellipsis.
 - Fixed `npm test` matching no test files, so the suite reported success without running.
 
 ## 0.1.0

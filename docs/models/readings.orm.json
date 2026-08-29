@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "name": "Two readings of one fact type",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "kind": "entity",
+      "refMode": "name"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "company"
+        }
+      ],
+      "readings": [
+        {
+          "id": "rd1",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        },
+        {
+          "id": "rd2",
+          "roleOrder": [
+            "works.r1",
+            "works.r0"
+          ],
+          "text": "{0} employs {1}"
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "mc",
+      "kind": "mandatory",
+      "roles": [
+        "works.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 60
+      },
+      "company": {
+        "x": 300,
+        "y": 60
+      },
+      "works": {
+        "x": 196,
+        "y": 68,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

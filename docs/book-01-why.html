@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why fact-based modeling — ORM 2 mini book · Factum</title>
+<meta name="description" content="Why Object-Role Modeling avoids attributes, and what verbalization gives you that an ER diagram cannot.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why fact-based modeling — ORM 2 mini book · Factum">
+<meta property="og:description" content="Why Object-Role Modeling avoids attributes, and what verbalization gives you that an ER diagram cannot.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 1 of 10</p>
+  <h1>Why fact-based modeling</h1>
+  <p>Attributes are a design decision disguised as a modeling decision. Facts are not.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>The problem with attributes</h2>
+<p>Draw an entity in almost any modeling notation and the tool immediately asks you for its
+   attributes. So you write them down: a Person has a name, a birth date, an email address, a
+   department. It feels like recording facts. It is not. It is a series of commitments about
+   structure, made at the exact moment you know least about the domain.</p>
+
+<p>Each commitment can be wrong in a way that is expensive later:</p>
+<ul>
+  <li><strong>An attribute turns out to be many-valued.</strong> A person has two email addresses.
+      The attribute becomes a table, and every query and every screen that touched it changes.</li>
+  <li><strong>An attribute turns out to need its own properties.</strong> You need to know when the
+      person joined that department. The attribute becomes a relationship with a date on it.</li>
+  <li><strong>An attribute turns out to be an entity.</strong> Departments need budgets and heads of
+      their own, so what was a string becomes a thing.</li>
+  <li><strong>An attribute cannot be constrained.</strong> "Exactly one of email or phone must be
+      present" is not something an attribute list can say, so it moves into prose or code.</li>
+</ul>
+
+<p>None of these are exotic. They are the ordinary course of a project. The problem is not that the
+   first model was careless; it is that the notation forced a decision before the information needed
+   to make it existed.</p>
+
+<h2>What ORM does instead</h2>
+<p>ORM has no attributes at all. There are objects, and there are the roles they play in
+   relationships. That is the entire vocabulary. "Person works for Company" is a fact type with two
+   roles; so is "Person has EmailAddress". Nothing is subordinate to anything else.</p>
+
+<figure class="figure">
+  <img src="assets/book/elementary-fact.svg" alt="An ORM diagram: Person entity type connected to a two-role fact type reading works for, connected to Company" loading="lazy">
+  <figcaption>A fact type with two roles. The bar over the first role says each Person works for at most one Company; the dot says every Person works for one. <a href="models/elementary-fact.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Because nothing was demoted to an attribute, the four changes above stop being structural. Adding
+   a second email address means erasing a uniqueness bar. Recording when someone joined a department
+   means objectifying the fact type and hanging a date off it. Promoting Department to an entity type
+   with its own facts means changing one shape. The model absorbs the change instead of being
+   reshaped by it — this is what people mean when they call ORM <em>semantically stable</em>.</p>
+
+<h2>The part that actually changes how you work</h2>
+<p>The attribute-free structure is what makes ORM technically attractive. Verbalization is what makes
+   it useful on a Tuesday afternoon with a domain expert in the room.</p>
+
+<p>Because every fact type is a sentence with holes in it, and every constraint is a statement about
+   those sentences, the whole model can be read aloud:</p>
+
+<pre><code>Each Person works for exactly one Company.
+It is possible that more than one Person works for the same Company.</code></pre>
+
+<p>An accountant cannot review an ER diagram. An accountant can absolutely tell you that the first
+   sentence is wrong because contractors work for two agencies at once. You have just found a
+   modeling error in the cheapest possible place — before any code, in a conversation — and the fix
+   is to remove one uniqueness bar.</p>
+
+<p>This is the loop the method is built around, and it is worth stating plainly because it is easy to
+   nod at and then not do:</p>
+
+<ol>
+  <li>State the facts in sentences, using real examples from real reports.</li>
+  <li>Draw them.</li>
+  <li>Read the model back as sentences and check them against the examples.</li>
+  <li>Correct, and repeat.</li>
+</ol>
+
+<h2>Populating with examples</h2>
+<p>The second thing ORM gives you is the ability to test a model with data before a database exists.
+   Each fact type can be populated with sample rows — real ones, taken from the report you are
+   modeling. A constraint you are unsure about becomes a concrete question: <em>can this column
+   combination ever repeat?</em> Show the expert two rows that would violate the constraint and ask
+   whether they could both be true.</p>
+
+<p>ER and UML diagrams cannot be populated this way, because an attribute is not a table you can fill
+   in. This sounds like a small thing. In practice it is the difference between a model you believe
+   and a model you have merely drawn.</p>
+
+<h2>What it costs</h2>
+<p>Honesty requires the other side. ORM diagrams are larger than ER diagrams — often two or three
+   times the shapes for the same domain, because every attribute becomes a fact type with its own
+   roles and constraints. On a wall-sized schema this is a real cost, and it is why ORM tools
+   support views and why summary ER diagrams are sometimes generated <em>from</em> an ORM model for
+   communication.</p>
+
+<p>The trade is deliberate: more shapes on the page, fewer decisions taken on faith. If you are
+   sketching something you will throw away next week, that trade is bad. If you are designing
+   something that other systems will depend on for a decade, it is the whole point.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book.html"><span>Previous</span>Contents</a><a class="next" href="book-02-elementary-facts.html"><span>Next</span>Elementary facts</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

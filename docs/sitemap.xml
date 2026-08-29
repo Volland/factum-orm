@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://volland.github.io/factum-orm/</loc><priority>1.0</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-01-why.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-02-elementary-facts.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-03-objects.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-04-predicates.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-05-uniqueness.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-06-mandatory.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-07-constraints.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-08-subtypes.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-09-csdp.html</loc><priority>0.8</priority></url>
+  <url><loc>https://volland.github.io/factum-orm/book-10-pitfalls.html</loc><priority>0.8</priority></url>
   <url><loc>https://volland.github.io/factum-orm/getting-started.html</loc><priority>0.7</priority></url>
   <url><loc>https://volland.github.io/factum-orm/mapping.html</loc><priority>0.7</priority></url>
   <url><loc>https://volland.github.io/factum-orm/reference.html</loc><priority>0.7</priority></url>

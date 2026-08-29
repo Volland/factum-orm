@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The design procedure — ORM 2 mini book · Factum</title>
+<meta name="description" content="Halpin's seven-step Conceptual Schema Design Procedure, worked end to end on a staff directory report.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The design procedure — ORM 2 mini book · Factum">
+<meta property="og:description" content="Halpin's seven-step Conceptual Schema Design Procedure, worked end to end on a staff directory report.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 9 of 10</p>
+  <h1>The design procedure</h1>
+  <p>Halpin's seven steps, worked end to end on a staff directory.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>The seven steps</h2>
+<p>ORM comes with a procedure, the Conceptual Schema Design Procedure. It is not a formality: each
+   step exists because it catches a class of error the previous step cannot.</p>
+
+<div class="table-scroll"><table>
+<thead><tr><th>Step</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Transform familiar information examples into elementary facts, and apply quality checks</td></tr>
+<tr><td>2</td><td>Draw the fact types, and apply a population check</td></tr>
+<tr><td>3</td><td>Check for entity types that should be combined, and note any arithmetic derivations</td></tr>
+<tr><td>4</td><td>Add uniqueness constraints, and check arity of fact types</td></tr>
+<tr><td>5</td><td>Add mandatory role constraints, and check for logical derivations</td></tr>
+<tr><td>6</td><td>Add value, set comparison and subtyping constraints</td></tr>
+<tr><td>7</td><td>Add other constraints and perform final checks</td></tr>
+</tbody>
+</table></div>
+
+<h2>The example</h2>
+<p>We will model a fragment of a university staff directory. The report looks like this:</p>
+
+<pre><code>Emp Nr  Emp Name    Dept              Room     Rank  Tenure / contract expiry
+715     Adams A     Computer Science  69-301   L     01/31/95
+139     Cantor G    Mathematics       67-301   P     tenured
+430     Codd EF     Computer Science  69-507   P     tenured
+651     Jones E     Biochemistry      69-803   SL    12/31/96</code></pre>
+
+<h2>Step 1 — elementary facts</h2>
+<p>Read the first row aloud as separate sentences, naming objects by definite description:</p>
+
+<pre><code>The Academic with empNr 715 has EmpName 'Adams A'.
+The Academic with empNr 715 works for the Dept named 'Computer Science'.
+The Academic with empNr 715 occupies the Room with roomNr '69-301'.
+The Academic with empNr 715 has the Rank with code 'L'.
+The Academic with empNr 715 is contracted till the Date '01/31/95'.
+The Academic with empNr 139 is tenured.</code></pre>
+
+<p>The quality checks: are these elementary (no "and" joining independent facts)? Are the objects well
+   identified? The last row's column has produced <em>two different fact types</em> — being tenured
+   and having a contract expiry — which a column-by-column reading would have missed. This is exactly
+   what step 1 is for.</p>
+
+<h2>Step 2 — draw and populate</h2>
+
+<figure class="figure">
+  <img src="assets/book/csdp-draft.svg" alt="ORM diagram of six fact types radiating from Academic, with no constraints" loading="lazy">
+  <figcaption>The fact types drawn, before any constraints. Every one can be populated from the report — the check that they were observed rather than invented. Opened in the editor this model reports a missing uniqueness constraint on each fact type, which step 4 is about to fix. <a href="models/csdp-draft.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Populate each fact type with a row or two from the report. Anything you cannot populate is
+   suspicious.</p>
+
+<h2>Step 3 — combine entity types, note derivations</h2>
+<p>Look for entity types that are really the same thing under different names. In Halpin's fuller
+   version of this example, a second report described Professors, Senior Lecturers and Lecturers as
+   separate types; the shared predicates reveal they are all Academics with different ranks, and
+   collapsing them into one entity type with a Rank fact type is the single biggest structural
+   improvement in the exercise.</p>
+
+<p>Also note anything computable. If a later report shows a count of academics per department, that is
+   <em>derived</em> — it is not stored, it is calculated, and it gets a derivation rule rather than a
+   fact type.</p>
+
+<h2>Step 4 — uniqueness, and the arity check</h2>
+<p>Ask of each fact type: can this row repeat? Each academic has one name, one department, one room,
+   one rank — so each of those fact types gets a bar over the Academic role. Then run the arity check
+   from chapter 5: any n-ary fact type whose uniqueness constraint misses two roles must be split.</p>
+
+<h2>Step 5 — mandatory roles, and logical derivations</h2>
+<p>Now ask which roles every academic must play. Name, department and rank: yes. Room: not
+   necessarily — a visiting academic may have none, so that role stays optional. Tenure is the
+   interesting one: neither <em>is tenured</em> nor <em>is contracted till</em> is mandatory on its
+   own, but their disjunction is, which is the inclusive-or from chapter 6.</p>
+
+<p>The second half of the step asks whether any fact type can be derived from others without
+   arithmetic — a functional chain you have recorded twice, for instance. Remove what can be
+   derived, and write the rule down.</p>
+
+<h2>Step 6 — value, set comparison and subtyping constraints</h2>
+<p>Rank is a closed set: <code>{'P', 'SL', 'L'}</code>. Then inspect the optional roles for hidden
+   subtypes, as chapter 8 describes. In this small fragment the only optional role is Room, which any
+   academic may play, so no subtype is warranted — a useful negative result, since inventing subtypes
+   nobody needs is a common failure.</p>
+
+<h2>Step 7 — other constraints and final checks</h2>
+<p>Nothing can be both tenured and contracted, so those two roles are mutually exclusive. Combined
+   with the inclusive-or from step 5, that is an exclusive-or: exactly one of the two.</p>
+
+<figure class="figure">
+  <img src="assets/book/csdp-final.svg" alt="The completed ORM schema for the staff directory with all constraints" loading="lazy">
+  <figcaption>The finished schema. Uniqueness bars, mandatory dots, a value constraint on Rank, and the exclusive-or between being tenured and being contracted. <a href="models/csdp-final.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>The final checks are the ones worth slowing down for:</p>
+<ul>
+  <li><strong>Consistency with the examples.</strong> Take the original report and verify every row
+      against the model. A row the schema forbids is either a bug in the schema or an exception
+      nobody mentioned — and both are worth finding now.</li>
+  <li><strong>No redundancy.</strong> Is anything recorded twice, or derivable from the rest?</li>
+  <li><strong>Completeness.</strong> Can every question the report answers be answered from the
+      model?</li>
+</ul>
+
+<p>Then read the whole thing back. Factum's verbalization tab produces the sentences; walk through
+   them with the person who owns the report. Every sentence they hesitate over is worth a
+   conversation.</p>
+
+<pre><code>Each Academic has exactly one EmpName.
+Each Academic works for exactly one Dept.
+Each Academic occupies at most one Room.
+Each Academic has exactly one Rank.
+It is necessary that the possible values of Rank are {'P', 'SL', 'L'}.
+Each Academic is tenured or is contracted till some Date.
+No Academic is both tenured and contracted till some Date.</code></pre>
+
+<p>That list is the specification. It is readable by someone who has never seen an ORM diagram, and it
+   was generated from the model rather than written alongside it — so it cannot drift.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-08-subtypes.html"><span>Previous</span>Subtypes and objectification</a><a class="next" href="book-10-pitfalls.html"><span>Next</span>Pitfalls and a checklist</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

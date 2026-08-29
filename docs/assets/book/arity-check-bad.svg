@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 4 399 232" width="559" height="325" role="img">
+<style>
+text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #ece9f5; }
+.ot-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.5; }
+.ot-box.value-type { stroke-dasharray: 5 3; }
+.ot-box.objectified { fill: none; }
+.ot-name { font-size: 12.5px; font-weight: 600; }
+.ot-refmode { font-size: 10.5px; fill: #a49dbd; }
+.role-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.3; }
+.role-box.unattached { stroke-dasharray: 3 2; stroke: #ff6b6b; }
+.role-connector { stroke: #b9b3cf; stroke-width: 1.3; }
+.reading { font-size: 11.5px; fill: #cfc9e2; }
+.role-name { font-size: 10px; fill: #a49dbd; font-style: italic; }
+.mandatory-dot { fill: #c58af9; stroke: none; }
+.uniqueness-bar { stroke: #c58af9; stroke-width: 2.2; }
+.uniqueness-gap { stroke: #c58af9; stroke-width: 1; stroke-dasharray: 3 3; }
+.frequency-bar { stroke: #c58af9; stroke-width: 2.2; stroke-dasharray: 6 3; }
+.frequency-text { font-size: 10.5px; fill: #c58af9; }
+.constraint-circle { fill: #221d33; stroke: #c58af9; stroke-width: 1.7; }
+.constraint-glyph { font-size: 11px; fill: #c58af9; }
+.constraint-link { stroke: #c58af9; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.constraint-arrow { fill: #c58af9; }
+.subtype-line { stroke: #ded9ef; stroke-width: 1.5; }
+.subtype-arrow { fill: #ded9ef; }
+.objectification { fill: none; stroke: #ded9ef; stroke-width: 1.3; }
+.objectification-name { font-size: 11.5px; font-weight: 600; }
+.value-constraint { font-size: 10.5px; fill: #c58af9; }
+.derivation-mark { font-size: 12px; fill: #cfc9e2; }
+</style>
+<g class="diagram-root"><g class="layer-connectors"><line class="role-connector" data-kind="connector" data-id="rankdept.r0" x1="210" y1="117.91342756183745" x2="123" y2="120.68021201413427"/><line class="role-connector" data-kind="connector" data-id="rankdept.r1" x1="262" y1="110.3744769874477" x2="330" y2="73.10251046025104"/><line class="role-connector" data-kind="connector" data-id="rankdept.r2" x1="286.9228187919463" y1="127" x2="340.88926174496646" y2="170"/></g><g class="layer-shapes"><g class="shape fact-type" data-kind="factType" data-id="rankdept"><rect class="role-box" data-kind="role" data-id="rankdept.r0" data-fact-type="rankdept" x="210" y="108" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="rankdept.r1" data-fact-type="rankdept" x="236" y="108" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="rankdept.r2" data-fact-type="rankdept" x="262" y="108" width="26" height="19"/><text class="reading" x="249" y="141" text-anchor="middle">… of … works for …</text></g><g class="shape object-type" data-kind="objectType" data-id="academic" transform="translate(40, 100)"><rect class="ot-box entity-type" x="0" y="0" width="83" height="44" rx="10" ry="10"/><text class="ot-name" x="41.5" y="19" text-anchor="middle">Academic</text><text class="ot-refmode" x="41.5" y="35" text-anchor="middle">(.nr)</text></g><g class="shape object-type" data-kind="objectType" data-id="rank" transform="translate(330, 30)"><rect class="ot-box entity-type" x="0" y="0" width="77" height="44" rx="10" ry="10"/><text class="ot-name" x="38.5" y="19" text-anchor="middle">Rank</text><text class="ot-refmode" x="38.5" y="35" text-anchor="middle">(.code)</text></g><g class="shape object-type" data-kind="objectType" data-id="dept" transform="translate(330, 170)"><rect class="ot-box entity-type" x="0" y="0" width="77" height="44" rx="10" ry="10"/><text class="ot-name" x="38.5" y="19" text-anchor="middle">Dept</text><text class="ot-refmode" x="38.5" y="35" text-anchor="middle">(.name)</text></g></g><g class="layer-constraints"><g class="constraint internal-constraint" data-kind="constraint" data-id="uc"><line class="uniqueness-bar" x1="211" y1="102" x2="235" y2="102"/></g></g><g class="layer-overlays"/></g>
+</svg>

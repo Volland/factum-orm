@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Objects and reference schemes — ORM 2 mini book · Factum</title>
+<meta name="description" content="Entity types, value types, reference modes, composite reference schemes and independent object types.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Objects and reference schemes — ORM 2 mini book · Factum">
+<meta property="og:description" content="Entity types, value types, reference modes, composite reference schemes and independent object types.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 3 of 10</p>
+  <h1>Objects and reference schemes</h1>
+  <p>Everything in an ORM model is an object. The interesting question is how you refer to one.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>Two kinds of object</h2>
+<p>ORM divides objects into <strong>entities</strong> and <strong>values</strong>.</p>
+<ul>
+  <li>A <strong>value</strong> is a character string or a number. It identifies itself: the string
+      <code>'Adams A'</code> needs nothing else to be understood. Value types are drawn with a
+      dashed outline.</li>
+  <li>An <strong>entity</strong> is a thing in the world — a person, a room, an access level. It
+      cannot identify itself, so it is referred to by a definite description: <em>the Academic with
+      empNr 715</em>. Entity types are drawn with a solid outline.</li>
+</ul>
+
+<p>Entities need not be tangible. An access level or a department is as much an entity as a person is;
+   what matters is that it is referred to rather than written down directly.</p>
+
+<figure class="figure">
+  <img src="assets/book/object-types.svg" alt="ORM diagram showing an entity type with a reference mode, a dashed value type with a value constraint, and an independent entity type" loading="lazy">
+  <figcaption>Person is an entity type identified by a person number. GenderCode is a value type — a string that is its own identifier. Room is independent, marked "!", because a room can exist without playing any fact role — but it still needs a reference scheme of its own. <a href="models/object-types.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<h2>Reference modes</h2>
+<p>Writing <code>Person(.nr)</code> is shorthand. Spelled out, it declares a binary fact type between
+   the entity type and a value type, constrained so that the mapping is an <em>injection</em>: each
+   Person has exactly one PersonNr, and each PersonNr refers to at most one Person. Factum verbalizes
+   exactly that:</p>
+
+<pre><code>Each Person has exactly one PersonNr; each PersonNr refers to at most one Person.</code></pre>
+
+<p>The abbreviation exists because reference fact types are numerous and boring. Every entity type
+   needs one, and drawing them all would double the size of the diagram for no insight. So they are
+   collapsed into a parenthesis — but it is worth remembering that a reference mode is a fact type
+   with constraints on it, not a special kind of attribute that sneaked back in.</p>
+
+<p>Choose reference modes from the domain, not from the database. If the business identifies
+   employees by employee number, that is the reference mode, even if the table will eventually have a
+   surrogate key. Surrogate keys are a mapping decision; Factum will add one for you when a type has
+   no reference scheme, and will tell you it did so.</p>
+
+<h2>Composite reference</h2>
+<p>Sometimes one value is not enough. A room number like <code>'301'</code> only identifies a room
+   within a building; the same number exists in every building on campus. The identifier is the
+   <em>combination</em> of building and room number.</p>
+
+<figure class="figure">
+  <img src="assets/book/composite-reference.svg" alt="ORM diagram showing Room identified by the combination of Building and RoomNr via an external uniqueness constraint" loading="lazy">
+  <figcaption>Room has a composite reference scheme. The circled bar spanning both roles says the combination is unique, and marks it as the preferred identifier for Room. <a href="models/composite-reference.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>This is an <strong>external uniqueness constraint</strong>: it spans roles in two different fact
+   types, and asserts that the combination is unique across the join. Mark it as the preferred
+   identifier and it becomes Room's reference scheme.</p>
+
+<p>This is also the moment where the earlier shortcut is repaid. If you had modeled rooms as the
+   string <code>'69-301'</code>, everything works until someone asks for the name of the building —
+   and now you are parsing identifiers. Composite reference says what was true all along.</p>
+
+<h2>Independent object types</h2>
+<p>Normally an entity type earns its place by playing roles: a Person exists in the model because
+   people work for companies and have names. But some object types need to exist whether or not
+   anything is currently said about them. A room in a new building is still a room before anyone is
+   assigned to it; a product in a catalogue exists before anyone orders it.</p>
+
+<p>Marking a type <strong>independent</strong> — shown with a trailing <code>!</code> — says exactly
+   this: instances may exist without playing any fact role. It matters when you map the model, since
+   an independent type needs a table of its own even if every one of its facts is optional.</p>
+
+<h2>Data types come last</h2>
+<p>A value type may carry a data type — string, integer, date, and so on — and a length or scale.
+   This is the one place where implementation detail is allowed into a conceptual schema, and it is
+   there because the mapping needs it. Set it when you know it; leaving it unset is not an error, and
+   Factum defaults to a string.</p>
+
+<p>Resist the urge to fill these in early. A conversation about whether <code>empNr</code> is an
+   integer or a string is a conversation about storage, and it will distract from the question that
+   matters at this stage — which is whether empNr identifies an academic at all.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-02-elementary-facts.html"><span>Previous</span>Elementary facts</a><a class="next" href="book-04-predicates.html"><span>Next</span>Predicates, roles and readings</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

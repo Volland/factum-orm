@@ -227,7 +227,14 @@ Mapping notes explaining each choice appear beside the schema and as comments in
 
 ## Documentation
 
+The site includes a **[mini book on ORM 2](https://volland.github.io/factum-orm/book.html)** — ten
+short chapters covering elementary facts, the constraint family, subtyping and objectification, and
+Halpin's seven-step design procedure worked end to end. Every figure in it is rendered by the
+extension's own renderer and links to the model file behind it, so any example can be opened and
+taken apart in the editor. Regenerate the figures with `npm run figures`.
+
 The full documentation site lives in [`docs/`](docs/) and is published with GitHub Pages:
+[book](https://volland.github.io/factum-orm/book.html),
 [getting started](https://volland.github.io/factum-orm/getting-started.html),
 [mapping rules](https://volland.github.io/factum-orm/mapping.html),
 [reference](https://volland.github.io/factum-orm/reference.html) and the

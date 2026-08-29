@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The other constraints — ORM 2 mini book · Factum</title>
+<meta name="description" content="Value, frequency, ring, subset, exclusion, equality and cardinality constraints, and the alethic/deontic distinction.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The other constraints — ORM 2 mini book · Factum">
+<meta property="og:description" content="Value, frequency, ring, subset, exclusion, equality and cardinality constraints, and the alethic/deontic distinction.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 7 of 10</p>
+  <h1>The other constraints</h1>
+  <p>Value, frequency, ring and set-comparison constraints — the rules that catch the awkward cases.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>Value constraints</h2>
+<p>A value constraint lists the values an object type may take, as an enumeration, a range, or a
+   mixture of both:</p>
+
+<pre><code>{'M', 'F'}          an enumeration
+{1..7}              a range
+{0.., 'unknown'}    open-ended, plus a discrete value</code></pre>
+
+<p>They are for genuinely closed sets — sex codes, a 1-to-7 rating scale, the three academic ranks.
+   Resist using them for lists that change: if the business adds a rank next year, a value constraint
+   means a schema change, whereas modeling Rank as an entity type with its own fact type means adding
+   a row. Halpin's own example makes this trade explicitly, storing a rank-to-access-level rule as
+   data precisely so it can be updated without recompiling the schema.</p>
+
+<h2>Frequency constraints</h2>
+<p>A frequency constraint generalizes uniqueness. Where a uniqueness constraint says "at most once", a
+   frequency constraint says "at least <em>n</em>", "at most <em>n</em>", or "between <em>n</em> and
+   <em>m</em> times". Writing 2 beside a role means each object appearing in that role appears there
+   exactly twice — the constraint Halpin uses to say that each department has both a teaching budget
+   and a research budget.</p>
+
+<p>A frequency of exactly 1 <em>is</em> a uniqueness constraint; use the uniqueness bar instead, and
+   Factum will warn you if you do not.</p>
+
+<h2>Ring constraints</h2>
+<p>When both roles of a fact type are played by the same object type, the fact type forms a ring, and
+   a family of constraints becomes available that says how the relation may loop back on itself.</p>
+
+<figure class="figure">
+  <img src="assets/book/ring-constraint.svg" alt="ORM diagram of a ring fact type with an irreflexive and acyclic ring constraint" loading="lazy">
+  <figcaption>Person manages Person, constrained to be irreflexive and acyclic: nobody manages themselves, and the management chain never loops. <a href="models/ring-constraint.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<div class="table-scroll"><table>
+<thead><tr><th>Ring type</th><th>Says</th><th>Typical use</th></tr></thead>
+<tbody>
+<tr><td>Irreflexive</td><td>No object relates to itself</td><td>manages, is parent of</td></tr>
+<tr><td>Asymmetric</td><td>If a relates to b, b does not relate to a</td><td>is older than</td></tr>
+<tr><td>Antisymmetric</td><td>Two distinct objects cannot relate both ways</td><td>reports to</td></tr>
+<tr><td>Symmetric</td><td>If a relates to b, then b relates to a</td><td>is married to, is a sibling of</td></tr>
+<tr><td>Transitive</td><td>a→b and b→c implies a→c</td><td>is an ancestor of</td></tr>
+<tr><td>Intransitive</td><td>a→b and b→c implies not a→c</td><td>is the parent of</td></tr>
+<tr><td>Acyclic</td><td>No cycles of any length</td><td>part-of hierarchies, org charts</td></tr>
+<tr><td>Reflexive</td><td>Each object playing the role relates to itself</td><td>rare, formal uses</td></tr>
+</tbody>
+</table></div>
+
+<p>Acyclic is the one that earns its keep most often, and it is also the one no relational
+   <code>CHECK</code> constraint can enforce. Recording it in the conceptual model is worthwhile even
+   when the database cannot hold it — the rule is now written down where an implementer will see it,
+   which is exactly why Factum carries unenforceable constraints into generated scripts as
+   comments.</p>
+
+<h2>Set-comparison constraints</h2>
+<p>These compare the populations of two role sequences, and come in three flavours.</p>
+
+<figure class="figure">
+  <img src="assets/book/subset-constraint.svg" alt="ORM diagram showing a subset constraint between the Person role of drives and the Person role of holds" loading="lazy">
+  <figcaption>A subset constraint: anyone who drives a car must hold a licence. The dashed arrow points from the subset to the superset. <a href="models/subset-constraint.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<ul>
+  <li><strong>Subset</strong> — the population of the first sequence must be included in the second.
+      <em>If a Person drives a Car then that Person holds a Licence.</em></li>
+  <li><strong>Exclusion</strong> — the populations must not overlap. <em>No Person both owns and
+      leases the same Car.</em></li>
+  <li><strong>Equality</strong> — the populations must be identical, which is a pair of subset
+      constraints, one in each direction. <em>A Person has a home phone if and only if that Person
+      heads a Department.</em></li>
+</ul>
+
+<p>The compared roles must be <em>compatible</em>: played by the same object type, or by types sharing
+   a common supertype. Comparing a Person role with a Company role is meaningless, and Factum reports
+   it as an error.</p>
+
+<p>Two combinations have their own names. Exclusion over roles that are also disjunctively mandatory
+   is an <strong>exclusive-or</strong>: exactly one of them, never both, never neither — the tenured
+   or contracted example from chapter 6. And a subset constraint whose source roles are mandatory
+   makes the target roles mandatory by implication, which Factum flags, because a constraint you did
+   not intend to add is worth knowing about.</p>
+
+<h2>Cardinality constraints</h2>
+<p>Where a frequency constraint bounds how often an object plays a role, a cardinality constraint
+   bounds how many objects there are: <em>there are at most 10 Rooms</em>. It is the least-used
+   constraint in the family, and worth reaching for only when the bound is a genuine business rule
+   rather than today's data.</p>
+
+<h2>Alethic and deontic</h2>
+<p>Every constraint in ORM 2 carries a modality. An <strong>alethic</strong> constraint cannot be
+   violated — it is true by necessity, and the system should make violation impossible. A
+   <strong>deontic</strong> constraint should not be violated, but can be: an obligation rather than
+   a necessity.</p>
+
+<pre><code>It is necessary that each Person was born on exactly one Date.
+It is obligatory that each Employee completes safety training.</code></pre>
+
+<p>The distinction matters because systems that model obligations as necessities cannot record
+   reality. If your database refuses to store an employee who has not completed training, the
+   business will find a way around your database. Marking the rule deontic says: record it, flag it,
+   do not prevent it.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-06-mandatory.html"><span>Previous</span>Mandatory roles</a><a class="next" href="book-08-subtypes.html"><span>Next</span>Subtypes and objectification</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

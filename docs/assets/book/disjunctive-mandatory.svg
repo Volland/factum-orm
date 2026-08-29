@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 4 408 240" width="571" height="336" role="img">
+<style>
+text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #ece9f5; }
+.ot-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.5; }
+.ot-box.value-type { stroke-dasharray: 5 3; }
+.ot-box.objectified { fill: none; }
+.ot-name { font-size: 12.5px; font-weight: 600; }
+.ot-refmode { font-size: 10.5px; fill: #a49dbd; }
+.role-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.3; }
+.role-box.unattached { stroke-dasharray: 3 2; stroke: #ff6b6b; }
+.role-connector { stroke: #b9b3cf; stroke-width: 1.3; }
+.reading { font-size: 11.5px; fill: #cfc9e2; }
+.role-name { font-size: 10px; fill: #a49dbd; font-style: italic; }
+.mandatory-dot { fill: #c58af9; stroke: none; }
+.uniqueness-bar { stroke: #c58af9; stroke-width: 2.2; }
+.uniqueness-gap { stroke: #c58af9; stroke-width: 1; stroke-dasharray: 3 3; }
+.frequency-bar { stroke: #c58af9; stroke-width: 2.2; stroke-dasharray: 6 3; }
+.frequency-text { font-size: 10.5px; fill: #c58af9; }
+.constraint-circle { fill: #221d33; stroke: #c58af9; stroke-width: 1.7; }
+.constraint-glyph { font-size: 11px; fill: #c58af9; }
+.constraint-link { stroke: #c58af9; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.constraint-arrow { fill: #c58af9; }
+.subtype-line { stroke: #ded9ef; stroke-width: 1.5; }
+.subtype-arrow { fill: #ded9ef; }
+.objectification { fill: none; stroke: #ded9ef; stroke-width: 1.3; }
+.objectification-name { font-size: 11.5px; font-weight: 600; }
+.value-constraint { font-size: 10.5px; fill: #c58af9; }
+.derivation-mark { font-size: 12px; fill: #cfc9e2; }
+</style>
+<g class="diagram-root"><g class="layer-connectors"><line class="role-connector" data-kind="connector" data-id="tenured.r0" x1="230" y1="55.3359133126935" x2="123" y2="103.36996904024767"/><line class="role-connector" data-kind="connector" data-id="contract.r0" x1="220" y1="181.8795379537954" x2="123" y2="139.94224422442244"/><line class="role-connector" data-kind="connector" data-id="contract.r1" x1="272" y1="187.99159663865547" x2="340" y2="190.56302521008402"/></g><g class="layer-shapes"><g class="shape fact-type" data-kind="factType" data-id="tenured"><rect class="role-box" data-kind="role" data-id="tenured.r0" data-fact-type="tenured" x="230" y="40" width="26" height="19"/><text class="reading" x="243" y="73" text-anchor="middle">is tenured</text></g><g class="shape fact-type" data-kind="factType" data-id="contract"><rect class="role-box" data-kind="role" data-id="contract.r0" data-fact-type="contract" x="220" y="178" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="contract.r1" data-fact-type="contract" x="246" y="178" width="26" height="19"/><text class="reading" x="246" y="211" text-anchor="middle">is contracted till</text></g><g class="shape object-type" data-kind="objectType" data-id="academic" transform="translate(40, 100)"><rect class="ot-box entity-type" x="0" y="0" width="83" height="44" rx="10" ry="10"/><text class="ot-name" x="41.5" y="19" text-anchor="middle">Academic</text><text class="ot-refmode" x="41.5" y="35" text-anchor="middle">(.nr)</text></g><g class="shape object-type" data-kind="objectType" data-id="date" transform="translate(340, 170)"><rect class="ot-box entity-type" x="0" y="0" width="76" height="44" rx="10" ry="10"/><text class="ot-name" x="38" y="19" text-anchor="middle">Date</text><text class="ot-refmode" x="38" y="35" text-anchor="middle">(.mdy)</text></g></g><g class="layer-constraints"><g class="constraint internal-constraint" data-kind="constraint" data-id="uc1"><line class="uniqueness-bar" x1="231" y1="34" x2="255" y2="34"/></g><g class="constraint internal-constraint" data-kind="constraint" data-id="uc2"><line class="uniqueness-bar" x1="221" y1="172" x2="245" y2="172"/></g><g class="constraint disjunctive-mandatory" data-kind="constraint" data-id="mc"><circle class="mandatory-dot" cx="238" cy="118.5" r="5"/><line class="constraint-link" x1="238" y1="118.5" x2="242.31159420289856" y2="59"/><line class="constraint-link" x1="238" y1="118.5" x2="233.68840579710144" y2="178"/></g></g><g class="layer-overlays"/></g>
+</svg>

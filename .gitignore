@@ -5,3 +5,4 @@ out-test/
 .DS_Store
 .claude
 .mcp.json
+lat.md/.cache/

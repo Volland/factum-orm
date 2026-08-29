@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "name": "Split into elementary facts",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "name",
+      "name": "PersonName",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "kind": "entity",
+      "refMode": "name"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "named",
+      "roles": [
+        {
+          "id": "named.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "named.r1",
+          "objectTypeId": "name"
+        }
+      ],
+      "readings": [
+        {
+          "id": "named.rd",
+          "roleOrder": [
+            "named.r0",
+            "named.r1"
+          ],
+          "text": "{0} is named {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "company"
+        }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "named.r0"
+      ]
+    },
+    {
+      "id": "mc1",
+      "kind": "mandatory",
+      "roles": [
+        "named.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "mc2",
+      "kind": "mandatory",
+      "roles": [
+        "works.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 100
+      },
+      "name": {
+        "x": 300,
+        "y": 20
+      },
+      "company": {
+        "x": 300,
+        "y": 180
+      },
+      "named": {
+        "x": 200,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "works": {
+        "x": 200,
+        "y": 188,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

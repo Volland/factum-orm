@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORM 2 mini book · Factum</title>
+<meta name="description" content="A short, practical book on Object-Role Modeling 2: elementary facts, constraints, subtyping, and Halpin's seven-step design procedure.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ORM 2 mini book · Factum">
+<meta property="og:description" content="A short, practical book on Object-Role Modeling 2: elementary facts, constraints, subtyping, and Halpin's seven-step design procedure.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html" aria-current="page">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>A mini book on ORM 2</h1><p>Everything you need to draw a conceptual schema you can defend — in about an hour of reading.</p></div>
+
+<section><div class="wrap prose">
+
+<p>Object-Role Modeling is not hard, but it is unfamiliar. It asks you to give up the two things most
+   data modelers reach for first — attributes and tables — and to write sentences instead. This book
+   walks through the method in the order you actually need it, and ends with Terry Halpin's
+   seven-step design procedure applied to a real report.</p>
+
+<p>Every diagram here was drawn by the Factum extension itself, and every figure links to the model
+   file behind it. Install the extension, click <em>Open this model</em>, and you can take any figure
+   apart, change a constraint, and watch the verbalization change with it. That loop — draw, read,
+   correct — is the whole method in miniature.</p>
+
+<div class="note">
+  <strong>A note on notation.</strong> This book uses ORM 2 notation: object types are soft
+  rectangles, and reference modes appear in parentheses beneath the name. Older ORM literature —
+  including Halpin's widely-cited overview paper — draws object types as ellipses. The concepts are
+  identical; only the shapes changed.
+</div>
+
+<h2>Contents</h2>
+<ol class="contents">
+<li><a href="book-01-why.html"><span class="num">01</span><span><strong>Why fact-based modeling</strong><span class="what">What attributes cost you, and why sentences beat boxes.</span></span></a></li>
+<li><a href="book-02-elementary-facts.html"><span class="num">02</span><span><strong>Elementary facts</strong><span class="what">The atom of an ORM model, and how to split a fact that is doing two jobs.</span></span></a></li>
+<li><a href="book-03-objects.html"><span class="num">03</span><span><strong>Objects and reference schemes</strong><span class="what">Entity types, value types, reference modes and composite identifiers.</span></span></a></li>
+<li><a href="book-04-predicates.html"><span class="num">04</span><span><strong>Predicates, roles and readings</strong><span class="what">Arity, role order, and writing readings that verbalize well.</span></span></a></li>
+<li><a href="book-05-uniqueness.html"><span class="num">05</span><span><strong>Uniqueness</strong><span class="what">The constraint that carries the most meaning — and the arity check it powers.</span></span></a></li>
+<li><a href="book-06-mandatory.html"><span class="num">06</span><span><strong>Mandatory roles</strong><span class="what">Which roles must be played, simple and disjunctive.</span></span></a></li>
+<li><a href="book-07-constraints.html"><span class="num">07</span><span><strong>The other constraints</strong><span class="what">Value, frequency, ring, subset, exclusion and equality.</span></span></a></li>
+<li><a href="book-08-subtypes.html"><span class="num">08</span><span><strong>Subtypes and objectification</strong><span class="what">When a subtype earns its place, and when a fact becomes a thing.</span></span></a></li>
+<li><a href="book-09-csdp.html"><span class="num">09</span><span><strong>The design procedure</strong><span class="what">Halpin's seven steps, worked end to end on a real report.</span></span></a></li>
+<li><a href="book-10-pitfalls.html"><span class="num">10</span><span><strong>Pitfalls and a checklist</strong><span class="what">The mistakes that recur, and a checklist before you map.</span></span></a></li>
+</ol>
+
+<h2>How to read it</h2>
+<p>Chapters 1 to 4 are the vocabulary: facts, objects, roles and readings. Chapters 5 to 8 are the
+   constraints, which is where a model stops being a picture and starts being a specification.
+   Chapter 9 puts it together as a procedure, and chapter 10 is the list of things that go wrong.</p>
+<p>If you are impatient, read chapter 2 and chapter 5. Elementary facts and uniqueness constraints
+   carry most of the method between them; everything else is refinement.</p>
+
+<h2>What this book is not</h2>
+<p>It is an introduction, not a reference. ORM has a formal grounding, a textual language (FORML),
+   derivation rules, and a body of transformation theory that a short book cannot cover. For the full
+   treatment, Halpin and Morgan's <em>Information Modeling and Relational Databases</em> is the
+   standard work, and <a href="https://www.ormfoundation.org/">the ORM Foundation</a> is where the
+   community lives.</p>
+
+<p>For how Factum turns a finished model into a database schema, see
+   <a href="mapping.html">Mapping rules</a>. For the editor itself, see the
+   <a href="getting-started.html">guide</a>.</p>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

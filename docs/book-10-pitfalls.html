@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitfalls and a checklist — ORM 2 mini book · Factum</title>
+<meta name="description" content="Common ORM modeling mistakes, and a checklist to run before generating a database schema.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pitfalls and a checklist — ORM 2 mini book · Factum">
+<meta property="og:description" content="Common ORM modeling mistakes, and a checklist to run before generating a database schema.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 10 of 10</p>
+  <h1>Pitfalls and a checklist</h1>
+  <p>The mistakes that recur, and what to verify before you map the model to anything.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>Modeling from the database backwards</h2>
+<p>The most common failure is not a notation error. It is drawing the tables you already intend to
+   build, and using ORM to decorate them. The symptom is easy to spot: object types that correspond
+   one-to-one with planned tables, every fact type functional, no m:n anywhere, and a suspicious
+   number of types called <em>SomethingHeader</em> or <em>SomethingDetail</em>.</p>
+
+<p>The fix is to go back to step 1 and read facts off a real report. If you have no report, you are
+   not ready to model.</p>
+
+<h2>Making everything mandatory</h2>
+<p>Mandatory dots are added defensively — of course a person has a name, of course an order has a
+   customer. But mandatory means the system <em>refuses to know about</em> an object that lacks the
+   fact, which is a much stronger claim, and it is usually contradicted by the first week of real
+   data entry. Ask "can this exist in our records before we know that?" for each dot.</p>
+
+<h2>Overusing "has"</h2>
+<p>A schema where every predicate reads "has" has lost most of the value of verbalization. "Person has
+   Date" tells you nothing; "Person was born on Date" tells you what the fact means, and makes a wrong
+   constraint obvious when you read it aloud. Whenever you type "has", spend five seconds looking for
+   the real verb.</p>
+
+<h2>Value types doing an entity's job</h2>
+<p>If you find yourself parsing a value — splitting <code>'69-301'</code> into a building and a room,
+   or reading a prefix out of a code — you have an entity type modeled as a string. Give it a proper
+   reference scheme, composite if necessary, as chapter 3 describes.</p>
+
+<h2>Subtypes without definitions</h2>
+<p>A subtype with no rule saying who belongs to it is a category, not a subtype. Either write the
+   defining sentence in terms of facts already in the model, or replace the subtype with a fact type
+   recording the category. Chapter 8 has the test.</p>
+
+<h2>N-ary fact types that should be binaries</h2>
+<p>A ternary is right when its three roles are genuinely irreducible — a booking of a room on a day, a
+   score in a subject in a semester. It is wrong when it bundles independent facts about one object,
+   and the uniqueness pattern gives it away: a constraint that misses two roles means the fact type
+   splits. Run the arity check rather than trusting your instinct.</p>
+
+<h2>Forgetting that m:n still needs a constraint</h2>
+<p>"Many-to-many" is not the absence of a rule. A spanning uniqueness constraint says the same pair is
+   not recorded twice, which is usually what you mean and is not automatic. A fact type with no
+   uniqueness constraint at all permits unlimited duplicates.</p>
+
+<h2>Constraining today's data instead of the rules</h2>
+<p>Sample data is evidence, not law. Every value in a sample being distinct does not make the role
+   unique; it may just be a small sample. Use the population to <em>generate</em> the question, then
+   ask the domain expert to answer it. The useful form is always: "here are two rows — could both be
+   true?"</p>
+
+<h2>A checklist before mapping</h2>
+<p>Run through this before generating a schema from the model. Factum checks the mechanical ones for
+   you and reports them in the Problems panel; the rest need a human.</p>
+
+<div class="table-scroll"><table>
+<thead><tr><th>Check</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Every entity type has a reference scheme</td><td>Otherwise there is no way to refer to an instance, and the mapper invents a surrogate key</td></tr>
+<tr><td>Every fact type has a uniqueness constraint</td><td>Without one, the same fact may repeat without limit</td></tr>
+<tr><td>Every n-ary uniqueness constraint spans at least n−1 roles</td><td>A narrower one means the fact type is not elementary</td></tr>
+<tr><td>Every role is attached to an object type</td><td>An unattached role cannot be populated or mapped</td></tr>
+<tr><td>Every fact type has a reading that verbalizes well</td><td>The verbalization is the specification; if it reads badly, nobody will check it</td></tr>
+<tr><td>Every optional role has been questioned</td><td>Optional roles are where subtypes hide</td></tr>
+<tr><td>Every mandatory role has been questioned</td><td>Mandatory is a strong claim about what the system may know</td></tr>
+<tr><td>Every subtype has a definition</td><td>Otherwise it is a category, not a subtype</td></tr>
+<tr><td>Every fact type can be populated from real data</td><td>An unpopulatable fact type was invented, not observed</td></tr>
+<tr><td>The verbalization has been read by a domain expert</td><td>This is the entire point of the method</td></tr>
+</tbody>
+</table></div>
+
+<h2>Where to go next</h2>
+<p>Draw something real. The method does not become useful by being read about — it becomes useful the
+   first time a verbalized sentence makes a domain expert say "no, that's not right".</p>
+
+<p>From here: <a href="mapping.html">Mapping rules</a> covers turning the model into a relational or
+   property graph schema; the <a href="reference.html">reference</a> lists every constraint and
+   validation rule; and Halpin and Morgan's <em>Information Modeling and Relational Databases</em> is
+   the full treatment this book compresses.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-09-csdp.html"><span>Previous</span>The design procedure</a><a class="next" href="book.html"><span>Back to</span>Contents</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 -8 419 232" width="587" height="325" role="img">
+<style>
+text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #ece9f5; }
+.ot-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.5; }
+.ot-box.value-type { stroke-dasharray: 5 3; }
+.ot-box.objectified { fill: none; }
+.ot-name { font-size: 12.5px; font-weight: 600; }
+.ot-refmode { font-size: 10.5px; fill: #a49dbd; }
+.role-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.3; }
+.role-box.unattached { stroke-dasharray: 3 2; stroke: #ff6b6b; }
+.role-connector { stroke: #b9b3cf; stroke-width: 1.3; }
+.reading { font-size: 11.5px; fill: #cfc9e2; }
+.role-name { font-size: 10px; fill: #a49dbd; font-style: italic; }
+.mandatory-dot { fill: #c58af9; stroke: none; }
+.uniqueness-bar { stroke: #c58af9; stroke-width: 2.2; }
+.uniqueness-gap { stroke: #c58af9; stroke-width: 1; stroke-dasharray: 3 3; }
+.frequency-bar { stroke: #c58af9; stroke-width: 2.2; stroke-dasharray: 6 3; }
+.frequency-text { font-size: 10.5px; fill: #c58af9; }
+.constraint-circle { fill: #221d33; stroke: #c58af9; stroke-width: 1.7; }
+.constraint-glyph { font-size: 11px; fill: #c58af9; }
+.constraint-link { stroke: #c58af9; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.constraint-arrow { fill: #c58af9; }
+.subtype-line { stroke: #ded9ef; stroke-width: 1.5; }
+.subtype-arrow { fill: #ded9ef; }
+.objectification { fill: none; stroke: #ded9ef; stroke-width: 1.3; }
+.objectification-name { font-size: 11.5px; font-weight: 600; }
+.value-constraint { font-size: 10.5px; fill: #c58af9; }
+.derivation-mark { font-size: 12px; fill: #cfc9e2; }
+</style>
+<g class="diagram-root"><g class="layer-connectors"><line class="role-connector" data-kind="connector" data-id="teaches.r0" x1="220" y1="167.8861386138614" x2="123" y2="170.76732673267327"/><line class="role-connector" data-kind="connector" data-id="teaches.r1" x1="272" y1="167.95173745173744" x2="350" y2="170.66216216216216"/><line class="role-connector" data-kind="connector" data-id="gets.r0" x1="272.8807692307692" y1="47" x2="252.58076923076922" y2="138"/><line class="role-connector" data-kind="connector" data-id="gets.r1" x1="314" y1="38.17241379310345" x2="350" y2="40.03448275862069"/></g><g class="layer-shapes"><g class="shape fact-type" data-kind="factType" data-id="teaches"><rect class="role-box" data-kind="role" data-id="teaches.r0" data-fact-type="teaches" x="220" y="158" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="teaches.r1" data-fact-type="teaches" x="246" y="158" width="26" height="19"/><text class="reading" x="246" y="191" text-anchor="middle">teaches</text></g><g class="shape fact-type" data-kind="factType" data-id="gets"><rect class="role-box" data-kind="role" data-id="gets.r0" data-fact-type="gets" x="262" y="28" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="gets.r1" data-fact-type="gets" x="288" y="28" width="26" height="19"/><text class="reading" x="288" y="61" text-anchor="middle">gets</text></g><g class="shape object-type" data-kind="objectType" data-id="academic" transform="translate(40, 150)"><rect class="ot-box entity-type" x="0" y="0" width="83" height="44" rx="10" ry="10"/><text class="ot-name" x="41.5" y="19" text-anchor="middle">Academic</text><text class="ot-refmode" x="41.5" y="35" text-anchor="middle">(.nr)</text></g><g class="shape object-type" data-kind="objectType" data-id="subject" transform="translate(350, 150)"><rect class="ot-box entity-type" x="0" y="0" width="77" height="44" rx="10" ry="10"/><text class="ot-name" x="38.5" y="19" text-anchor="middle">Subject</text><text class="ot-refmode" x="38.5" y="35" text-anchor="middle">(.code)</text></g><g class="shape object-type" data-kind="objectType" data-id="teaching" transform="translate(200, 138)"><rect class="ot-box objectified" x="0" y="0" width="92" height="59" rx="12" ry="12"/><text class="objectification-name" x="46" y="-7" text-anchor="middle">&quot;Teaching !&quot;</text></g><g class="shape object-type" data-kind="objectType" data-id="rating" transform="translate(350, 20)"><rect class="ot-box entity-type" x="0" y="0" width="76" height="44" rx="10" ry="10"/><text class="ot-name" x="38" y="19" text-anchor="middle">Rating</text><text class="ot-refmode" x="38" y="35" text-anchor="middle">(.nr)</text></g></g><g class="layer-constraints"><g class="constraint internal-constraint" data-kind="constraint" data-id="uc1"><line class="uniqueness-bar" x1="221" y1="152" x2="271" y2="152"/></g><g class="constraint internal-constraint" data-kind="constraint" data-id="uc2"><line class="uniqueness-bar" x1="263" y1="22" x2="287" y2="22"/></g></g><g class="layer-overlays"/></g>
+</svg>

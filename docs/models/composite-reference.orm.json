@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "name": "A composite reference scheme",
+  "objectTypes": [
+    {
+      "id": "room",
+      "name": "Room",
+      "kind": "entity"
+    },
+    {
+      "id": "building",
+      "name": "Building",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "roomnr",
+      "name": "RoomNr",
+      "kind": "value",
+      "dataType": "string"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "isin",
+      "roles": [
+        {
+          "id": "isin.r0",
+          "objectTypeId": "room"
+        },
+        {
+          "id": "isin.r1",
+          "objectTypeId": "building"
+        }
+      ],
+      "readings": [
+        {
+          "id": "isin.rd",
+          "roleOrder": [
+            "isin.r0",
+            "isin.r1"
+          ],
+          "text": "{0} is in {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "hasnr",
+      "roles": [
+        {
+          "id": "hasnr.r0",
+          "objectTypeId": "room"
+        },
+        {
+          "id": "hasnr.r1",
+          "objectTypeId": "roomnr"
+        }
+      ],
+      "readings": [
+        {
+          "id": "hasnr.rd",
+          "roleOrder": [
+            "hasnr.r0",
+            "hasnr.r1"
+          ],
+          "text": "{0} has {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "isin.r0"
+      ]
+    },
+    {
+      "id": "mc1",
+      "kind": "mandatory",
+      "roles": [
+        "isin.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "hasnr.r0"
+      ]
+    },
+    {
+      "id": "mc2",
+      "kind": "mandatory",
+      "roles": [
+        "hasnr.r0"
+      ]
+    },
+    {
+      "id": "euc",
+      "kind": "uniqueness",
+      "roles": [
+        "isin.r1",
+        "hasnr.r1"
+      ],
+      "isPreferredIdentifier": true
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "room": {
+        "x": 40,
+        "y": 110
+      },
+      "building": {
+        "x": 330,
+        "y": 20
+      },
+      "roomnr": {
+        "x": 330,
+        "y": 200
+      },
+      "isin": {
+        "x": 200,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "hasnr": {
+        "x": 200,
+        "y": 208,
+        "orientation": "horizontal"
+      },
+      "euc": {
+        "x": 300,
+        "y": 120
+      }
+    }
+  }
+}

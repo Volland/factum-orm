@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "name": "One fact type doing two jobs",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "name",
+      "name": "PersonName",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "kind": "entity",
+      "refMode": "name"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "both",
+      "roles": [
+        {
+          "id": "both.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "both.r1",
+          "objectTypeId": "name"
+        },
+        {
+          "id": "both.r2",
+          "objectTypeId": "company"
+        }
+      ],
+      "readings": [
+        {
+          "id": "both.rd",
+          "roleOrder": [
+            "both.r0",
+            "both.r1",
+            "both.r2"
+          ],
+          "text": "{0} named {1} works for {2}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "both.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 60
+      },
+      "name": {
+        "x": 250,
+        "y": 0
+      },
+      "company": {
+        "x": 300,
+        "y": 120
+      },
+      "both": {
+        "x": 190,
+        "y": 68,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

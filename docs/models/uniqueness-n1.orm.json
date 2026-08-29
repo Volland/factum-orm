@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "name": "Many to one",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "kind": "entity",
+      "refMode": "name"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "company"
+        }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 60
+      },
+      "company": {
+        "x": 300,
+        "y": 60
+      },
+      "works": {
+        "x": 196,
+        "y": 68,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

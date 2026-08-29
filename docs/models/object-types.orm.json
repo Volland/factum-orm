@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "name": "Entity types and value types",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr",
+      "dataType": "integer"
+    },
+    {
+      "id": "gender",
+      "name": "GenderCode",
+      "kind": "value",
+      "dataType": "string",
+      "dataTypeLength": 1
+    },
+    {
+      "id": "room",
+      "name": "Room",
+      "kind": "entity",
+      "refMode": "nr",
+      "isIndependent": true
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "isof",
+      "roles": [
+        {
+          "id": "isof.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "isof.r1",
+          "objectTypeId": "gender"
+        }
+      ],
+      "readings": [
+        {
+          "id": "isof.rd",
+          "roleOrder": [
+            "isof.r0",
+            "isof.r1"
+          ],
+          "text": "{0} is of {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "occupies",
+      "roles": [
+        {
+          "id": "occupies.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "occupies.r1",
+          "objectTypeId": "room"
+        }
+      ],
+      "readings": [
+        {
+          "id": "occupies.rd",
+          "roleOrder": [
+            "occupies.r0",
+            "occupies.r1"
+          ],
+          "text": "{0} occupies {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "isof.r0"
+      ]
+    },
+    {
+      "id": "mc1",
+      "kind": "mandatory",
+      "roles": [
+        "isof.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "occupies.r0"
+      ]
+    },
+    {
+      "id": "vc",
+      "kind": "value",
+      "objectTypeId": "gender",
+      "ranges": [
+        {
+          "value": "M"
+        },
+        {
+          "value": "F"
+        }
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 110
+      },
+      "gender": {
+        "x": 300,
+        "y": 30
+      },
+      "room": {
+        "x": 300,
+        "y": 190
+      },
+      "isof": {
+        "x": 200,
+        "y": 38,
+        "orientation": "horizontal"
+      },
+      "occupies": {
+        "x": 200,
+        "y": 198,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

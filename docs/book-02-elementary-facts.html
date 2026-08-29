@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elementary facts — ORM 2 mini book · Factum</title>
+<meta name="description" content="What an elementary fact is, the and-test for splitting compound facts, and the population check.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elementary facts — ORM 2 mini book · Factum">
+<meta property="og:description" content="What an elementary fact is, the and-test for splitting compound facts, and the population check.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 2 of 10</p>
+  <h1>Elementary facts</h1>
+  <p>The atom of an ORM model, and the test for whether you have one.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>The definition</h2>
+<p>Halpin's definition is worth quoting, because every quality check in the method depends on it:</p>
+
+<div class="note">
+  An elementary fact asserts that a particular object has a property, or that one or more objects
+  participate in a relationship, <strong>where that relationship cannot be expressed as a
+  conjunction of simpler (or shorter) facts</strong>.
+</div>
+
+<p>The clause in bold is the working part. "Bill Clinton jogs and is the president of the USA" is
+   perfectly true, and it is not elementary: it says two things that could each be said on their own.
+   Split it, and nothing is lost.</p>
+
+<h2>Getting the facts out of a report</h2>
+<p>You rarely start from a blank page. You start from something the business already uses — a
+   printed report, a spreadsheet, a screen, a form. The first step of the design procedure is to
+   read information off that artefact as sentences:</p>
+
+<pre><code>The Academic with empNr 715 has EmpName 'Adams A'.
+The Academic with empNr 715 works for the Dept named 'Computer Science'.
+The Academic with empNr 715 occupies the Room with roomNr '69-301'.
+The Academic with empNr 139 is tenured.</code></pre>
+
+<p>Notice the shape of these sentences. Each names its objects by a definite description — <em>the
+   Academic with empNr 715</em>, not just "715" — and each says exactly one thing. The last one is a
+   <strong>unary</strong> fact: an object with a property, no second object involved.</p>
+
+<p>Halpin's advice for step 1 is to imagine you are reading the report to a friend over the
+   telephone. It is a good test. You would not say "715, Adams A, Computer Science"; you would say
+   who works where.</p>
+
+<h2>The and-test</h2>
+<p>Suppose someone writes this instead:</p>
+
+<pre><code>The Academic with empNr 715 and empName 'Adams A' works for the Dept 'Computer Science'.</code></pre>
+
+<figure class="figure">
+  <img src="assets/book/compound-fact.svg" alt="A ternary fact type connecting Person, PersonName and Company" loading="lazy">
+  <figcaption>One fact type carrying two facts. The uniqueness bar spans only the first role, which is the signal that the fact type is doing too much — open it and Factum reports uniqueness-too-narrow. <a href="models/compound-fact.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>The word <em>and</em> is the clue. Where a fact contains an "and" joining independent pieces of
+   information, it can usually be split without losing anything. Split this one and you get two fact
+   types, each of which stands on its own:</p>
+
+<figure class="figure">
+  <img src="assets/book/elementary-split.svg" alt="Two binary fact types: Person is named PersonName, and Person works for Company" loading="lazy">
+  <figcaption>The same information as two elementary fact types. Each can be populated, constrained and read independently. <a href="models/elementary-split.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Halpin is careful to call the and-test a <em>heuristic</em>, not a rule. Sometimes a compound
+   really is irreducible — a composite naming scheme, for instance, where neither half identifies
+   anything on its own. Chapter 5 gives the formal check that catches these cases; at this stage you
+   are looking for obvious splits and asking the domain expert about the rest.</p>
+
+<h2>Why splitting matters</h2>
+<p>It is tempting to treat this as pedantry. It is not, for three reasons.</p>
+
+<p><strong>Constraints get sharper.</strong> In the compound version you cannot say "each Academic
+   has exactly one name" without also saying something about departments, because they share a fact
+   type. Split, each constraint lands on exactly the fact it constrains.</p>
+
+<p><strong>Nulls disappear.</strong> A compound fact type forces every part to be present at once.
+   If an academic has no department yet, the compound fact cannot be recorded — so a real system
+   invents a null, and now the model says something it did not mean. Elementary facts are recorded
+   independently, so absence is simply the absence of a fact.</p>
+
+<p><strong>Change stays local.</strong> When names become multi-valued, or departments become
+   time-varying, the fact type that changes is the only fact type that changes.</p>
+
+<h2>The population check</h2>
+<p>Once the fact types are drawn, populate each one with at least one row from the source report. This
+   is step 2 of the design procedure and it catches a surprising number of errors:</p>
+
+<ul>
+  <li>a fact type you cannot populate is usually one you invented rather than observed;</li>
+  <li>a fact type whose sample rows repeat a value in a column tells you where the uniqueness
+      constraints go, and where they do not;</li>
+  <li>a fact type where two rows contradict each other tells you that the constraint you were about
+      to add is wrong.</li>
+</ul>
+
+<p>The sample population is not part of the schema. It is scaffolding — but it is scaffolding that
+   turns "does this look right?" into "here are two rows; can both be true?", which is a question a
+   domain expert can answer without knowing any notation at all.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-01-why.html"><span>Previous</span>Why fact-based modeling</a><a class="next" href="book-03-objects.html"><span>Next</span>Objects and reference schemes</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

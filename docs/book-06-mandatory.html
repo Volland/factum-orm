@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandatory roles — ORM 2 mini book · Factum</title>
+<meta name="description" content="Mandatory role constraints, disjunctive mandatory, and why an optional role often signals a subtype.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mandatory roles — ORM 2 mini book · Factum">
+<meta property="og:description" content="Mandatory role constraints, disjunctive mandatory, and why an optional role often signals a subtype.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 6 of 10</p>
+  <h1>Mandatory roles</h1>
+  <p>Which roles must be played — and what an optional role is quietly telling you.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>The definition</h2>
+<p>A role is <strong>mandatory</strong> (or total) for an object type if and only if every object of
+   that type that is referenced in the database must be known to play that role. It is drawn as a
+   solid dot where the role connector meets the object type.</p>
+
+<figure class="figure">
+  <img src="assets/book/mandatory.svg" alt="ORM diagram showing a mandatory role with a dot and an optional role without one" loading="lazy">
+  <figcaption>The dot on the works-for connector makes it mandatory: every Person works for a Company. Having a nickname is optional — no dot. <a href="models/mandatory.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Combined with uniqueness, mandatory is what produces the sentence most people actually want:</p>
+
+<pre><code>Each Person works for exactly one Company.     mandatory + unique
+Each Person works for at most one Company.     unique only
+Each Person is called some Nickname.           mandatory only</code></pre>
+
+<p>"Exactly one" is not a primitive in ORM. It is the conjunction of two independent constraints, and
+   keeping them separate is what lets you change one without the other.</p>
+
+<h2>Mandatory means "known", not "true"</h2>
+<p>The wording of the definition repays attention. It says every object <em>referenced in the
+   database</em> must be <em>known</em> to play the role. It is a constraint on what the system
+   records, not a claim about the world.</p>
+
+<p>Every person has a birth date whether or not you record one. Making the birth-date role mandatory
+   says something much stronger: that this system refuses to know about a person whose birth date it
+   does not have. That is often wrong, and it is the single most common over-constraint in practice.
+   Before adding a dot, ask: <em>can this thing exist in our records before we know this?</em> If a
+   customer is created at first contact and the address arrives later, the address role is
+   optional — and the model should say so.</p>
+
+<h2>Disjunctive mandatory</h2>
+<p>Sometimes no single role is mandatory, but one of a set must be played. An academic is either
+   tenured or contracted until some date; neither alone is required, but you cannot be neither.</p>
+
+<figure class="figure">
+  <img src="assets/book/disjunctive-mandatory.svg" alt="ORM diagram showing a disjunctive mandatory constraint spanning two roles played by Academic" loading="lazy">
+  <figcaption>An inclusive-or constraint: each Academic is tenured, or is contracted till some Date, or both. <a href="models/disjunctive-mandatory.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>This is a <strong>disjunctive mandatory</strong> — also called an inclusive-or constraint — drawn
+   as a dot joined to each of the roles it spans. It says the disjunction is mandatory: at least one
+   of these roles must be played.</p>
+
+<p>Note the "at least". If the two are also mutually exclusive — you cannot be both tenured and
+   contracted — that is a <em>separate</em> exclusion constraint, covered in chapter 7. The two
+   together are what ORM calls an exclusive-or, and they are drawn overlaid. Keeping them separate is
+   deliberate: plenty of real disjunctions are not exclusive, and plenty of exclusions are not
+   mandatory.</p>
+
+<h2>The implicit case</h2>
+<p>There is one convention worth knowing. If an object type plays only a single fact role in the whole
+   schema, that role is mandatory by default and the dot is usually not drawn — otherwise the type
+   would have no reason to be in the model at all. Reference roles work the same way: the value role
+   of a reference scheme is mandatory by implication.</p>
+
+<h2>Optional roles are where subtypes hide</h2>
+<p>Here is the part that turns this chapter into the next one. When you find an optional role, ask
+   <em>why</em> it is optional. There are two possible answers, and they lead to different models.</p>
+
+<p><strong>The value is simply not always known.</strong> Some people have not told us their
+   nickname. The role is genuinely optional and stays that way.</p>
+
+<p><strong>The role only applies to some well-defined kind of thing.</strong> Only students have a
+   matriculation number; only managers control a budget. The role is not optional for students or
+   managers at all — it is mandatory for them, and meaningless for everyone else.</p>
+
+<p>Halpin's procedure makes this a formal step: inspect each optional role, and if the role is played
+   only by some well-defined subtype, introduce a subtype node and attach the role to it. That turns
+   a vague optionality into a precise statement, and it is the subject of chapter 8.</p>
+
+<h2>Checking mandatory constraints with data</h2>
+<p>The population test works here too, in a specific form: look for gaps. Take twenty rows of the
+   real report and check whether any row is missing a value in that column. One blank is enough to
+   disprove a mandatory constraint — and if there are no blanks, ask whether that is a rule or an
+   accident of the sample.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-05-uniqueness.html"><span>Previous</span>Uniqueness</a><a class="next" href="book-07-constraints.html"><span>Next</span>The other constraints</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

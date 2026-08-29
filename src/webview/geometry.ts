@@ -29,7 +29,16 @@ export function textWidth(text: string, fontSize = 12): number {
   return text.length * CHAR_W * (fontSize / 12);
 }
 
+/** Padding between the objectified fact type and the frame that objectifies it. */
+export const OBJECTIFICATION_PAD = 20;
+
 export function objectTypeRect(model: OrmModel, ot: ObjectType): Rect {
+  // An objectified entity type is drawn as the frame enclosing its fact type,
+  // not as a box of its own, so connectors to it must target that frame.
+  if (ot.objectifiedFactTypeId) {
+    const nested = model.factTypes.find((ft) => ft.id === ot.objectifiedFactTypeId);
+    if (nested) return expand(factTypeRect(model, nested), OBJECTIFICATION_PAD);
+  }
   const shape = shapeOf(model, ot.id);
   const nameLine = `${ot.name}${ot.isIndependent ? '!' : ''}`;
   const refLine = ot.kind === 'entity' && ot.refMode ? `(.${ot.refMode})` : '';

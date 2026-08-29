@@ -146,6 +146,10 @@ text {
 .ot-box.value-type {
   stroke-dasharray: 5 3;
 }
+.ot-box.objectified {
+  fill: none;
+}
+
 
 .ot-name {
   font-size: 12px;

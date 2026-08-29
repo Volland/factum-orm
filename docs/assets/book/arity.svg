@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 -8 399 354" width="559" height="496" role="img">
+<style>
+text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #ece9f5; }
+.ot-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.5; }
+.ot-box.value-type { stroke-dasharray: 5 3; }
+.ot-box.objectified { fill: none; }
+.ot-name { font-size: 12.5px; font-weight: 600; }
+.ot-refmode { font-size: 10.5px; fill: #a49dbd; }
+.role-box { fill: #221d33; stroke: #ded9ef; stroke-width: 1.3; }
+.role-box.unattached { stroke-dasharray: 3 2; stroke: #ff6b6b; }
+.role-connector { stroke: #b9b3cf; stroke-width: 1.3; }
+.reading { font-size: 11.5px; fill: #cfc9e2; }
+.role-name { font-size: 10px; fill: #a49dbd; font-style: italic; }
+.mandatory-dot { fill: #c58af9; stroke: none; }
+.uniqueness-bar { stroke: #c58af9; stroke-width: 2.2; }
+.uniqueness-gap { stroke: #c58af9; stroke-width: 1; stroke-dasharray: 3 3; }
+.frequency-bar { stroke: #c58af9; stroke-width: 2.2; stroke-dasharray: 6 3; }
+.frequency-text { font-size: 10.5px; fill: #c58af9; }
+.constraint-circle { fill: #221d33; stroke: #c58af9; stroke-width: 1.7; }
+.constraint-glyph { font-size: 11px; fill: #c58af9; }
+.constraint-link { stroke: #c58af9; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.constraint-arrow { fill: #c58af9; }
+.subtype-line { stroke: #ded9ef; stroke-width: 1.5; }
+.subtype-arrow { fill: #ded9ef; }
+.objectification { fill: none; stroke: #ded9ef; stroke-width: 1.3; }
+.objectification-name { font-size: 11.5px; font-weight: 600; }
+.value-constraint { font-size: 10.5px; fill: #c58af9; }
+.derivation-mark { font-size: 12px; fill: #cfc9e2; }
+</style>
+<g class="diagram-root"><g class="layer-connectors"><line class="role-connector" data-kind="connector" data-id="smokes.r0" x1="200" y1="37.93333333333333" x2="116" y2="40.733333333333334"/><line class="role-connector" data-kind="connector" data-id="works.r0" x1="210" y1="129.75088339222614" x2="123" y2="144.81448763250884"/><line class="role-connector" data-kind="connector" data-id="works.r1" x1="262" y1="127.98953974895397" x2="330" y2="130.55020920502093"/><line class="role-connector" data-kind="connector" data-id="booked.r0" x1="200" y1="221.8384030418251" x2="118.82903225806452" y2="174"/><line class="role-connector" data-kind="connector" data-id="booked.r1" x1="252" y1="229.75193798449612" x2="330" y2="231.26356589147287"/><line class="role-connector" data-kind="connector" data-id="booked.r2" x1="278" y1="238.6062801932367" x2="337.0931034482759" y2="280"/></g><g class="layer-shapes"><g class="shape fact-type" data-kind="factType" data-id="smokes"><rect class="role-box" data-kind="role" data-id="smokes.r0" data-fact-type="smokes" x="200" y="28" width="26" height="19"/><text class="reading" x="213" y="61" text-anchor="middle">smokes</text></g><g class="shape fact-type" data-kind="factType" data-id="works"><rect class="role-box" data-kind="role" data-id="works.r0" data-fact-type="works" x="210" y="118" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="works.r1" data-fact-type="works" x="236" y="118" width="26" height="19"/><text class="reading" x="236" y="151" text-anchor="middle">works for</text></g><g class="shape fact-type" data-kind="factType" data-id="booked"><rect class="role-box" data-kind="role" data-id="booked.r0" data-fact-type="booked" x="200" y="220" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="booked.r1" data-fact-type="booked" x="226" y="220" width="26" height="19"/><rect class="role-box" data-kind="role" data-id="booked.r2" data-fact-type="booked" x="252" y="220" width="26" height="19"/><text class="reading" x="239" y="253" text-anchor="middle">… booked … on …</text></g><g class="shape object-type" data-kind="objectType" data-id="person" transform="translate(40, 20)"><rect class="ot-box entity-type" x="0" y="0" width="76" height="44" rx="10" ry="10"/><text class="ot-name" x="38" y="19" text-anchor="middle">Person</text><text class="ot-refmode" x="38" y="35" text-anchor="middle">(.nr)</text></g><g class="shape object-type" data-kind="objectType" data-id="company" transform="translate(330, 110)"><rect class="ot-box entity-type" x="0" y="0" width="77" height="44" rx="10" ry="10"/><text class="ot-name" x="38.5" y="19" text-anchor="middle">Company</text><text class="ot-refmode" x="38.5" y="35" text-anchor="middle">(.name)</text></g><g class="shape object-type" data-kind="objectType" data-id="room" transform="translate(330, 210)"><rect class="ot-box entity-type" x="0" y="0" width="76" height="44" rx="10" ry="10"/><text class="ot-name" x="38" y="19" text-anchor="middle">Room</text><text class="ot-refmode" x="38" y="35" text-anchor="middle">(.nr)</text></g><g class="shape object-type" data-kind="objectType" data-id="day" transform="translate(330, 280)"><rect class="ot-box entity-type" x="0" y="0" width="77" height="44" rx="10" ry="10"/><text class="ot-name" x="38.5" y="19" text-anchor="middle">Day</text><text class="ot-refmode" x="38.5" y="35" text-anchor="middle">(.code)</text></g><g class="shape object-type" data-kind="objectType" data-id="emp" transform="translate(40, 130)"><rect class="ot-box entity-type" x="0" y="0" width="83" height="44" rx="10" ry="10"/><text class="ot-name" x="41.5" y="19" text-anchor="middle">Employee</text><text class="ot-refmode" x="41.5" y="35" text-anchor="middle">(.nr)</text></g></g><g class="layer-constraints"><g class="constraint internal-constraint" data-kind="constraint" data-id="uc0"><line class="uniqueness-bar" x1="201" y1="22" x2="225" y2="22"/></g><g class="constraint internal-constraint" data-kind="constraint" data-id="uc1"><line class="uniqueness-bar" x1="211" y1="112" x2="235" y2="112"/></g><g class="constraint internal-constraint" data-kind="constraint" data-id="uc2"><line class="uniqueness-bar" x1="227" y1="214" x2="277" y2="214"/></g></g><g class="layer-overlays"/></g>
+</svg>

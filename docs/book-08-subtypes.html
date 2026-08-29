@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subtypes and objectification — ORM 2 mini book · Factum</title>
+<meta name="description" content="How subtypes are derived from optional roles, subtype definitions, and when to objectify a fact type.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Subtypes and objectification — ORM 2 mini book · Factum">
+<meta property="og:description" content="How subtypes are derived from optional roles, subtype definitions, and when to objectify a fact type.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/USERNAME/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose">
+  <p class="chapter-number">Chapter 8 of 10</p>
+  <h1>Subtypes and objectification</h1>
+  <p>Two ways of adding structure: when a kind of thing needs its own facts, and when a fact becomes a thing.</p>
+</div>
+<section><div class="wrap prose">
+
+<h2>Where subtypes come from</h2>
+<p>Chapter 6 ended with the question that produces subtypes. Halpin makes it a procedure:</p>
+
+<div class="note">
+  Each optional role is inspected: if the role is played only by some well-defined subtype, a subtype
+  node is introduced with this role attached.
+</div>
+
+<p>Read that carefully, because it rules out the way most people arrive at subtypes. You do not start
+   from a taxonomy — "we have people, and some are students and some are staff" — and then look for
+   facts. You start from an <em>optional role</em> and ask who actually plays it. If the answer is a
+   well-defined group, that group becomes a subtype and the role becomes mandatory for it.</p>
+
+<figure class="figure">
+  <img src="assets/book/subtypes.svg" alt="ORM diagram showing Student as a subtype of Person with an arrow, and Student enrolled in Subject" loading="lazy">
+  <figcaption>Student is a subtype of Person. The enrolment fact type attaches to Student, not to Person, because only students enrol. <a href="models/subtypes.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>"Well-defined" is the operative word. A subtype must have a <strong>subtype definition</strong> — a
+   rule saying who belongs to it, in terms of facts already in the model:</p>
+
+<pre><code>Each Student is a Person who is enrolled in some Subject.
+Each Teacher is an Academic who teaches some Subject.
+Each Professor is an Academic who has Rank 'P'.</code></pre>
+
+<p>If you cannot write that sentence, you do not yet have a subtype — you have a category someone
+   mentioned. Either find the fact that defines it, or record it as a fact instead: an optional
+   <em>Person has PersonKind</em> fact type is often the honest model.</p>
+
+<h2>What subtypes inherit</h2>
+<p>A subtype inherits its supertype's reference scheme: a Student is identified by the same person
+   number that identifies the Person. It also inherits every role the supertype plays. What it adds
+   is roles of its own, which are mandatory for the subtype and simply do not exist for its
+   siblings.</p>
+
+<p>When a subtype has more than one supertype, one path must be marked as the identification path, so
+   the model says which identifier it inherits. Factum warns when this is ambiguous.</p>
+
+<h2>Constraints between subtypes</h2>
+<p>Two independent properties are worth stating explicitly, and they are independent:</p>
+<ul>
+  <li><strong>Exclusive</strong> — no object belongs to two of the subtypes. A Person is not both a
+      Man and a Woman.</li>
+  <li><strong>Exhaustive</strong> — every object of the supertype belongs to at least one. Every
+      Person is a Man or a Woman.</li>
+</ul>
+<p>Both together is a partition. Neither is implied by the presence of subtypes: an Academic may well
+   be both a Teacher and a Professor, and plenty of people are neither.</p>
+
+<h2>Objectification</h2>
+<p>The second construct answers a different question: what if a <em>fact</em> needs facts of its own?</p>
+
+<p>Consider "Academic teaches Subject". Now you need to record a rating for that teaching. The rating
+   is not a property of the academic, nor of the subject — it belongs to the pairing. So the fact type
+   is <strong>objectified</strong>: wrapped in a soft rectangle, named, and treated as an object type
+   that can play roles like any other.</p>
+
+<figure class="figure">
+  <img src="assets/book/objectification.svg" alt="ORM diagram showing an objectified fact type inside a frame, connected to a Rating entity type" loading="lazy">
+  <figcaption>The "Teaching !" frame around Academic teaches Subject makes that fact type an object type, which can then get a Rating. It is marked independent because a teaching may be recorded before it is rated. <a href="models/objectification.orm.json" download>Open this model →</a></figcaption>
+</figure>
+
+<p>Two rules govern this:</p>
+<ul>
+  <li>By default an objectified fact type is <strong>fully spanned by a uniqueness constraint</strong>,
+      which keeps it elementary — each Academic-Subject pair occurs once, so there is exactly one
+      thing for the rating to attach to.</li>
+  <li>The objectified type is often <strong>independent</strong>. In the figure, not every teaching
+      has been rated, so a Teaching must be able to exist while playing no role.</li>
+</ul>
+
+<h2>When not to objectify</h2>
+<p>Halpin gives a precise piece of advice that is easy to miss, and it prevents a lot of unnecessary
+   nesting:</p>
+
+<div class="note">
+  If the objectified predicate plays only one role, and that role is mandatory, prefer the flattened
+  version — it is more compact and more natural. Choose nesting when the objectified predicate plays
+  an <strong>optional</strong> role, or plays <strong>more than one</strong> role.
+</div>
+
+<p>In other words: if every Academic-Subject pair had a rating, and the rating were the only thing you
+   recorded about it, you would not objectify at all — you would use a ternary fact type <em>Academic
+   teaches Subject with Rating</em>. It is the optionality of the rating that makes the nested form
+   better, because a ternary would force rating and teaching to be recorded together.</p>
+
+<p>This is the same trade-off as chapter 2's, seen from the other side. Objectification lets you
+   attach facts to a fact without forcing them to arrive at the same time.</p>
+
+<h2>How both land in a database</h2>
+<p>The two constructs map very differently, which is worth knowing while you model. Subtypes are
+   usually absorbed into their supertype's table, or become a node with an <code>IS_A</code> link in
+   a graph. An objectified fact type almost always becomes a table — or, in a property graph, a node
+   with one relationship per role. <a href="mapping.html">Mapping rules</a> has the details.</p>
+
+<nav class="chapter-nav"><a class="prev" href="book-07-constraints.html"><span>Previous</span>The other constraints</a><a class="next" href="book-09-csdp.html"><span>Next</span>The design procedure</a></nav>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/USERNAME/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/USERNAME/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

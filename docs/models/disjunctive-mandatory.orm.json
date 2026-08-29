@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "name": "Inclusive-or: at least one of the two",
+  "objectTypes": [
+    {
+      "id": "academic",
+      "name": "Academic",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "date",
+      "name": "Date",
+      "kind": "entity",
+      "refMode": "mdy"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "tenured",
+      "roles": [
+        {
+          "id": "tenured.r0",
+          "objectTypeId": "academic"
+        }
+      ],
+      "readings": [
+        {
+          "id": "tenured.rd",
+          "roleOrder": [
+            "tenured.r0"
+          ],
+          "text": "{0} is tenured",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "contract",
+      "roles": [
+        {
+          "id": "contract.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "contract.r1",
+          "objectTypeId": "date"
+        }
+      ],
+      "readings": [
+        {
+          "id": "contract.rd",
+          "roleOrder": [
+            "contract.r0",
+            "contract.r1"
+          ],
+          "text": "{0} is contracted till {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "tenured.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "contract.r0"
+      ]
+    },
+    {
+      "id": "mc",
+      "kind": "mandatory",
+      "roles": [
+        "tenured.r0",
+        "contract.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "academic": {
+        "x": 40,
+        "y": 100
+      },
+      "date": {
+        "x": 340,
+        "y": 170
+      },
+      "tenured": {
+        "x": 230,
+        "y": 40,
+        "orientation": "horizontal"
+      },
+      "contract": {
+        "x": 220,
+        "y": 178,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

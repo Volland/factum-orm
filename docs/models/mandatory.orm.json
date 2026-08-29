@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "name": "Mandatory and optional roles",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "nick",
+      "name": "Nickname",
+      "kind": "value",
+      "dataType": "string"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "company"
+        }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "nickname",
+      "roles": [
+        {
+          "id": "nickname.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "nickname.r1",
+          "objectTypeId": "nick"
+        }
+      ],
+      "readings": [
+        {
+          "id": "nickname.rd",
+          "roleOrder": [
+            "nickname.r0",
+            "nickname.r1"
+          ],
+          "text": "{0} is called {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "mc1",
+      "kind": "mandatory",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "nickname.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 100
+      },
+      "company": {
+        "x": 320,
+        "y": 20
+      },
+      "nick": {
+        "x": 320,
+        "y": 180
+      },
+      "works": {
+        "x": 210,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "nickname": {
+        "x": 210,
+        "y": 188,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

@@ -18,10 +18,10 @@
 <header class="nav"><div class="wrap">
   <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
   <nav class="nav-links">
+    <a href="book.html">Book</a>
     <a href="getting-started.html">Guide</a>
     <a href="mapping.html">Mapping</a>
     <a href="reference.html">Reference</a>
-    <a href="file-format.html">File format</a>
     <a href="faq.html">FAQ</a>
     <a href="https://github.com/Volland/factum-orm">GitHub</a>
   </nav>
@@ -189,6 +189,41 @@ Each Manager is a kind of Person.</code></pre>
 
 <section class="alt">
   <div class="wrap">
+    <h2>Learn the method, not just the tool</h2>
+    <p class="section-lede">
+      Factum ships with a short book on ORM 2 — elementary facts, the constraint family, subtyping and
+      objectification, and Halpin's seven-step design procedure worked end to end. Every diagram in it
+      was drawn by the extension, and every figure links to the model behind it, so you can open any
+      example and take it apart.
+    </p>
+    <div class="grid">
+      <article class="card">
+        <div class="mark">02</div>
+        <h3>Elementary facts</h3>
+        <p>What an elementary fact is, the and-test for splitting compound ones, and the population
+          check that catches invented fact types.</p>
+      </article>
+      <article class="card">
+        <div class="mark">05</div>
+        <h3>Uniqueness</h3>
+        <p>The constraint that carries the most meaning, the three binary patterns, and the arity
+          check that tells you when an n-ary fact type should be split.</p>
+      </article>
+      <article class="card">
+        <div class="mark">09</div>
+        <h3>The design procedure</h3>
+        <p>The seven steps of the CSDP, applied to a real staff directory report from first sentence
+          to finished schema.</p>
+      </article>
+    </div>
+    <div class="cta" style="justify-content:flex-start;margin-top:30px">
+      <a class="button ghost" href="book.html">Read the mini book</a>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
     <h2>Models are just files</h2>
     <p class="section-lede">
       A model is one <code>.orm.json</code> file holding the schema and its layout. It diffs, merges
@@ -231,6 +266,7 @@ Each Manager is a kind of Person.</code></pre>
     <div>
       <h4>Documentation</h4>
       <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
         <li><a href="mapping.html">Mapping rules</a></li>
         <li><a href="reference.html">Commands &amp; settings</a></li>
         <li><a href="file-format.html">File format</a></li>
