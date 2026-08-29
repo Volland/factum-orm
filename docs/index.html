@@ -22,6 +22,7 @@
     <a href="getting-started.html">Guide</a>
     <a href="mapping.html">Mapping</a>
     <a href="reference.html">Reference</a>
+    <a href="compare.html">Why Factum</a>
     <a href="faq.html">FAQ</a>
     <a href="https://github.com/Volland/factum-orm">GitHub</a>
   </nav>
@@ -33,19 +34,62 @@
   <span class="eyebrow">VS Code extension · ORM 2</span>
   <h1>Model the facts,<br>not the tables.</h1>
   <p class="lede">
-    Factum brings Object-Role Modeling to VS Code. Draw a conceptual schema, read it back as
-    sentences a domain expert can confirm, and map it to a relational <em>or</em> property graph
-    schema — without leaving the editor.
+    Object-Role Modeling in VS Code. Draw a conceptual schema, read it back as sentences a domain
+    expert can confirm, and map it to a relational <em>or</em> property graph schema — then keep the
+    whole thing in git, where your build can check it and your coding agent can read it.
   </p>
   <div class="cta">
     <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
     <a class="button ghost" href="getting-started.html">Read the guide</a>
+    <a class="button ghost" href="compare.html">Why Factum</a>
   </div>
+  <p class="badges">
+    <span>reads &amp; writes <b>.orm</b></span>
+    <span><b>.fbm</b></span>
+    <span><b>Apache Ossie</b></span>
+    <span><b>UMS</b></span>
+    <span>free &amp; <b>MIT</b></span>
+  </p>
   <figure class="shot">
     <img src="assets/screenshot-diagram.png" alt="The Factum diagram editor showing an ORM schema for Person, Company and Skill, with the live FORML verbalization panel beside it.">
     <figcaption>An ORM 2 diagram and its live verbalization. Every sentence is generated from the model.</figcaption>
   </figure>
 </div>
+
+<section>
+  <div class="wrap">
+    <h2>Three ways in</h2>
+    <p class="section-lede">
+      The same model, the same rules, three surfaces. Nothing is locked inside the editor — the core
+      has no dependency on VS Code at all, which is why the other two exist.
+    </p>
+    <div class="grid">
+      <article class="card">
+        <div class="mark">▤</div>
+        <h3>The editor</h3>
+        <p>A real ORM 2 diagram editor as a VS Code custom editor, with live verbalization,
+          validation in the Problems panel, and both mappings in a side panel.</p>
+      </article>
+      <article class="card">
+        <div class="mark">$</div>
+        <h3>The command line</h3>
+        <p><code>factum validate</code>, <code>verbalize</code>, <code>diff</code>,
+          <code>drift</code>, <code>ddl</code>, <code>derive</code>. Run it in CI and the build fails
+          when someone breaks the model.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⌁</div>
+        <h3>Your coding agent</h3>
+        <p><code>factum-mcp</code> is an MCP server over the model, so Claude Code or Copilot reads
+          the conceptual schema instead of guessing it from your table names.</p>
+      </article>
+    </div>
+    <div class="cta" style="justify-content:flex-start;margin-top:26px">
+      <a class="button ghost" href="reference.html#cli">Command reference</a>
+      <a class="button ghost" href="reference.html#mcp">MCP setup</a>
+    </div>
+  </div>
+</section>
 
 <section class="alt">
   <div class="wrap">
@@ -109,10 +153,16 @@
           fact type elementary, subtype cycles — all in the Problems panel.</p>
       </article>
       <article class="card">
-        <div class="mark">⌥</div>
-        <h3>NORMA import</h3>
-        <p>Reads NORMA / ORM 2 XML — objects, facts, readings, constraints, subtypes, value
-          restrictions and diagram geometry.</p>
+        <div class="mark">⇄</div>
+        <h3>Four formats, both ways</h3>
+        <p>NORMA <code>.orm</code>, the FBM Exchange MetaModel, Apache Ossie ontologies and the
+          Unified Modelling Schema — imported and exported, not just read.</p>
+      </article>
+      <article class="card">
+        <div class="mark">◉</div>
+        <h3>Sample populations</h3>
+        <p>Real example rows stored with the model. The verbalizer substitutes them into the
+          readings, and the validator checks your constraints against them.</p>
       </article>
       <article class="card">
         <div class="mark">↗</div>
@@ -222,28 +272,147 @@ Each Manager is a kind of Person.</code></pre>
   </div>
 </section>
 
-<section class="alt">
+<section>
   <div class="wrap">
-    <h2>Models are just files</h2>
+    <h2>You don&rsquo;t have to pick a format</h2>
     <p class="section-lede">
-      A model is one <code>.orm.json</code> file holding the schema and its layout. It diffs, merges
-      and reviews like the rest of your source, and it is safe to hand-edit — the diagram is a custom
-      editor over the text document, so VS Code's dirty state, undo stack and file watching all work
-      normally.
+      The fact-based modelling community has no agreed exchange standard, and three candidates are in
+      play. Rather than back one, Factum reads and writes all of them &mdash; so a model can move
+      between tools instead of being trapped in whichever one drew it.
+    </p>
+
+    <div class="table-scroll"><table>
+      <thead><tr><th>Format</th><th>Import</th><th>Export</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>.orm</code></td><td>Yes</td><td>Yes</td><td>NORMA&rsquo;s ORM 2 XML, the de-facto archive format</td></tr>
+        <tr><td><code>.fbm</code></td><td>Yes</td><td>Yes</td><td>The FBM Exchange MetaModel, built for interchange</td></tr>
+        <tr><td>Ossie</td><td>Yes</td><td>Yes</td><td>Apache Ossie&rsquo;s ontology, an incubating ASF standard</td></tr>
+        <tr><td>UMS</td><td>Yes</td><td>Yes</td><td>The Unified Modelling Schema, a logical target</td></tr>
+      </tbody>
+    </table></div>
+
+    <p class="section-lede" style="margin-top:22px">
+      Every conversion reports what it could not carry rather than dropping it quietly. Exporting a
+      model with an objectified fact type to Ossie tells you Ossie has no objectification; importing
+      UMS tells you that what came back is the shape of the data rather than the facts behind it.
     </p>
     <div class="cta" style="justify-content:flex-start">
-      <a class="button ghost" href="file-format.html">Read the format</a>
-      <a class="button ghost" href="interop.html">Compared with .orm, .fbm, UMS and Ossie</a>
+      <a class="button ghost" href="interop.html">How the four formats compare</a>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>It reviews like code</h2>
+    <p class="section-lede">
+      A model stored as text can go through the same gate as everything else you ship. The bundled
+      GitHub Action validates it and comments on the pull request with what the model now
+      <em>says</em> &mdash; not with the JSON that changed.
+    </p>
+<pre><code><span class="del">- Each Person works for at most one Company.</span>
+<span class="add">+ Each Person works for exactly one Company.</span>
+<span class="add">+ It is necessary that each Employee has a Salary.</span></code></pre>
+    <p class="section-lede" style="margin-top:22px">
+      That is a reviewer reading one sentence and knowing whether to approve it. The same comparison
+      runs locally with <code>factum diff</code>, and <code>--exit-code</code> lets a job fail on it.
+    </p>
+
+    <div class="split" style="margin-top:30px">
+      <div>
+        <h3>In your workflow</h3>
+<pre><code>- <span class="k">uses</span>: Volland/factum-orm@v0
+  <span class="k">with</span>:
+    model: model/domain.orm.json
+    base: /tmp/base.orm.json
+    strict: <span class="s">'true'</span></code></pre>
+      </div>
+      <div>
+        <h3>Or in any shell</h3>
+<pre><code>factum validate model.orm.json --format github
+factum diff before.orm.json after.orm.json
+factum drift model.orm.json schema.sql
+factum derive people.csv -o people.orm.json</code></pre>
+      </div>
     </div>
   </div>
 </section>
 
 <section>
+  <div class="wrap">
+    <h2>Check the model against reality</h2>
+    <div class="split">
+      <div>
+        <h3>Against your own examples</h3>
+        <p>Fact types carry real sample rows, stored in the same file. The verbalizer substitutes
+          them back into the readings, so a domain expert reads
+          <em>&ldquo;101 works for Acme&rdquo;</em> rather than a placeholder.</p>
+        <p>The validator then checks the constraints you drew against the examples you gave. A
+          uniqueness, mandatory, frequency or value constraint your own data contradicts is
+          reported &mdash; not believed.</p>
+      </div>
+      <div>
+        <h3>Against the database you deployed</h3>
+        <p><code>factum drift</code> compares the schema your model maps to against SQL that already
+          exists &mdash; a <code>pg_dump</code>, a migration &mdash; and prints the differences with
+          the <code>ALTER</code> statements that would reconcile them.</p>
+        <p>It reads SQL text rather than connecting, so there is no driver to install and nothing to
+          grant access to.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Start from data, not a blank diagram</h2>
+    <p class="section-lede">
+      The hardest part of modelling is the first fact type. Point Factum at a spreadsheet export and
+      it proposes a first draft &mdash; the step both Halpin&rsquo;s design procedure and FCO-IM
+      actually begin with.
+    </p>
+<pre><code>$ factum derive employees.csv
+
+<span class="c">note: "employee_nr" is unique and never empty across all 240 rows,</span>
+<span class="c">      so it became the reference mode of Employee.</span>
+<span class="c">note: "department" takes only 4 distinct values, so a value</span>
+<span class="c">      constraint was proposed. Confirm the list is closed.</span></code></pre>
+    <p class="section-lede" style="margin-top:22px">
+      An identifying column becomes the entity&rsquo;s reference mode, types and enumerations are
+      inferred from the values, and every row is kept as a sample fact. Nothing is proposed that the
+      data does not support, and each assumption comes back as a note for you to confirm.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Models are just files</h2>
+    <p class="section-lede">
+      A model is one <code>.orm.json</code> file holding the schema, its layout and its examples,
+      described by a published JSON Schema so any tool can validate it. It diffs, merges and reviews
+      like the rest of your source, and it is safe to hand-edit — the diagram is a custom editor over
+      the text document, so VS Code's dirty state, undo stack and file watching all work normally.
+    </p>
+    <p class="section-lede">
+      Every element can carry metadata and per-target generation hints, and any <code>x-</code>
+      prefixed key is yours to use — preserved untouched, so another tool can round-trip data we
+      know nothing about.
+    </p>
+    <div class="cta" style="justify-content:flex-start">
+      <a class="button ghost" href="file-format.html">Read the format</a>
+      <a class="button ghost" href="compare.html">Compared with other tools</a>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
   <div class="wrap" style="text-align:center">
     <h2>Start modeling</h2>
     <p class="section-lede" style="margin-inline:auto">
-      Install the extension, run <code>ORM: New ORM Model</code>, and you have a working schema in a
-      minute.
+      Install the extension and run <code>ORM: New ORM Model</code>, or point
+      <code>factum derive</code> at a CSV you already have. Either way you have a working schema in a
+      minute — and it is a file you can commit.
     </p>
     <div class="cta">
       <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
@@ -272,6 +441,7 @@ Each Manager is a kind of Person.</code></pre>
         <li><a href="reference.html">Commands &amp; settings</a></li>
         <li><a href="file-format.html">File format</a></li>
         <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
         <li><a href="faq.html">FAQ</a></li>
       </ul>
     </div>

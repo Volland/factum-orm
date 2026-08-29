@@ -84,6 +84,8 @@ Two things the other formats carry are still absent, and their absence is a choi
 
 The comparison is also published for readers, as `docs/interop.html` on the documentation site; this section is the design record behind it.
 
+`docs/compare.html` is its companion, comparing the *tools* rather than the formats — NORMA, FactEngine Boston and CaseTalk against Factum. It is a marketing page, so it carries two obligations the design record does not: every row states what the vendor documents publicly rather than what we assume, and a section says plainly where each competitor is ahead. A comparison that only flatters its author is not worth publishing, and is not believed.
+
 ## The converters
 
 Each format has a module in [src/io/](src/io/) that reads and writes it, sharing a vocabulary of data types and name conventions in [[src/io/interop.ts#dataTypeFromNorma]] and its neighbours.

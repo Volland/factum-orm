@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Documentation site: a new **Why Factum** page comparing the tool with NORMA, FactEngine Boston and
+  CaseTalk, including a section on where each of them is ahead. The landing page now covers the
+  command line, the MCP server, sample populations, model derivation and drift detection, and states
+  the interchange position directly — all four formats are read and written, so no one has to pick.
+
 ## 0.4.0 — 2026-08-29
 
 - **`factum`, a command line over the same core the editor runs.** `validate`, `verbalize`, `ddl`,

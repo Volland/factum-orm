@@ -396,3 +396,78 @@ footer {
 .contents a:hover { border-color: var(--accent); text-decoration: none; }
 .contents .num { color: var(--accent); font-family: var(--mono); font-size: 13.5px; }
 .contents .what { color: var(--muted); font-size: 14px; display: block; font-weight: 400; }
+
+/* ------------------------------------------------------- surfaces & badges -- */
+
+/* A row of small labels — the interchange formats, the generation targets. */
+.badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 22px; }
+.badges.left { justify-content: flex-start; }
+.badges span {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font: 13px var(--mono);
+}
+.badges span b { color: var(--accent); font-weight: 500; }
+
+/* Two columns that stay readable when they collapse to one. */
+.split { display: grid; gap: 26px; align-items: start; }
+@media (min-width: 860px) { .split { grid-template-columns: 1fr 1fr; gap: 34px; } }
+.split > div > :first-child { margin-top: 0; }
+.split h3 { margin: 0 0 10px; font-size: 17.5px; }
+.split p { color: var(--muted); margin: 0 0 14px; }
+
+/* --------------------------------------------------------------- compare -- */
+
+.compare { font-size: 14.4px; }
+.compare th, .compare td { white-space: nowrap; }
+.compare tbody th {
+  white-space: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14.4px;
+  color: var(--ink);
+  font-weight: 500;
+  min-width: 220px;
+}
+.compare thead th.ours { color: var(--accent); }
+/* The column that is ours, tinted the whole way down. */
+.compare td.ours, .compare thead th.ours { background: rgba(168, 85, 247, 0.09); }
+.compare tbody tr:hover td.ours { background: rgba(168, 85, 247, 0.14); }
+
+.mk { font-family: var(--mono); margin-right: 7px; }
+.mk.y { color: #6dd39a; }
+.mk.p { color: var(--amber); }
+.mk.n { color: #e2707f; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 20px; color: var(--muted); font-size: 13.5px; margin: 0; }
+
+/* -------------------------------------------------------------- highlight -- */
+
+/* One claim, given room. Used sparingly — it loses force if repeated. */
+.claim {
+  margin: 30px 0;
+  padding: 26px 30px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(168,85,247,.10), rgba(168,85,247,.03));
+}
+.claim p { margin: 0; font-size: 19px; line-height: 1.5; color: var(--ink); max-width: 62ch; }
+.claim p em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+/* A diff block, coloured the way a reviewer expects. */
+pre .add { color: #6dd39a; }
+pre .del { color: #e2707f; }
+
+/* Stat strip. */
+.stats { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 26px 0 0; }
+.stat {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.stat b { display: block; font-size: 24px; color: var(--accent); letter-spacing: -0.02em; font-family: var(--mono); }
+.stat span { color: var(--muted); font-size: 13.5px; }

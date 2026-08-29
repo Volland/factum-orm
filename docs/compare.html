@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Factum · Factum</title>
+<meta name="description" content="How Factum compares with NORMA, FactEngine Boston and CaseTalk — and what it does that none of them do.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Factum">
+<meta property="og:description" content="How Factum compares with NORMA, FactEngine Boston and CaseTalk — and what it does that none of them do.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="compare.html" aria-current="page">Why Factum</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<div class="page-head wrap"><h1>Why Factum</h1><p>Four tools model facts. Only one of them treats the model as source code.</p></div>
+
+<section><div class="wrap">
+
+<p class="section-lede">
+  Fact-based modelling is well served. NORMA is the free reference implementation, FactEngine&rsquo;s
+  Boston is a knowledge-graph suite, and CaseTalk is the FCO-IM methodology suite. They are good
+  tools built by people who have been doing this longer than we have, and if you already work in one,
+  <strong>Factum will read your models rather than ask you to abandon them.</strong>
+</p>
+<p class="section-lede">
+  What none of them does is treat a conceptual schema the way your team already treats everything
+  else it builds &mdash; as text in a repository, reviewed in a pull request, checked by the build,
+  and readable by the agent writing code against it. That is the whole of our position.
+</p>
+
+<div class="claim">
+  <p>
+    Every other fact-based modelling tool asks you to leave the codebase.
+    Factum is the one where the conceptual schema is <em>source code</em>.
+  </p>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>4</b><span>interchange formats, read <em>and</em> written</span></div>
+  <div class="stat"><b>0</b><span>cost, MIT licensed</span></div>
+  <div class="stat"><b>3</b><span>ways in: editor, CLI, coding agent</span></div>
+  <div class="stat"><b>1</b><span>text file per model</span></div>
+</div>
+
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>Side by side</h2>
+  <p class="section-lede">
+    Ordered from what every tool must do down to what only some attempt. Rows reflect what each
+    vendor documents publicly &mdash; see the note at the foot of this page.
+  </p>
+
+  <div class="table-scroll"><table class="compare">
+    <thead>
+      <tr>
+        <th scope="col">&nbsp;</th>
+        <th scope="col">NORMA</th>
+        <th scope="col">Boston</th>
+        <th scope="col">CaseTalk</th>
+        <th scope="col" class="ours">Factum</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Method</th>
+        <td>ORM 2</td><td>ORM / FBM</td><td>FCO-IM</td>
+        <td class="ours">ORM 2</td>
+      </tr>
+      <tr>
+        <th scope="row">Runs on</th>
+        <td>Windows, Visual Studio</td><td>Windows, plus browser</td><td>Windows, plus browser</td>
+        <td class="ours">macOS, Linux, Windows</td>
+      </tr>
+      <tr>
+        <th scope="row">Price</th>
+        <td>Free, open source</td><td>USD 640 perpetual</td><td>Subscription; free tiers</td>
+        <td class="ours">Free, MIT</td>
+      </tr>
+      <tr>
+        <th scope="row">Model is stored as</th>
+        <td>XML document</td><td>XML document</td><td>SQL database</td>
+        <td class="ours">JSON text</td>
+      </tr>
+      <tr>
+        <th scope="row">Reviewable diffs and merges</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Yes</td>
+      </tr>
+      <tr>
+        <th scope="row">Command line / CI</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td class="ours"><span class="mk y">&#9679;</span><code>factum</code> + action</td>
+      </tr>
+      <tr>
+        <th scope="row">Readable by a coding agent</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td class="ours"><span class="mk y">&#9679;</span>MCP server</td>
+      </tr>
+      <tr>
+        <th scope="row">Reads other tools&rsquo; formats</th>
+        <td><span class="mk p">&#9680;</span>Its own</td>
+        <td><span class="mk p">&#9680;</span>Its own + NORMA</td>
+        <td><span class="mk p">&#9680;</span>Its own</td>
+        <td class="ours"><span class="mk y">&#9679;</span>All four, both ways</td>
+      </tr>
+      <tr>
+        <th scope="row">Full ORM constraint family</th>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk p">&#9680;</span>FCO-IM set</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Yes</td>
+      </tr>
+      <tr>
+        <th scope="row">Natural-language verbalization</th>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Yes</td>
+      </tr>
+      <tr>
+        <th scope="row">Sample populations</th>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>Core to method</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Checked against constraints</td>
+      </tr>
+      <tr>
+        <th scope="row">Relational mapping</th>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk y">&#9679;</span>12+ dialects</td>
+        <td class="ours"><span class="mk y">&#9679;</span>5 dialects</td>
+      </tr>
+      <tr>
+        <th scope="row">Property graph mapping</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk p">&#9680;</span>View only</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Yes</td>
+      </tr>
+      <tr>
+        <th scope="row">Schema drift against a database</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Yes</td>
+      </tr>
+      <tr>
+        <th scope="row">Application-code generation</th>
+        <td><span class="mk p">&#9680;</span>Templates</td>
+        <td><span class="mk y">&#9679;</span>Templates</td>
+        <td><span class="mk y">&#9679;</span>7 languages</td>
+        <td class="ours"><span class="mk n">&#9675;</span>Not yet</td>
+      </tr>
+      <tr>
+        <th scope="row">Multiple notations in one tool</th>
+        <td><span class="mk p">&#9680;</span>Two</td>
+        <td><span class="mk y">&#9679;</span>Five</td>
+        <td><span class="mk y">&#9679;</span>Seven</td>
+        <td class="ours"><span class="mk p">&#9680;</span>Three</td>
+      </tr>
+      <tr>
+        <th scope="row">Real-time collaborative editing</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk y">&#9679;</span>Yes</td>
+        <td><span class="mk p">&#9680;</span>Repository</td>
+        <td class="ours"><span class="mk p">&#9680;</span>Git</td>
+      </tr>
+      <tr>
+        <th scope="row">AI assistance</th>
+        <td><span class="mk n">&#9675;</span>No</td>
+        <td><span class="mk y">&#9679;</span>Virtual Analyst</td>
+        <td><span class="mk y">&#9679;</span>Multi-provider</td>
+        <td class="ours"><span class="mk y">&#9679;</span>Your own agent</td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p class="legend">
+    <span><span class="mk y">&#9679;</span>full support</span>
+    <span><span class="mk p">&#9680;</span>partial</span>
+    <span><span class="mk n">&#9675;</span>absent</span>
+  </p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What only we do</h2>
+  <p class="section-lede">
+    Every one of these follows from a single decision &mdash; that a model is a text file in the
+    repository. A competitor would have to rewrite its storage layer to match, which is the kind of
+    change mature products do not make.
+  </p>
+
+  <div class="grid">
+    <article class="card">
+      <div class="mark">&plusmn;</div>
+      <h3>A change you can review</h3>
+      <p>Adding a constraint appends one object to one array, so a colleague can read the diff and
+        say no. The others store one deep XML tree or a database &mdash; none of them can show a
+        conceptual change <em>as</em> a change.</p>
+    </article>
+    <article class="card">
+      <div class="mark">&#10003;</div>
+      <h3>A build that fails</h3>
+      <p><code>factum validate</code> in CI, and a pull request comment saying what the model now
+        says. A schema kept inside an application can only be checked by someone who has that
+        application open.</p>
+    </article>
+    <article class="card">
+      <div class="mark">&#8983;</div>
+      <h3>An agent that can read it</h3>
+      <p>The MCP server hands your coding agent the conceptual model, so the code it writes matches
+        the domain rather than guessing from table names.</p>
+    </article>
+    <article class="card">
+      <div class="mark">&#8644;</div>
+      <h3>No format lock-in</h3>
+      <p>We read <em>and</em> write NORMA, FBM, Ossie and UMS. Every other tool reads its own format
+        and, at best, one neighbour&rsquo;s.</p>
+    </article>
+    <article class="card">
+      <div class="mark">&#8942;</div>
+      <h3>Drift you find early</h3>
+      <p>Compare the model against the database that is actually deployed and get the statements
+        that would reconcile them. Nobody else closes that loop.</p>
+    </article>
+    <article class="card">
+      <div class="mark">&#8364;</div>
+      <h3>Nothing to buy</h3>
+      <p>Free and MIT, installed from a marketplace your analysts already have open &mdash; no
+        licence, no Windows machine, no procurement conversation.</p>
+    </article>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>Where they are ahead</h2>
+  <p class="section-lede">
+    A comparison that only flatters the author is not worth reading. Four things you would genuinely
+    miss by choosing us today.
+  </p>
+  <div class="split">
+    <div>
+      <h3>Generator breadth &mdash; CaseTalk</h3>
+      <p>CaseTalk emits DDL for Snowflake, DuckDB, Redshift, SAP HANA, Databricks and ClickHouse, plus
+        TypeScript, GraphQL, C#, Kotlin, Java, Python and Delphi. We emit five SQL dialects and one
+        Cypher variant.</p>
+      <h3>Real-time collaboration &mdash; Boston</h3>
+      <p>Boston Enterprise gives a team one model and simultaneous cursors. Our answer is branches
+        and review, which is better for developers and worse for a workshop.</p>
+    </div>
+    <div>
+      <h3>Notation coverage &mdash; both</h3>
+      <p>Seven synchronised views in CaseTalk, five in Boston, three in ours. Most of theirs are
+        read-only renderings of one model, but they win a demo.</p>
+      <h3>Maturity &mdash; all three</h3>
+      <p>NORMA has been the reference implementation for two decades and shipped a release in May
+        2026. Boston and CaseTalk have years of production use behind them. We are new.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Which one should you use</h2>
+  <div class="split">
+    <div>
+      <h3>Stay where you are if&hellip;</h3>
+      <p>You model in a workshop with a whiteboard and stakeholders, and never touch a repository.
+        Boston&rsquo;s browser client or CaseTalk&rsquo;s Portal will serve you better than a text
+        editor will.</p>
+      <p>You need code generated for seven languages tomorrow. CaseTalk already does that.</p>
+    </div>
+    <div>
+      <h3>Try Factum if&hellip;</h3>
+      <p>Your model should live beside the code it describes, go through review, and fail the build
+        when someone breaks it.</p>
+      <p>You want to hand a coding agent the actual domain model instead of hoping it infers one.</p>
+      <p>You want to move a model <em>between</em> tools without losing it &mdash; which is worth
+        doing even if you keep modelling somewhere else.</p>
+    </div>
+  </div>
+
+  <div class="cta" style="justify-content:flex-start;margin-top:30px">
+    <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
+    <a class="button ghost" href="interop.html">How the formats compare</a>
+  </div>
+
+  <div class="note">
+    Rows reflect what each vendor documents publicly as of August 2026, taken from their own product
+    and pricing pages &mdash; not from hands-on testing of the commercial tools. Boston&rsquo;s price
+    is the listed perpetual price for Boston Professional; CaseTalk does not publish per-tier
+    pricing. If we have any of this wrong,
+    <a href="https://github.com/Volland/factum-orm/issues">tell us</a> and we will correct it.
+  </div>
+</div></section>
+
+</main>
+
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+
+</body>
+</html>
