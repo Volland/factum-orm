@@ -18,3 +18,4 @@ tsconfig*.json
 CLAUDE.md
 PUBLISHING.md
 scripts/
+.vscodeignore

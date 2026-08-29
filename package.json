@@ -20,7 +20,8 @@
     "url": "https://github.com/Volland/factum-orm/issues"
   },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.85.0",
+    "node": ">=18"
   },
   "categories": [
     "Visualization",
@@ -301,7 +302,8 @@
     "figures": "npm run pretest && node scripts/build-figures.mjs",
     "test": "node --test out-test/test/*.test.js",
     "pretest": "tsc -p tsconfig.test.json",
-    "vsix": "npm run package && npx --yes @vscode/vsce package --no-dependencies"
+    "vsix": "npm run package && npx --yes @vscode/vsce package --no-dependencies",
+    "prepublishOnly": "npm run package"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
