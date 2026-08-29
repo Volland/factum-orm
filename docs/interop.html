@@ -45,6 +45,7 @@
     <li><a href="#why-our-own">Why Factum keeps its own format</a></li>
     <li><a href="#closest">Which standard it is closest to</a></li>
     <li><a href="#bridge">The bridge to each format</a></li>
+    <li><a href="#converters">Importing and exporting</a></li>
     <li><a href="#status">Status</a></li>
   </ul>
 </div>
@@ -339,13 +340,68 @@
    the shape of a <code>hints</code> entry. An Ossie exporter would read <code>hints.ossie</code>
    and need no change to the format to do it.</p>
 
+<h2 id="converters">Importing and exporting</h2>
+<p>Factum reads and writes all four formats. <code>ORM: Import Model</code> takes a
+   <code>.orm</code>, <code>.fbm</code> or <code>.yaml</code> file and writes an
+   <code>.orm.json</code> beside it, picking the reader from the file — the extension where that is
+   decisive, and a marker in the text where it is not, since Ossie and UMS share
+   <code>.yaml</code>. <code>ORM: Export Model As</code> writes any of the four back out.</p>
+
+<div class="table-scroll"><table>
+<thead><tr><th>Format</th><th>Import</th><th>Export</th><th>What survives</th></tr></thead>
+<tbody>
+<tr><td>NORMA <code>.orm</code></td><td>yes</td><td>yes</td><td>Object types, fact types, readings, constraints, subtypes. Geometry is read but not written.</td></tr>
+<tr><td>FBM <code>.fbm</code></td><td>yes</td><td>yes</td><td>The whole conceptual model, plus GUIDs, descriptions and synonyms.</td></tr>
+<tr><td>Apache Ossie ontology</td><td>yes</td><td>yes</td><td>Concepts, relationships, verbalizations, multiplicity, identifiers, subtyping, derivation.</td></tr>
+<tr><td>Unified Modelling Schema</td><td>yes</td><td>yes</td><td>Export is faithful. Import recovers the logical schema, not the model behind it.</td></tr>
+</tbody>
+</table></div>
+
+<p>Both directions return warnings rather than dropping content silently. Exporting a model with an
+   objectified fact type to Ossie tells you that Ossie has no objectification and that the entity
+   type was written plain; importing UMS tells you that what came back is the shape of the data
+   rather than the elementary facts behind it.</p>
+
+<h3>What each conversion has to reconcile</h3>
+<p>The interesting work is never the elements that match. It is the handful that do not.</p>
+<ul>
+  <li><strong>Readings.</strong> FBM decomposes a reading into predicate parts, each carrying a role
+      and the text that trails it; Factum uses NORMA's <code>{0}</code> placeholders. Ossie names its
+      placeholders by concept — <code>{Person} works for {Company}</code> — so conversion matches
+      placeholders to roles by player name, falling back to the role name when one concept plays
+      more than one role.</li>
+  <li><strong>Mandatory roles.</strong> FBM records mandatory on the role itself; Factum makes it a
+      constraint. Neither the role attribute nor the constraint list alone carries both.</li>
+  <li><strong>Uniqueness.</strong> Ossie has no constraint objects. <code>ManyToOne</code> is
+      uniqueness over every role but the last, and <code>OneToOne</code> adds the reverse.</li>
+  <li><strong>Ring types.</strong> FBM concatenates them into one attribute, so
+      <code>AsymmetricIntransitive</code> is two constraints' worth of information in one string.</li>
+  <li><strong>Built-in concepts.</strong> Every Ossie ontology implicitly includes
+      <code>Integer</code>, <code>String</code> and the rest. Redeclaring them on export would turn
+      <code>extends: [Integer]</code> into a subtype link on the next import.</li>
+  <li><strong>Value constraints.</strong> NORMA nests them under the object type or role in a
+      <code>ValueRestriction</code> rather than listing them with the other constraints.</li>
+</ul>
+
+<div class="note">
+  The UMS exporter runs the same property graph mapping the <em>Graph</em> tab shows, because that
+  mapping already answers UMS's question: which value types become properties and which fact types
+  become relationships. See <a href="mapping.html">Mapping rules</a>.
+</div>
+
 <h2 id="status">Status</h2>
-<p>What exists today: Factum reads NORMA <code>.orm</code> and writes <code>.orm.json</code>, and the
-   format carries the metadata and hints the other converters need.</p>
-<p>What does not exist yet: an FBM <code>.fbm</code> exporter, an Ossie ontology exporter, and a
-   <code>.orm</code> writer that would make the NORMA import two-way. All three are expressible
-   against the format as it now stands — that was the point of version 2 — but none of them is
-   written.</p>
+<p>All four formats can be read and written. What is still missing is at the edges of each one:</p>
+<ul>
+  <li>FBM <strong>sample populations</strong> (<code>Instance</code>, <code>Fact</code>) and
+      <strong>multi-page diagrams</strong> are read but not modelled, so only the first page
+      survives and populations are dropped.</li>
+  <li><strong>Join paths</strong> on set-comparison constraints are read as plain role sequences.
+      Both NORMA and FBM can say more here than Factum models.</li>
+  <li>Ossie's <strong><code>ontology_mappings</code></strong> — the binding from concepts down to
+      dataset fields — is neither read nor written. It is the natural home for a
+      <code>hints.ossie</code> target.</li>
+  <li>The NORMA exporter writes no diagram geometry.</li>
+</ul>
 <div class="note">
   Factum is an independent implementation and speaks for none of these projects. If you are working
   on fact-based model interchange, the gap worth closing first is a shared conceptual core that FBM

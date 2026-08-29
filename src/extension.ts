@@ -11,6 +11,11 @@ import { GraphMapOptions, mapToGraph } from './core/lpg.js';
 import { generateGraphDdl } from './core/graphDdl.js';
 import { summarize, validateModel } from './core/validate.js';
 import { importNormaFile } from './io/normaImport.js';
+import { exportNormaFile } from './io/normaExport.js';
+import { exportFbmFile, importFbmFile } from './io/fbm.js';
+import { exportOssieFile, importOssieFile } from './io/ossie.js';
+import { exportUmsFile, importUmsFile } from './io/ums.js';
+import { detectFormat, ExportResult, FORMAT_INFO, ImportResult, InteropFormat } from './io/interop.js';
 
 export function activate(context: vscode.ExtensionContext): void {
   const diagnostics = new OrmDiagnostics();
@@ -37,7 +42,9 @@ export function activate(context: vscode.ExtensionContext): void {
   };
 
   register('orm.newModel', () => createNewModel());
-  register('orm.importNorma', (resource?: vscode.Uri) => importNorma(resource));
+  register('orm.importNorma', (resource?: vscode.Uri) => importModel(resource, 'norma'));
+  register('orm.importModel', (resource?: vscode.Uri) => importModel(resource));
+  register('orm.exportModel', () => exportModel(provider));
   register('orm.generateDdl', () => generateDdlCommand(provider));
   register('orm.showRelationalSchema', () => showRelationalSchema(provider));
   register('orm.generateGraphSchema', () => generateGraphSchemaCommand(provider));
@@ -74,13 +81,22 @@ async function createNewModel(): Promise<void> {
   await vscode.commands.executeCommand('vscode.openWith', target, ORM_VIEW_TYPE);
 }
 
-async function importNorma(resource?: vscode.Uri): Promise<void> {
+/** Reads one interchange document into a `.orm.json` beside it. */
+async function importModel(resource?: vscode.Uri, forced?: InteropFormat): Promise<void> {
   let source = resource;
   if (!source) {
     const picked = await vscode.window.showOpenDialog({
       canSelectMany: false,
       openLabel: 'Import',
-      filters: { 'NORMA ORM model': ['orm'], 'All files': ['*'] },
+      filters: forced
+        ? { [FORMAT_INFO[forced].label]: [FORMAT_INFO[forced].extension], 'All files': ['*'] }
+        : {
+            'Fact-based model': ['orm', 'fbm', 'yaml', 'yml'],
+            'NORMA ORM 2 model': ['orm'],
+            'FBM Exchange MetaModel': ['fbm'],
+            'Ossie or UMS (YAML)': ['yaml', 'yml'],
+            'All files': ['*'],
+          },
     });
     source = picked?.[0];
   }
@@ -88,31 +104,124 @@ async function importNorma(resource?: vscode.Uri): Promise<void> {
 
   try {
     const bytes = await vscode.workspace.fs.readFile(source);
-    const { model, warnings } = importNormaFile(Buffer.from(bytes).toString('utf8'));
-    const target = source.with({ path: source.path.replace(/\.orm$/i, '') + '.orm.json' });
+    const text = Buffer.from(bytes).toString('utf8');
+    const format = forced ?? detectFormat(source.path, text);
+    if (!format) {
+      void vscode.window.showErrorMessage(
+        `Could not tell what format "${basename(source)}" is. Supported: NORMA .orm, FBM .fbm, and Apache Ossie or UMS YAML.`,
+      );
+      return;
+    }
+
+    const readers: Record<InteropFormat, (input: string) => ImportResult> = {
+      norma: importNormaFile,
+      fbm: importFbmFile,
+      ossie: importOssieFile,
+      ums: importUmsFile,
+    };
+    const { model, warnings } = readers[format](text);
+
+    const target = source.with({
+      path: source.path.replace(/\.(orm|fbm|ya?ml)$/i, '') + '.orm.json',
+    });
     await vscode.workspace.fs.writeFile(target, Buffer.from(serializeModel(model), 'utf8'));
     await vscode.commands.executeCommand('vscode.openWith', target, ORM_VIEW_TYPE);
 
     const issues = validateModel(model);
-    const summary = `Imported ${model.objectTypes.length} object types and ${model.factTypes.length} fact types. ${summarize(issues)}`;
-    if (warnings.length) {
-      const choice = await vscode.window.showWarningMessage(
-        `${summary} ${warnings.length} import warning(s).`,
-        'Show warnings',
-      );
-      if (choice) {
-        const document = await vscode.workspace.openTextDocument({
-          language: 'markdown',
-          content: `# Import warnings\n\n${warnings.map((w) => `- ${w}`).join('\n')}\n`,
-        });
-        await vscode.window.showTextDocument(document, { preview: true });
-      }
-    } else {
-      void vscode.window.showInformationMessage(summary);
-    }
+    const summary = `Imported ${model.objectTypes.length} object types and ${model.factTypes.length} fact types from ${FORMAT_INFO[format].label}. ${summarize(issues)}`;
+    await reportWarnings(summary, warnings, 'Import');
   } catch (error) {
-    void vscode.window.showErrorMessage(`Could not import "${source.path}": ${(error as Error).message}`);
+    void vscode.window.showErrorMessage(`Could not import "${basename(source)}": ${(error as Error).message}`);
   }
+}
+
+/** Writes the focused model out in one of the interchange formats. */
+async function exportModel(provider: OrmEditorProvider): Promise<void> {
+  const model = await resolveModel(provider);
+  if (!model) return;
+
+  const choice = await vscode.window.showQuickPick(
+    [
+      {
+        label: 'FBM Exchange MetaModel',
+        description: '.fbm',
+        detail: 'Conceptual XML for the fact-based modelling community. Closest to a lossless round trip.',
+        format: 'fbm' as const,
+      },
+      {
+        label: 'Apache Ossie ontology',
+        description: '.yaml',
+        detail: 'Concepts, relationships and verbalizations. Objectification and the diagram are dropped.',
+        format: 'ossie' as const,
+      },
+      {
+        label: 'NORMA ORM 2',
+        description: '.orm',
+        detail: 'XML for NORMA and Visual Studio. Diagram geometry is not written.',
+        format: 'norma' as const,
+      },
+      {
+        label: 'Unified Modelling Schema',
+        description: '.yaml',
+        detail: 'Logical types with properties and relationships, via the property graph mapping.',
+        format: 'ums' as const,
+      },
+    ],
+    { placeHolder: 'Export the model as', matchOnDetail: true },
+  );
+  if (!choice) return;
+
+  const writers: Record<InteropFormat, (input: OrmModel) => ExportResult> = {
+    norma: exportNormaFile,
+    fbm: exportFbmFile,
+    ossie: exportOssieFile,
+    ums: exportUmsFile,
+  };
+
+  let result: ExportResult;
+  try {
+    result = writers[choice.format](model);
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Could not export the model: ${(error as Error).message}`);
+    return;
+  }
+
+  const info = FORMAT_INFO[choice.format];
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  const fileName = `${model.name.replace(/[^A-Za-z0-9_-]+/g, '') || 'model'}.${info.extension}`;
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: folder ? vscode.Uri.joinPath(folder.uri, fileName) : vscode.Uri.file(fileName),
+    filters: { [info.label]: [info.extension] },
+    saveLabel: `Export as ${info.label}`,
+  });
+  if (!target) return;
+
+  await vscode.workspace.fs.writeFile(target, Buffer.from(result.text, 'utf8'));
+  const document = await vscode.workspace.openTextDocument(target);
+  await vscode.window.showTextDocument(document, { preview: false });
+  await reportWarnings(`Exported as ${info.label}.`, result.warnings, 'Export');
+}
+
+/** Shows a conversion summary, with the warnings behind a button. */
+async function reportWarnings(summary: string, warnings: string[], title: string): Promise<void> {
+  if (!warnings.length) {
+    void vscode.window.showInformationMessage(summary);
+    return;
+  }
+  const choice = await vscode.window.showWarningMessage(
+    `${summary} ${warnings.length} warning(s).`,
+    'Show warnings',
+  );
+  if (!choice) return;
+  const document = await vscode.workspace.openTextDocument({
+    language: 'markdown',
+    content: `# ${title} warnings\n\n${warnings.map((w) => `- ${w}`).join('\n')}\n`,
+  });
+  await vscode.window.showTextDocument(document, { preview: true });
+}
+
+function basename(uri: vscode.Uri): string {
+  return uri.path.split('/').pop() ?? uri.path;
 }
 
 async function generateDdlCommand(provider: OrmEditorProvider): Promise<void> {

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 — 2026-08-29
+
+- **Import and export for the other fact-based modelling formats.** `ORM: Import Model` reads NORMA
+  `.orm`, the FBM Exchange MetaModel `.fbm`, an Apache Ossie ontology or a Unified Modelling Schema
+  document; `ORM: Export Model As` writes any of the four back out. The reader is chosen from the
+  file, since Ossie and UMS share `.yaml`.
+- FBM and NORMA round-trip the whole conceptual model. Ossie round-trips everything it models —
+  objectification and the diagram have no counterpart. UMS export is faithful; UMS import recovers
+  the logical schema rather than the model behind it, and says so.
+- Both directions report what they could not carry instead of dropping it silently.
+- The NORMA bridge is now two-way: `exportNormaFile` completes the pair the importer started.
+
 ## 0.2.0 — 2026-08-29
 
 - **File format version 2.** Every element may now carry `meta` (descriptive metadata: `guid`,

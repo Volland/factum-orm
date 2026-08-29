@@ -85,3 +85,77 @@ Every column line in a generated `CREATE TABLE` carries its comma before the `--
 ### A description becomes a generated comment
 
 `meta.description` on an object type is emitted as the comment on its table in the SQL and on its node table in the Cypher, in place of the comment the mapper would otherwise generate.
+
+## Interchange
+
+Covers the converters for the other fact-based modelling formats, described in [[interop#Interoperability#The converters]]. Each is tested through the shape it has to preserve rather than byte-for-byte, because two formats never agree on incidental detail.
+
+### FBM predicate parts become placeholder readings
+
+A `FactTypeReading` split into predicate parts comes back as `{0} works for {1}` with the role order the parts declared. This is the one structural difference between the two conceptual formats, so it is where a reading breaks first.
+
+### FBM mandatory roles become mandatory constraints
+
+A role carrying `Mandatory="true"` produces a simple mandatory constraint on that role. FBM records mandatory on the role and Factum as a constraint of its own, so nothing else would carry it.
+
+### FBM descriptions and guids reach meta
+
+`GUID`, `LongDescription` and `ShortDescription` land in `meta.guid`, `meta.description` and `meta.shortDescription`, and a reference mode and data type survive. These are the fields that make a round trip through another tool worth doing.
+
+### A model survives an FBM round trip
+
+Exporting a model to FBM and reading it back preserves every object type, fact type, subtype relation and constraint, and every primary reading. FBM is conceptual on both sides, so anything lost here is a converter bug rather than a format limit.
+
+### FBM boolean attributes keep their value
+
+The exported XML contains `Mandatory="true"`, not a bare `Mandatory` flag. The XML builder abbreviates boolean attributes by default, which the XSD rejects and a re-import reads as absent — silently dropping every mandatory constraint.
+
+### FBM composite ring types are split
+
+`RingConstraintType="AsymmetricIntransitive"` becomes the two ring types it names. FBM concatenates them into one attribute, so the names have to be matched longest-first or `strictlyIntransitive` is read as `intransitive`.
+
+### Ossie verbalizations become placeholder readings
+
+`{Person} works for {Company}` is read back as `{0} works for {1}`, including the case where one concept plays two roles and the role name disambiguates them. Ossie names placeholders by concept where Factum numbers them by position.
+
+### Ossie multiplicity becomes uniqueness
+
+`ManyToOne` produces a uniqueness constraint over every role but the last, `OneToOne` adds the reverse, and a relationship named in `identify_by` gets a preferred identifier. A relationship with no multiplicity stays many-to-many.
+
+### Ossie extends resolves data types and subtyping
+
+`Salary extends NrDollars extends Decimal` gives Salary a decimal data type, and `extends` naming a declared concept subtypes it while naming a built-in does not.
+
+Getting that distinction wrong turns every value type into a subtype of `Integer`.
+
+### Ossie requires expressions become value constraints
+
+An equality disjunction becomes a list of allowed values and a comparison becomes a bound, with the inclusivity the operator implies. Expressions that are not one of those two shapes are kept as a note rather than guessed at.
+
+### An ontology survives an Ossie round trip
+
+Exporting an imported ontology and reading it back preserves the shape and every reading. Built-in concepts are the trap: re-declaring them on export turns `extends: [Integer]` into a subtype link on the next import.
+
+### Ossie export reports what it cannot carry
+
+Exporting a model with an objectified fact type warns that Ossie has no objectification. An export that quietly drops a construct is worse than one that refuses.
+
+### UMS export produces types with properties
+
+The exported document has types with labels, primary keys, properties and relationships, and carries the readings as the fact-based annotation UMS keeps. This is the property graph mapping's result in UMS's vocabulary.
+
+### UMS import warns that it is a logical schema
+
+Importing UMS produces a usable model and warns that the attributes have already been formed. The warning matters more than the model: what comes back is the shape of the data, not the elementary facts behind it.
+
+### A model survives a NORMA round trip
+
+Exporting to NORMA and reading it back through the existing importer preserves the shape and the readings. This is what makes the NORMA bridge two-way rather than one-way.
+
+### NORMA value constraints are nested where the importer reads them
+
+Value constraints are written inside a `ValueRestriction` on the object type or role, not in the `Constraints` collection. NORMA puts them there, and an exporter that lists them with the other constraints loses every one.
+
+### The format of a document is detected
+
+The format is taken from the extension where that is decisive, and from a marker in the text where it is not. Ossie and UMS share `.yaml`, so the extension alone cannot tell them apart.

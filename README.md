@@ -86,10 +86,24 @@ rather than quietly dropped:
 //   [mandatory] It is necessary that each Person works for some Company.
 ```
 
-### Import from NORMA
+### Exchange models with other fact-based tools
 
-`ORM: Import NORMA (.orm) File` reads NORMA / ORM 2 XML — objects, facts, readings, constraints,
-subtypes, value restrictions and diagram geometry — and writes an `.orm.json` beside it.
+`ORM: Import Model` reads NORMA `.orm` XML, the FBM Exchange MetaModel `.fbm`, an Apache Ossie
+ontology or a Unified Modelling Schema document, and writes an `.orm.json` beside it — picking the
+reader from the file, since Ossie and UMS share `.yaml`. `ORM: Export Model As` writes any of the
+four back out.
+
+| Format | Import | Export | Fidelity |
+| --- | --- | --- | --- |
+| NORMA `.orm` | yes | yes | Conceptual both ways; diagram geometry is read but not written |
+| FBM `.fbm` | yes | yes | Conceptual both ways; the closest to a lossless round trip |
+| Apache Ossie ontology | yes | yes | Conceptual; objectification and the diagram have no counterpart |
+| Unified Modelling Schema | yes | yes | Logical; export is faithful, import recovers the schema, not the model |
+
+Both directions report what they could not carry rather than dropping it silently, so an export to
+Ossie tells you it left your objectified fact type behind. See
+[the format comparison](https://volland.github.io/factum-orm/interop.html) for what each format
+holds and why Factum keeps one of its own.
 
 ### Export
 
@@ -126,6 +140,8 @@ SVG and PNG export of the diagram, plus force-directed auto-layout.
 | --- | --- |
 | `ORM: New ORM Model` | Create a starter `.orm.json` and open the diagram |
 | `ORM: Import NORMA (.orm) File` | Convert a NORMA ORM 2 XML file |
+| `ORM: Import Model (NORMA, FBM, Ossie, UMS)` | Convert any supported interchange document |
+| `ORM: Export Model As (NORMA, FBM, Ossie, UMS)` | Write the model out in an interchange format |
 | `ORM: Verbalize Model` | Full FORML verbalization as Markdown |
 | `ORM: Show Relational Mapping` | Mapped tables as a Markdown table |
 | `ORM: Generate Relational Schema (SQL DDL)` | SQL DDL in a new editor |
@@ -282,10 +298,12 @@ Mapping notes explaining each choice appear beside the schema and as comments in
 
 ## Known limitations
 
-- The NORMA importer is one-way; models are saved as `.orm.json`, not written back to `.orm` XML.
-- There is no exporter yet for the FBM Exchange MetaModel (`.fbm`) or for Apache Ossie's ontology
-  YAML. The `meta` and `hints` a converter would need are in the format; the converters are not
-  written.
+- The NORMA exporter does not write diagram geometry: NORMA's diagram section carries shape state
+  well beyond position, and a partial one is worse than none.
+- Sample populations, multi-page diagrams and join paths on set-comparison constraints are read from
+  FBM but not modelled, so they do not survive a round trip through Factum.
+- Apache Ossie's `ontology_mappings` — the binding from concepts down to dataset fields — is neither
+  read nor written. It is the natural home for a `hints.ossie` target.
 - Derivation rules are stored and verbalized but not evaluated.
 - The graph mapping targets LadybugDB's Cypher DDL. Other property graph databases will need small
   syntax adjustments.

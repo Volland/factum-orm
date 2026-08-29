@@ -48,7 +48,7 @@ Install the built `.vsix` locally and click through the diagram, the Verbalizati
 Graph tabs, and both generate commands before publishing:
 
 ```bash
-code --install-extension factum-orm-0.2.0.vsix
+code --install-extension factum-orm-0.3.0.vsix
 ```
 
 ## 6. Publish
@@ -66,6 +66,6 @@ Add `--pre-release` if you want the pre-release channel instead of a normal rele
   matching `/i/` (installs) and `/r/` (rating) badges. They 404 until the first publish, which is why
   they are not there yet.
 - **Open VSX.** For VSCodium, Cursor and Windsurf users, mirror the release with
-  `npx ovsx publish factum-orm-0.2.0.vsix -p <token>`.
+  `npx ovsx publish factum-orm-0.3.0.vsix -p <token>`.
 - **A short GIF** of drawing a fact type and watching the verbalization update would carry the
   listing further than the two static screenshots.

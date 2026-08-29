@@ -31,6 +31,15 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
+<h2 id="0-3-0">0.3.0</h2>
+<p>Import and export for the other fact-based modelling formats.</p>
+<ul>
+  <li><strong>Import and export for the other fact-based modelling formats.</strong> <code>ORM: Import Model</code> reads NORMA <code>.orm</code>, the FBM Exchange MetaModel <code>.fbm</code>, an Apache Ossie ontology or a Unified Modelling Schema document; <code>ORM: Export Model As</code> writes any of the four back out. The reader is chosen from the file, since Ossie and UMS share <code>.yaml</code>. See <a href="interop.html#converters">File formats</a>.</li>
+  <li>FBM and NORMA round-trip the whole conceptual model. Ossie round-trips everything it models — objectification and the diagram have no counterpart. UMS export is faithful; UMS import recovers the logical schema rather than the model behind it, and says so.</li>
+  <li>Both directions report what they could not carry instead of dropping it silently.</li>
+  <li>The NORMA bridge is now two-way.</li>
+</ul>
+
 <h2 id="0-2-0">0.2.0</h2>
 <p>File format version 2: metadata, schema generation hints and a published JSON Schema.</p>
 <ul>
