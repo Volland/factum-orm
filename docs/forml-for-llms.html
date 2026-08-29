@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FORML for language models · Factum</title>
+<meta name="description" content="A formal language that reads like English. FORML states every ORM 2 constraint as an unambiguous sentence — the format an LLM parses best and a domain expert can still veto.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FORML for language models">
+<meta property="og:description" content="Formal enough to check, plain enough to argue with. Why the verbalization of an ORM model is the right context format for an agent.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="ai-native.html">AI-native</a>
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="compare.html">Why Factum</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<div class="page-head wrap">
+  <span class="eyebrow">Article</span>
+  <h1>A formal language that reads like English</h1>
+  <p>FORML is precise enough for a machine to check and plain enough for a person to argue with. That combination is rarer than it sounds.</p>
+</div>
+
+<section><div class="wrap prose">
+
+<h2>The usual trade</h2>
+
+<p>Every attempt to write down what a system means lands somewhere on a line with two bad ends. At
+one end sits formal logic: unambiguous, checkable, and unreadable by the person who actually knows
+whether the rule is right. At the other sits prose: readable by everyone, checkable by no one, and
+quietly wrong within a quarter.</p>
+
+<p>Teams resolve this by producing both and maintaining neither. The formal artifact becomes the
+schema, which drifts toward whatever the code needed last sprint. The readable artifact becomes a
+Confluence page, which drifts toward fiction. Nothing connects them, so nothing detects the moment
+they start disagreeing.</p>
+
+<p>FORML — the Formal Object-Role Modeling Language — refuses the trade by making one artifact
+render as the other. The constraints are structured data. The sentences are generated from that
+data. There is no second document to keep in sync, because the readable version is a projection of
+the checkable one and cannot say anything the model does not.</p>
+
+<div class="claim">
+  <p>
+    A sentence that a domain expert can reject and a validator can enforce is the same sentence.
+    <em>That</em> is what makes it usable as context for an agent.
+  </p>
+</div>
+
+<h2>Formal, in the way that matters</h2>
+
+<p>FORML sentences look like English and are not written in it. Each is emitted from a specific
+constraint by a specific rule, which is why the vocabulary is so small and so repetitive — the
+repetition is the grammar.</p>
+
+<div class="table-scroll"><table>
+  <thead><tr><th>What the model holds</th><th>What it reads as</th></tr></thead>
+  <tbody>
+    <tr><td>A fact type, no constraints</td><td><em>It is possible that some Person works for some Company.</em></td></tr>
+    <tr><td>Uniqueness on the first role</td><td><em>Each Person works for at most one Company.</em></td></tr>
+    <tr><td>Uniqueness + mandatory</td><td><em>Each Person works for exactly one Company.</em></td></tr>
+    <tr><td>Uniqueness spanning two roles</td><td><em>In each population of &ldquo;Person has Skill&rdquo;, each Person, Skill combination occurs at most once.</em></td></tr>
+    <tr><td>A value constraint</td><td><em>It is necessary that the possible values of GenderCode are {'M', 'F'}.</em></td></tr>
+    <tr><td>An exclusive, exhaustive subtype set</td><td><em>It is necessary that each Person is exactly one of: Employee or Contractor.</em></td></tr>
+    <tr><td>A subset constraint</td><td><em>It is necessary that if some Person drives some Car then some Person holds some Licence.</em></td></tr>
+    <tr><td>An objectified fact type</td><td><em>Each Enrolment objectifies exactly one &ldquo;Student enrols in Course&rdquo; fact.</em></td></tr>
+    <tr><td>The same rule, deontic</td><td><em>It is obligatory that each Employee has a Salary.</em></td></tr>
+  </tbody>
+</table></div>
+
+<p>Two details in that table carry more weight than the rest.</p>
+
+<p>The first is the difference between rows two and three. <em>At most one</em> and <em>exactly
+one</em> differ by a single mandatory dot on a role. The distinction is invisible in a class
+definition, ambiguous in prose, and fully explicit here — and it is precisely the distinction an
+agent gets wrong when it guesses from a nullable column.</p>
+
+<p>The second is the last row. <em>It is necessary that</em> marks an alethic rule: it cannot be
+otherwise, and the database will enforce it. <em>It is obligatory that</em> marks a deontic one: it
+should not be otherwise, but the system must be able to record the violation anyway. Most modelling
+languages have no way to say the second, so it gets modelled as the first, and six months later
+somebody is writing a workaround for the fact that a legitimate exception cannot be saved. An agent
+reading the model can tell which kind of rule it is looking at before it writes the migration.</p>
+
+<h2>Why this is the right format for an agent</h2>
+
+<p>Given a choice of context formats, the useful question is not which one is most expressive but
+which one an LLM parses with the fewest degrees of freedom. FORML scores unusually well, for four
+reasons that have nothing to do with it having been designed for machines — it was designed for
+business analysts in the 1990s.</p>
+
+<ul>
+  <li><strong>It is already the native modality.</strong> No diagram to interpret, no XML to walk, no
+    notation legend to hold in working memory. Declarative sentences are what these models are best
+    at, and the model was already stored as text.</li>
+  <li><strong>The vocabulary is closed.</strong> <em>each</em>, <em>at most one</em>, <em>exactly
+    one</em>, <em>it is necessary that</em>, <em>it is obligatory that</em>, <em>if&hellip;then</em>,
+    <em>if and only if</em>, <em>no&hellip;both</em>. A small, repeated set of quantifiers means the
+    same rule reads the same way every time, so there is nothing to normalise and no house style to
+    infer.</li>
+  <li><strong>Absence means something.</strong> Because every constraint verbalizes, a rule that is
+    not in the text is a rule that is not in the model. That converts silence from ambiguity into
+    information — the one thing prose documentation can never do.</li>
+  <li><strong>It round-trips.</strong> The sentence came from a constraint, so a claim about the
+    sentence is a claim about the model, and it can be checked. An agent that quotes FORML back is
+    quoting something falsifiable.</li>
+</ul>
+
+<h2>Grounded in examples, not just rules</h2>
+
+<p>A rule is easier to apply when you have seen it hold. ORM models carry sample populations —
+real example rows stored in the same file — and the verbalizer substitutes them back into the
+readings:</p>
+
+<pre><code>- Employee 101 works for Acme.
+- Employee 102 works for Acme.
+- Employee 103 works for Globex.</code></pre>
+
+<p>For an agent, that is few-shot grounding it did not have to be given, in the same vocabulary as
+the rules. For a domain expert it is the sanity check that catches invented fact types — a fact type
+nobody can populate with a real example is usually one that does not exist. And the validator checks
+the constraints against those same rows, so a uniqueness or value constraint contradicted by your
+own data is reported rather than believed.</p>
+
+<h2>The whole domain, in a prompt</h2>
+
+<p>Size is the quiet advantage. A domain that occupies forty tables and several thousand lines of
+DDL is a few hundred FORML sentences. That fits in a context window whole, which changes the shape
+of the problem: there is no retrieval step, no chunking, no risk of reasoning about one constraint
+while the interacting one sits unretrieved.</p>
+
+<pre><code>$ factum verbalize model/domain.orm.json | wc -w
+    1 842</code></pre>
+
+<p>The same command is how you put the domain in front of an agent that does not speak MCP: pipe it
+into the prompt. With <code>factum-mcp</code> the agent calls <code>verbalize_model</code> itself,
+along with <code>read_population</code> for the examples and <code>validate_model</code> to check
+whatever it proposes.</p>
+
+<h2>Formal languages people will actually maintain</h2>
+
+<p>There have been many attempts at a business-rules language a machine can execute — SBVR, OCL,
+Schematron, a long tail of DSLs. Most are technically excellent and nearly unused, and the reason is
+consistent: the person who knows the rule cannot read the artifact, so the artifact is written by
+someone who does not know the rule, and it rots.</p>
+
+<p>FORML avoids that trap by never asking anyone to write it. You draw a fact type and place a
+constraint; the sentence is generated. The formal artifact is a by-product of an act of modelling
+that a domain expert can watch and correct in real time — which is why it is still accurate a year
+later, and why it is worth handing to an agent at all.</p>
+
+<div class="cta" style="justify-content:flex-start">
+  <a class="button primary" href="for-agents.html">Set it up for your agent</a>
+  <a class="button ghost" href="llm-fact-gap.html">Why LLMs need this layer</a>
+  <a class="button ghost" href="book-07-constraints.html">The constraint family in full</a>
+</div>
+
+</div></section>
+
+</main>
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For AI &amp; agents</h4>
+      <ul>
+        <li><a href="ai-native.html">Human-first, AI-native</a></li>
+        <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
+        <li><a href="forml-for-llms.html">FORML for language models</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="impressum.html">Impressum</a></li>
+        <li><a href="datenschutz.html">Datenschutz</a></li>
+        <li><a href="agb.html">AGB</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

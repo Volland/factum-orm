@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The fact layer LLMs are missing · Factum</title>
+<meta name="description" content="Language models reconstruct your domain from table names because nobody wrote it down. Elementary facts are the missing layer — explicit, checkable, and small enough to fit in a prompt.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The fact layer LLMs are missing">
+<meta property="og:description" content="Retrieval gives a model text that is similar to your domain. A conceptual schema gives it text that is true about it.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="ai-native.html">AI-native</a>
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="compare.html">Why Factum</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<div class="page-head wrap">
+  <span class="eyebrow">Article</span>
+  <h1>The fact layer LLMs are missing</h1>
+  <p>Why a model that has read your entire codebase still does not know what a row means.</p>
+</div>
+
+<section><div class="wrap prose">
+
+<h2>The gap nobody logs</h2>
+
+<p>Ask a coding agent what a <code>subscription</code> row means in your system and you will get a
+confident, fluent, well-structured answer. Some of it will be right. The parts that are wrong will
+not be marked, because the agent has no way to know which parts those are — and neither, on a first
+read, do you.</p>
+
+<p>This is not a reasoning failure. The agent did the only thing available: it read the schema, the
+migrations, a few service classes and the tests, and inferred a domain consistent with all of them.
+The trouble is that many domains are consistent with the same code. A nullable column is consistent
+with <em>this is genuinely optional</em>, with <em>this is mandatory but was added later</em>, and
+with <em>nobody ever decided</em>. A unique index tells you the database refuses duplicates; it does
+not tell you whether that was a business rule or a performance fix that has since become load-bearing
+by accident.</p>
+
+<p>The information required to tell those apart existed once. It was in the conversation with the
+person who understood the business. Then it was compressed into DDL, and the compression was lossy,
+and the lossy artifact is the only thing anyone kept.</p>
+
+<div class="claim">
+  <p>
+    We have spent thirty years asking machines to <em>infer</em> a conceptual model from a logical
+    one, when the conceptual model was the thing we should have written down.
+  </p>
+</div>
+
+<h2>Why retrieval does not close it</h2>
+
+<p>The obvious response is to give the agent more context: index the wiki, embed the tickets, add a
+retrieval step. This helps, and it does not solve the problem, because it is answering a different
+question. Retrieval finds text that is <em>similar</em> to the query. Nothing in the pipeline
+establishes that the retrieved text is <em>true</em>, <em>current</em>, or <em>complete</em>.</p>
+
+<p>Three failures follow, and they are structural rather than fixable with a better embedding
+model:</p>
+
+<ul>
+  <li><strong>Stale beats absent.</strong> A design doc from 2021 describing a rule that changed in
+    2023 scores just as well as a correct one. The retriever has no notion of which is current; the
+    generator has no reason to doubt it.</li>
+  <li><strong>Silence looks identical to permission.</strong> If no document mentions that a customer
+    may have at most one active subscription, nothing is retrieved, and the agent proceeds as though
+    the constraint does not exist. An absent rule and a permitted action are indistinguishable.</li>
+  <li><strong>You get chunks, not a domain.</strong> Retrieval returns the three passages nearest the
+    query. Constraints, though, interact: a mandatory role plus a uniqueness constraint means
+    <em>exactly one</em>; drop the mandatory and the same fact type means <em>at most one</em>.
+    Reasoning about a rule you retrieved without the rule you did not is how you get an answer that
+    is locally plausible and globally wrong.</li>
+</ul>
+
+<p>Prose documentation has the same problem in a slower form. It is written by hand, so it drifts;
+it is written for a reader who already has context, so it omits; and it has no relationship to the
+running system, so nothing ever fails when it becomes false.</p>
+
+<h2>What an elementary fact adds</h2>
+
+<p>An elementary fact is the smallest statement that says something about the world and cannot be
+split without losing information. <em>Person works for Company.</em> <em>Person has Skill.</em> It
+carries no attributes — which sounds like a limitation and is in fact the entire mechanism. Because
+there is nowhere to hide a property, every decision about that fact has to be stated as an explicit
+constraint on a role.</p>
+
+<p>Compare what each artifact commits to, for the same piece of domain:</p>
+
+<div class="table-scroll"><table>
+  <thead><tr><th>Artifact</th><th>What it says</th><th>What it leaves open</th></tr></thead>
+  <tbody>
+    <tr><td><code>person.company_id int NULL</code></td><td>There is a link, sometimes absent</td><td>Whether absence is legal, whether two are possible, what the link <em>means</em></td></tr>
+    <tr><td><code>class Person { company?: Company }</code></td><td>The same, in another language</td><td>All of the above, plus whether the optionality is a rule or a migration artifact</td></tr>
+    <tr><td>&ldquo;People belong to a company&rdquo; in a README</td><td>An intention</td><td>Everything that matters, and whether it is still true</td></tr>
+    <tr><td><em>Each Person works for exactly one Company.</em></td><td>Mandatory, unique, named, directional</td><td>Nothing — and a domain expert can reject it out loud</td></tr>
+  </tbody>
+</table></div>
+
+<p>The fourth row is not a nicer comment on the first three. It is generated from constraints in a
+model, so it cannot drift from them; it is checked against sample data, so it cannot contradict the
+examples; and it maps down to the first row mechanically, so the column is a consequence of the rule
+rather than a place the rule went to die.</p>
+
+<h2>Six properties that happen to suit a language model</h2>
+
+<p>Fact-based modelling was formalised in the 1970s and 80s — NIAM, then ORM, then Halpin's ORM 2 —
+for an entirely human reason: a schema that a business expert cannot read is a schema nobody
+validated. The properties that make it readable to that expert turn out, without anyone planning it,
+to be the properties an LLM needs.</p>
+
+<ol>
+  <li><strong>It is natural language.</strong> Verbalization is not documentation generated beside
+    the model; it is the model rendered in the format a language model handles best. No diagram to
+    interpret, no notation to learn, no vision step to misread.</li>
+  <li><strong>Every rule is stated.</strong> Mandatory, uniqueness, frequency, value, subset,
+    exclusion, ring and cardinality constraints are all first-class and all verbalized. An omission
+    is a real signal, not an ambiguity.</li>
+  <li><strong>Nothing is implied by an attribute.</strong> There are no attributes, so
+    <em>&ldquo;one email per person&rdquo;</em> is a constraint someone drew rather than a
+    consequence of where a field was typed.</li>
+  <li><strong>Facts read both ways.</strong> Every fact type has readings from each role, so the
+    domain answers a question asked from either side.</li>
+  <li><strong>Examples are attached.</strong> Sample populations are stored with the model and read
+    back through the readings. The rules come with instances, and the instances are checked against
+    the rules.</li>
+  <li><strong>It is compact.</strong> A domain that is six thousand lines of DDL is a few hundred
+    sentences as facts. It fits in a prompt whole, which removes the retrieval step and the
+    partial-context failure along with it.</li>
+</ol>
+
+<h2>The part that makes it safe</h2>
+
+<p>Handing an agent a good description of your domain makes it faster. It does not, on its own, make
+it trustworthy — the agent will still propose changes, and some will be wrong. What closes that gap
+is that a conceptual schema is <em>checkable</em>: the same file the agent reads can be validated,
+diffed and enforced.</p>
+
+<p>So the loop has a brake in it. The agent proposes a change to the model. The validator rejects it
+if the result is not well-formed, or if it contradicts the sample facts already recorded. What
+survives comes back to a person as one sentence in a pull request:</p>
+
+<pre><code><span class="del">- Each Person works for at most one Company.</span>
+<span class="add">+ Each Person works for exactly one Company.</span></code></pre>
+
+<p>That line is reviewable by someone with no ORM training and no patience for JSON, which is the
+only reason the review will actually happen. Speed comes from the agent; safety comes from the fact
+that the artifact it edits is one a human can audit at a glance.</p>
+
+<h2>Write the layer down</h2>
+
+<p>None of this requires believing anything in particular about how good models will get. If they
+get much better, they will still not be able to distinguish a business rule from a coincidence in
+your data, because that distinction is not present in the data. It is a fact about your organisation,
+and somebody has to say it.</p>
+
+<p>Fact-based modelling is how you say it in a form that survives — precise enough for a machine,
+plain enough for the person who knows the answer. <a href="ai-native.html">Factum</a> keeps that form
+in a text file in your repository, verbalizes it, validates it in CI, and serves it to your agent
+over MCP.</p>
+
+<div class="cta" style="justify-content:flex-start">
+  <a class="button primary" href="for-agents.html">Set it up for your agent</a>
+  <a class="button ghost" href="forml-for-llms.html">Next: the formal language</a>
+  <a class="button ghost" href="book-02-elementary-facts.html">What an elementary fact is</a>
+</div>
+
+</div></section>
+
+</main>
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For AI &amp; agents</h4>
+      <ul>
+        <li><a href="ai-native.html">Human-first, AI-native</a></li>
+        <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
+        <li><a href="forml-for-llms.html">FORML for language models</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="impressum.html">Impressum</a></li>
+        <li><a href="datenschutz.html">Datenschutz</a></li>
+        <li><a href="agb.html">AGB</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

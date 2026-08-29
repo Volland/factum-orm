@@ -36,6 +36,8 @@ The subtlety is in reading a column type: a type can contain spaces (`double pre
 
 The competitive move is not to add AI to a modelling tool but to stop being the thing the agent has to be told about. Factum already runs in the editor the agent works in, so rather than growing a chat panel it hands the agent the model: read it, verbalize it, check it, map it, compare it.
 
+This is also the product's stated position — *human-first, AI-native*. An elementary fact is the smallest artifact a domain expert and a language model can both check, so the verbalization a business analyst approves is the same text an agent reasons over. Nothing here calls a language model; the verbalizer, validator and mappers stay deterministic, and the agent is the caller rather than a dependency.
+
 Every tool is read-only except `apply_model`, which validates before writing and refuses a model with blocking errors unless explicitly overridden. An agent cannot save a broken schema by accident.
 
 ## Deriving a model from examples

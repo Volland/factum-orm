@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human-first, AI-native · Factum</title>
+<meta name="description" content="An elementary fact is the smallest thing a domain expert and a language model can both check. Object-Role Modeling is the notation that writes them down — and the layer LLMs have been missing.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Human-first, AI-native">
+<meta property="og:description" content="Facts are readable by people and by models. ORM 2 writes them down; Factum hands them to your agent.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="ai-native.html" aria-current="page">AI-native</a>
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="compare.html">Why Factum</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<div class="page-head wrap">
+  <span class="eyebrow">The position</span>
+  <h1>Human-first, AI-native.</h1>
+  <p>An elementary fact is the smallest thing a domain expert and a language model can both check.</p>
+</div>
+
+<section><div class="wrap">
+
+<p class="section-lede">
+  Most modelling notations were designed for one reader: a person with a whiteboard, or a compiler.
+  Fact-based modelling happens to have been designed for both, forty years before anyone needed it to
+  be. It says everything in sentences, states every rule explicitly, and refuses to leave anything
+  implied. That is what a domain expert needs to approve a model. It is also, exactly, what a
+  language model needs to stop guessing.
+</p>
+
+<div class="claim">
+  <p>
+    A fact type is the rare artifact that is <em>human-readable and machine-checkable at the same
+    time</em> — no summary for the person, no schema dump for the model, no drift between the two.
+  </p>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>1</b><span>artifact, three readers</span></div>
+  <div class="stat"><b>0</b><span>attributes to guess at</span></div>
+  <div class="stat"><b>8</b><span>MCP tools over the model</span></div>
+  <div class="stat"><b>~2k</b><span>tokens for a whole domain, verbalized</span></div>
+</div>
+
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>Three readers, one artifact</h2>
+  <p class="section-lede">
+    The usual arrangement is three documents that disagree: a diagram for the architects, a DDL file
+    for the database, and a paragraph in a README for whoever comes next. A conceptual schema
+    collapses them, because each reader takes a different projection of the same file.
+  </p>
+  <div class="grid">
+    <article class="card">
+      <div class="mark">☺</div>
+      <h3>The domain expert reads sentences</h3>
+      <p><em>&ldquo;Each Person works for exactly one Company.&rdquo;</em> No notation to learn, no
+        legend to consult. They can say <em>no, some contractors work for two</em> — and that is a
+        modelling bug caught before a table exists.</p>
+    </article>
+    <article class="card">
+      <div class="mark">⌘</div>
+      <h3>The developer reads a schema</h3>
+      <p>The same model maps to SQL DDL or property-graph DDL, with a note explaining every decision.
+        Nothing was invented in the mapping; it all came from constraints someone approved.</p>
+    </article>
+    <article class="card">
+      <div class="mark">⌁</div>
+      <h3>The model reads facts</h3>
+      <p>An LLM's native input format is a sentence. Verbalization hands it the domain as a few
+        hundred declarative sentences with every rule stated — not a picture to interpret, not table
+        names to infer meaning from.</p>
+    </article>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What LLMs have been missing</h2>
+  <p class="section-lede">
+    Point a coding agent at a codebase and it will reconstruct your domain from the only evidence it
+    has: column names, foreign keys, a few migrations and whatever the last developer called things.
+    It reconstructs a plausible domain. Plausible is the problem — the gap is invisible until
+    production.
+  </p>
+
+  <div class="split">
+    <div>
+      <h3>What the agent can see today</h3>
+<pre><code><span class="k">CREATE TABLE</span> enrolment (
+  student_id  <span class="k">int</span>,
+  course_id   <span class="k">int</span>,
+  grade       <span class="k">varchar</span>(2),
+  <span class="k">PRIMARY KEY</span> (student_id, course_id)
+);</code></pre>
+      <p>From this it must infer: is a grade required, or pending until the term ends? Can the same
+        student enrol twice, in a later term? Is <code>'A+'</code> legal? Is an enrolment a thing in
+        the domain, or just a row joining two others? It will answer all four. It has no way to be
+        right.</p>
+    </div>
+    <div>
+      <h3>What the fact layer says</h3>
+<pre><code>In each population of "Student enrols
+  in Course in Term", each Student,
+  Course, Term combination occurs at
+  most once.
+Each Enrolment results in at most one
+  Grade.
+It is necessary that the possible values
+  of Grade are {'A','B','C','D','F'}.
+Each Enrolment objectifies exactly one
+  "Student enrols in Course in Term" fact.</code></pre>
+      <p>Four sentences, four answers, none of them inferred. Each was drawn as a constraint,
+        verbalized from the constraint, and confirmed by someone who knows the registry.</p>
+    </div>
+  </div>
+
+  <div class="claim">
+    <p>
+      Retrieval gives a model text that is <em>similar</em> to your domain. A conceptual schema gives
+      it text that is <em>true</em> about your domain. Those are different problems, and only one of
+      them was ever a search problem.
+    </p>
+  </div>
+
+  <p class="section-lede">
+    The fact layer is not a new invention for the AI era — it is the layer the industry skipped.
+    Teams went from a conversation with a domain expert straight to <code>CREATE TABLE</code>, and
+    the reasoning in between was never written down anywhere a machine could read it. Every agent
+    working on that codebase now pays for it, on every prompt.
+  </p>
+  <div class="cta" style="justify-content:flex-start">
+    <a class="button ghost" href="llm-fact-gap.html">The long version of this argument</a>
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>Why object-role marking, specifically</h2>
+  <p class="section-lede">
+    Plenty of notations claim to be readable. ORM 2 has six properties that matter to a language
+    model, and each of them is a consequence of the same decision: facts carry roles, not attributes.
+  </p>
+  <div class="grid">
+    <article class="card">
+      <div class="mark">❝</div>
+      <h3>It is already text</h3>
+      <p>Verbalization is not a rendering of the model, it <em>is</em> the model. There is no picture
+        to caption, no diagram to describe, no vision step that can misread an arrow.</p>
+    </article>
+    <article class="card">
+      <div class="mark">◇</div>
+      <h3>Nothing hides in an attribute</h3>
+      <p>In ER or UML, <code>Person.email</code> silently decides that a person has one email, that
+        it is a property rather than a relationship, and that no rule attaches to it. ORM has no
+        attributes, so those decisions have to be stated — and once stated, they can be read.</p>
+    </article>
+    <article class="card">
+      <div class="mark">⊸</div>
+      <h3>Every rule is explicit</h3>
+      <p>Mandatory, uniqueness, frequency, ring, subset, exclusion, value, cardinality — with alethic
+        or deontic modality. An agent never has to decide whether an omission meant <em>optional</em>
+        or <em>nobody thought about it</em>.</p>
+    </article>
+    <article class="card">
+      <div class="mark">⇄</div>
+      <h3>Roles name both directions</h3>
+      <p><em>Person works for Company</em> and <em>Company employs Person</em> are two readings of
+        one fact type. A model asked a question from either side finds the same fact, not a
+        half-modelled inverse it has to guess exists.</p>
+    </article>
+    <article class="card">
+      <div class="mark">◉</div>
+      <h3>Examples travel with the rules</h3>
+      <p>Sample populations are stored in the model and read back through the readings. That is
+        few-shot grounding you did not have to write — and the validator checks the rules against
+        those same examples, so the examples cannot lie either.</p>
+    </article>
+    <article class="card">
+      <div class="mark">▤</div>
+      <h3>It is small</h3>
+      <p>A domain that takes forty tables and six thousand lines of DDL is a few hundred sentences as
+        facts. It fits in a prompt whole, so the agent reasons over the entire domain rather than
+        over the three tables retrieval happened to return.</p>
+    </article>
+  </div>
+  <div class="cta" style="justify-content:flex-start;margin-top:26px">
+    <a class="button ghost" href="forml-for-llms.html">FORML, the formal language behind the sentences</a>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Human-first is not a slogan about tone</h2>
+  <p class="section-lede">
+    It is about who holds the veto. An AI-native format that only a machine can audit hands
+    authority to the machine. Facts do the opposite: the artifact the agent reads is the same
+    artifact a person can read aloud in a meeting and reject.
+  </p>
+  <ol class="steps">
+    <li><strong>The agent proposes.</strong> Through <code>factum-mcp</code> it reads the model,
+        changes it, and writes it back — a new fact type, a tightened constraint, a subtype it found
+        implied in the code.</li>
+    <li><strong>The tool refuses what is broken.</strong> <code>apply_model</code> validates before
+        it writes and rejects a model with blocking errors. An agent cannot save an incoherent
+        schema by accident, however confidently it argues for it.</li>
+    <li><strong>The change comes back as a sentence.</strong> Not a JSON diff — <span class="pill">- Each Person works for at most one Company.</span>
+        <span class="pill">+ Each Person works for exactly one Company.</span></li>
+    <li><strong>A person decides.</strong> That line is in the pull request, posted by the bundled
+        GitHub Action. Approving it takes one reading and no ORM training, which is the only reason
+        the review actually happens.</li>
+  </ol>
+  <div class="note">
+    The loop matters more than any single step. An agent that can propose but not verify produces
+    confident nonsense; a validator with no agent produces nothing. The pairing is what makes the
+    speed safe.
+  </div>
+</div></section>
+
+<section class="alt"><div class="wrap">
+  <h2>How Factum closes the gap</h2>
+  <p class="section-lede">
+    Every fact-based modelling tool can verbalize. What none of them does is put the result where a
+    machine can reach it — in a text file, in your repository, behind an MCP server, checked by your
+    build.
+  </p>
+
+  <div class="table-scroll"><table class="compare">
+    <thead><tr><th>The agent needs to&hellip;</th><th class="ours">In Factum</th></tr></thead>
+    <tbody>
+      <tr><th>know what the domain <em>is</em></th><td class="ours"><code>read_model</code>, <code>verbalize_model</code></td></tr>
+      <tr><th>see real examples of a fact</th><td class="ours"><code>read_population</code></td></tr>
+      <tr><th>check its own change</th><td class="ours"><code>validate_model</code></td></tr>
+      <tr><th>write the change down</th><td class="ours"><code>apply_model</code>, validated first</td></tr>
+      <tr><th>get from concepts to a database</th><td class="ours"><code>generate_schema</code>, with notes</td></tr>
+      <tr><th>explain what it changed</th><td class="ours"><code>diff_models</code>, in sentences</td></tr>
+      <tr><th>notice production has moved on</th><td class="ours"><code>detect_drift</code> against real SQL</td></tr>
+    </tbody>
+  </table></div>
+
+  <p class="section-lede" style="margin-top:22px">
+    None of that needed a chat panel bolted onto a diagram editor. The model already lives in the
+    editor your agent works in; Factum simply stops making the agent guess.
+  </p>
+  <div class="cta" style="justify-content:flex-start">
+    <a class="button primary" href="for-agents.html">Set it up for your agent</a>
+    <a class="button ghost" href="reference.html#mcp">MCP reference</a>
+  </div>
+</div></section>
+
+<section><div class="wrap" style="text-align:center">
+  <h2>Write the facts down once</h2>
+  <p class="section-lede" style="margin-inline:auto">
+    Your domain expert gets sentences to approve. Your build gets something to fail on. Your agent
+    gets ground truth instead of a plausible reconstruction. It is the same file.
+  </p>
+  <div class="cta">
+    <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
+    <a class="button ghost" href="getting-started.html">Getting started</a>
+  </div>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For AI &amp; agents</h4>
+      <ul>
+        <li><a href="ai-native.html">Human-first, AI-native</a></li>
+        <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
+        <li><a href="forml-for-llms.html">FORML for language models</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="impressum.html">Impressum</a></li>
+        <li><a href="datenschutz.html">Datenschutz</a></li>
+        <li><a href="agb.html">AGB</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

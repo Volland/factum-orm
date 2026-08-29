@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Factum — Object-Role Modeling for VS Code</title>
-<meta name="description" content="Draw ORM 2 conceptual schemas in VS Code, read them back as English sentences, validate them, and map them to a relational or property graph schema.">
+<title>Factum — Human-first, AI-native modeling for VS Code</title>
+<meta name="description" content="Object-Role Modeling in VS Code. Draw a conceptual schema, read it back as sentences a domain expert can confirm, hand the same file to your coding agent, and map it to a relational or property graph schema.">
 <link rel="icon" href="assets/icon-256.png">
 <link rel="stylesheet" href="assets/site.css">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Factum — Object-Role Modeling for VS Code">
-<meta property="og:description" content="Model the facts, not the tables. ORM 2 diagrams, FORML verbalization, validation, and mapping to SQL or a property graph — inside VS Code.">
+<meta property="og:title" content="Factum — Human-first, AI-native modeling for VS Code">
+<meta property="og:description" content="Model the facts, not the tables. An elementary fact is the smallest thing a domain expert and a language model can both check — and it is what your agent has been guessing at.">
 <meta property="og:image" content="assets/screenshot-diagram.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
@@ -18,6 +18,7 @@
 <header class="nav"><div class="wrap">
   <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
   <nav class="nav-links">
+    <a href="ai-native.html">AI-native</a>
     <a href="book.html">Book</a>
     <a href="getting-started.html">Guide</a>
     <a href="mapping.html">Mapping</a>
@@ -31,23 +32,25 @@
 <main>
 
 <div class="hero wrap">
-  <span class="eyebrow">VS Code extension · ORM 2</span>
+  <span class="eyebrow">VS Code extension · ORM 2 · human-first, AI-native</span>
   <h1>Model the facts,<br>not the tables.</h1>
   <p class="lede">
     Object-Role Modeling in VS Code. Draw a conceptual schema, read it back as sentences a domain
-    expert can confirm, and map it to a relational <em>or</em> property graph schema — then keep the
-    whole thing in git, where your build can check it and your coding agent can read it.
+    expert can confirm, and map it to a relational <em>or</em> property graph schema. Then hand the
+    same file to your coding agent — which, until now, has been reconstructing your domain from
+    column names.
   </p>
   <div class="cta">
     <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
+    <a class="button ghost" href="ai-native.html">Human-first, AI-native</a>
     <a class="button ghost" href="getting-started.html">Read the guide</a>
-    <a class="button ghost" href="compare.html">Why Factum</a>
   </div>
   <p class="badges">
+    <span>readable by <b>people</b></span>
+    <span>and by <b>LLMs</b></span>
+    <span><b>MCP</b> server included</span>
     <span>reads &amp; writes <b>.orm</b></span>
     <span><b>.fbm</b></span>
-    <span><b>Apache Ossie</b></span>
-    <span><b>UMS</b></span>
     <span>free &amp; <b>MIT</b></span>
   </p>
   <figure class="shot">
@@ -55,6 +58,85 @@
     <figcaption>An ORM 2 diagram and its live verbalization. Every sentence is generated from the model.</figcaption>
   </figure>
 </div>
+
+<section class="alt">
+  <div class="wrap">
+    <span class="eyebrow">Human-first, AI-native</span>
+    <h2>One artifact. Three readers.</h2>
+    <p class="section-lede">
+      Fact-based modelling says everything in sentences, states every rule explicitly, and refuses to
+      leave anything implied. That is what a domain expert needs in order to approve a model. It is
+      also, exactly, what a language model needs in order to stop guessing.
+    </p>
+
+    <div class="claim">
+      <p>
+        An elementary fact is the smallest thing a domain expert and a language model can both
+        check — <em>human-readable and machine-checkable at the same time</em>, with no drift
+        between the two.
+      </p>
+    </div>
+
+    <div class="grid">
+      <article class="card">
+        <div class="mark">☺</div>
+        <h3>The domain expert reads sentences</h3>
+        <p><em>&ldquo;Each Person works for exactly one Company.&rdquo;</em> No notation to learn.
+          They can say <em>no, some contractors work for two</em> — and that is a bug caught before a
+          table exists.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⌁</div>
+        <h3>The agent reads facts</h3>
+        <p>An LLM&rsquo;s native input is a sentence. Verbalization hands it the domain as a few
+          hundred declarative statements with every rule stated — not table names to infer meaning
+          from.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⌘</div>
+        <h3>The build reads constraints</h3>
+        <p>The same file validates in CI, maps to DDL, and diffs into a pull request comment. What
+          the agent proposes, a human approves as one sentence.</p>
+      </article>
+    </div>
+
+    <h3 style="margin-top:34px">ORM facts are the layer LLMs have been missing</h3>
+    <p class="section-lede">
+      Point a coding agent at a codebase and it reconstructs your domain from the only evidence it
+      has: column names, foreign keys and a few migrations. Is a nullable column optional by rule, or
+      by accident? Is that unique index a business rule or an old performance fix? It will answer.
+      It has no way to be right — because nobody wrote the answer down.
+    </p>
+    <div class="split">
+      <div>
+        <h3>What it has to guess from</h3>
+<pre><code><span class="k">CREATE TABLE</span> person (
+  id          <span class="k">int</span>,
+  company_id  <span class="k">int</span> <span class="k">NULL</span>
+);</code></pre>
+      </div>
+      <div>
+        <h3>What the fact layer states</h3>
+<pre><code>Each Person works for exactly one Company.
+It is necessary that each Person has
+  exactly one PersonNr.
+It is obligatory that each Employee
+  has a Salary.</code></pre>
+      </div>
+    </div>
+    <p class="section-lede" style="margin-top:22px">
+      Retrieval gives a model text that is <em>similar</em> to your domain. A conceptual schema gives
+      it text that is <em>true</em> about your domain. Factum keeps that text in a file in your
+      repository, checks it in CI, and serves it to your agent over MCP.
+    </p>
+    <div class="cta" style="justify-content:flex-start;margin-top:26px">
+      <a class="button primary" href="ai-native.html">The full position</a>
+      <a class="button ghost" href="for-agents.html">Factum for coding agents</a>
+      <a class="button ghost" href="llm-fact-gap.html">The fact layer LLMs miss</a>
+      <a class="button ghost" href="forml-for-llms.html">FORML for language models</a>
+    </div>
+  </div>
+</section>
 
 <section>
   <div class="wrap">
@@ -81,7 +163,8 @@
         <div class="mark">⌁</div>
         <h3>Your coding agent</h3>
         <p><code>factum-mcp</code> is an MCP server over the model, so Claude Code or Copilot reads
-          the conceptual schema instead of guessing it from your table names.</p>
+          the conceptual schema instead of guessing it from your table names.
+          <a href="for-agents.html">Eight tools, one line of config.</a></p>
       </article>
     </div>
     <div class="cta" style="justify-content:flex-start;margin-top:26px">
@@ -431,6 +514,15 @@ factum derive people.csv -o people.orm.json</code></pre>
         <li><a href="index.html">Home</a></li>
         <li><a href="getting-started.html">Getting started</a></li>
         <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For AI &amp; agents</h4>
+      <ul>
+        <li><a href="ai-native.html">Human-first, AI-native</a></li>
+        <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
+        <li><a href="forml-for-llms.html">FORML for language models</a></li>
       </ul>
     </div>
     <div>
