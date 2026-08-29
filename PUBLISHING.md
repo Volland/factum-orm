@@ -2,23 +2,25 @@
 
 Everything below is repo-only; none of it ships to users. Work top to bottom.
 
-## 1. Replace the placeholder repository URL
+## 1. Push the repository
 
-`package.json` currently points at a placeholder. Replace `USERNAME` in all three fields:
+The manifest points at `https://github.com/Volland/factum-orm`, matching the `origin` remote, and the
+Marketplace homepage points at `https://volland.github.io/factum-orm/`.
 
-```json
-"repository": { "type": "git", "url": "https://github.com/USERNAME/factum-orm.git" },
-"homepage": "https://github.com/USERNAME/factum-orm#readme",
-"bugs": { "url": "https://github.com/USERNAME/factum-orm/issues" }
-```
+Push `main` — **including `media/`** — before publishing. `vsce` rewrites the relative image paths in
+`README.md` (`media/screenshot-diagram.png`, `media/screenshot-graph.png`) to raw URLs under this
+repository, so the screenshots on the Marketplace listing only resolve once those files exist on the
+default branch.
 
-This matters more than it looks: `vsce` rewrites the relative image paths in `README.md`
-(`media/screenshot-diagram.png`, `media/screenshot-graph.png`) to raw URLs under this repository.
-Until the URL is real, **the screenshots will not render on the Marketplace listing**.
+## 2. Turn on GitHub Pages
 
-Push the repo — including `media/` — before publishing, so those raw URLs resolve.
+The documentation site is committed as plain static files in `docs/` — no build step and no CI.
+In the repository: **Settings → Pages → Build and deployment → Deploy from a branch**, then pick
+`main` and the `/docs` folder. The site appears at `https://<user>.github.io/factum-orm/`.
 
-## 2. Create the publisher
+`docs/.nojekyll` is already present so Pages serves the files as-is instead of running Jekyll.
+
+## 3. Create the publisher
 
 The manifest publishes as `pavlyshyn`. Create it once at
 <https://marketplace.visualstudio.com/manage>, then:
@@ -29,12 +31,12 @@ npx vsce login pavlyshyn      # paste a Personal Access Token from Azure DevOps
 
 The PAT needs **Marketplace → Manage** scope and must be scoped to *all accessible organizations*.
 
-## 3. Decide on the preview flag
+## 4. Decide on the preview flag
 
 `"preview": true` marks the listing as a preview release, which is honest for `0.1.0`. Remove it when
 you consider the extension stable.
 
-## 4. Verify the package
+## 5. Verify the package
 
 ```bash
 npm run typecheck && npm test
@@ -49,7 +51,7 @@ Graph tabs, and both generate commands before publishing:
 code --install-extension factum-orm-0.1.0.vsix
 ```
 
-## 5. Publish
+## 6. Publish
 
 ```bash
 npx vsce publish              # or: npx vsce publish minor

@@ -14,3 +14,10 @@ PUBLISHING.md
 media/screenshot-*.png
 media/logo/icon-alt-nested.svg
 media/logo/icon-mono.svg
+docs/**
+.claude/**
+.mcp.json
+CLAUDE.md
+openspec/**
+lat.md/**
+.git/**

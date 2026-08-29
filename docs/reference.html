@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference · Factum</title>
+<meta name="description" content="Every Factum command, setting, keyboard shortcut and validation rule.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Reference · Factum">
+<meta property="og:description" content="Every Factum command, setting, keyboard shortcut and validation rule.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html" aria-current="page">Reference</a>
+    <a href="file-format.html">File format</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>Reference</h1><p>Commands, settings, shortcuts and the validation rules, in one place.</p></div>
+
+<section><div class="wrap prose">
+
+<div class="toc">
+  <strong>On this page</strong>
+  <ul>
+    <li><a href="#commands">Commands</a></li>
+    <li><a href="#settings">Settings</a></li>
+    <li><a href="#keyboard">Keyboard and mouse</a></li>
+    <li><a href="#constraints">Supported constraints</a></li>
+    <li><a href="#rules">Validation rules</a></li>
+  </ul>
+</div>
+
+<h2 id="commands">Commands</h2>
+<p>All commands are under the <strong>ORM</strong> category in the Command Palette.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Command</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>ORM: New ORM Model</code></td><td>Create a starter <code>.orm.json</code> and open the diagram</td></tr>
+<tr><td><code>ORM: Import NORMA (.orm) File</code></td><td>Convert a NORMA / ORM 2 XML file</td></tr>
+<tr><td><code>ORM: Verbalize Model</code></td><td>Full FORML verbalization as a Markdown document</td></tr>
+<tr><td><code>ORM: Show Relational Mapping</code></td><td>The mapped tables as a Markdown table</td></tr>
+<tr><td><code>ORM: Generate Relational Schema (SQL DDL)</code></td><td>SQL DDL in a new editor</td></tr>
+<tr><td><code>ORM: Generate Property Graph Schema (LadybugDB)</code></td><td>LadybugDB Cypher DDL in a new editor</td></tr>
+<tr><td><code>ORM: Export Diagram as SVG</code></td><td>Save the diagram as SVG</td></tr>
+<tr><td><code>ORM: Export Diagram as PNG</code></td><td>Save the diagram as a 2× PNG</td></tr>
+<tr><td><code>ORM: Auto-Layout Diagram</code></td><td>Re-arrange the diagram</td></tr>
+<tr><td><code>ORM: Open Model Source (JSON)</code></td><td>Open the model as text</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="settings">Settings</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>orm.ddl.dialect</code></td><td><code>postgres</code></td><td>SQL dialect: <code>postgres</code>, <code>sqlserver</code>, <code>mysql</code>, <code>sqlite</code> or <code>ansi</code></td></tr>
+<tr><td><code>orm.ddl.quoteIdentifiers</code></td><td><code>false</code></td><td>Always quote generated identifiers</td></tr>
+<tr><td><code>orm.graph.subtypeStrategy</code></td><td><code>nodeTable</code></td><td><code>nodeTable</code> gives each subtype its own label plus <code>IS_A</code>; <code>absorb</code> folds it into the supertype</td></tr>
+<tr><td><code>orm.graph.ifNotExists</code></td><td><code>false</code></td><td>Emit <code>IF NOT EXISTS</code> so the script can be re-run</td></tr>
+<tr><td><code>orm.validation.enabled</code></td><td><code>true</code></td><td>Report model problems in the Problems panel</td></tr>
+<tr><td><code>orm.verbalization.mode</code></td><td><code>forml</code></td><td><code>forml</code> or plainer English</td></tr>
+<tr><td><code>orm.diagram.snapToGrid</code></td><td><code>true</code></td><td>Snap shapes to the grid while dragging</td></tr>
+<tr><td><code>orm.diagram.gridSize</code></td><td><code>10</code></td><td>Grid size in pixels</td></tr>
+<tr><td><code>orm.diagram.showGrid</code></td><td><code>true</code></td><td>Show the grid</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="keyboard">Keyboard and mouse</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Action</th><th>Binding</th></tr></thead>
+<tbody>
+<tr><td>Select tool</td><td><kbd>V</kbd></td></tr>
+<tr><td>Entity type / value type</td><td><kbd>E</kbd> / <kbd>T</kbd></td></tr>
+<tr><td>Unary / binary / ternary fact type</td><td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd></td></tr>
+<tr><td>Subtype link / connect role</td><td><kbd>S</kbd> / <kbd>C</kbd></td></tr>
+<tr><td>Zoom to fit</td><td><kbd>F</kbd></td></tr>
+<tr><td>Auto-layout</td><td><kbd>Ctrl/Cmd</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd></td></tr>
+<tr><td>Delete selection</td><td><kbd>Delete</kbd></td></tr>
+<tr><td>Undo / redo</td><td><kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd> / <kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td></tr>
+<tr><td>Add to selection</td><td><kbd>Shift</kbd> + click</td></tr>
+<tr><td>Rename in place</td><td>Double-click a shape</td></tr>
+<tr><td>Pan</td><td>Middle-drag, or drag empty canvas</td></tr>
+<tr><td>Zoom</td><td>Scroll wheel</td></tr>
+<tr><td>Cancel / clear selection</td><td><kbd>Esc</kbd></td></tr>
+</tbody>
+</table></div>
+
+<h2 id="constraints">Supported constraints</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Constraint</th><th>Applies to</th><th>Drawn as</th></tr></thead>
+<tbody>
+<tr><td>Uniqueness (internal)</td><td>Roles of one fact type</td><td>Bar over the roles</td></tr>
+<tr><td>Uniqueness (external)</td><td>Roles across fact types</td><td>Circled bar with dashed links</td></tr>
+<tr><td>Preferred identifier</td><td>A uniqueness constraint</td><td>Double bar or double circle</td></tr>
+<tr><td>Mandatory (simple)</td><td>One role</td><td>Dot where the role meets its object type</td></tr>
+<tr><td>Mandatory (disjunctive)</td><td>Several roles of one type</td><td>Dot linked to each role</td></tr>
+<tr><td>Frequency</td><td>One or more roles</td><td>Bar annotated with the range</td></tr>
+<tr><td>Ring</td><td>Two roles played by one type</td><td>Circled ring glyph</td></tr>
+<tr><td>Subset / exclusion / equality</td><td>Two role sequences</td><td>Circled ⊆, ✕ or = with dashed links</td></tr>
+<tr><td>Value</td><td>Object type or role</td><td><code>{'M', 'F'}</code> beside the shape</td></tr>
+<tr><td>Cardinality</td><td>Object type or role</td><td>Properties panel</td></tr>
+<tr><td>Subtype exclusion / exhaustion</td><td>Subtypes of one supertype</td><td>Properties panel</td></tr>
+</tbody>
+</table></div>
+<p>Every constraint carries a modality: <em>alethic</em> (cannot be violated) or <em>deontic</em>
+   (should not be), which the verbalizer renders as <em>It is necessary that…</em> versus
+   <em>It is obligatory that…</em></p>
+
+<h2 id="rules">Validation rules</h2>
+<p>Problems appear in VS Code's Problems panel with the codes below, and the offending shape is
+   highlighted on the diagram.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Code</th><th>Severity</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>no-reference-scheme</code></td><td>Error</td><td>An entity type has no reference mode, preferred identifier, objectification or supertype</td></tr>
+<tr><td><code>missing-uniqueness</code></td><td>Error</td><td>A fact type has no uniqueness constraint</td></tr>
+<tr><td><code>uniqueness-too-narrow</code></td><td>Error</td><td>An internal uniqueness constraint spans fewer than <em>n−1</em> roles, so the fact type is not elementary</td></tr>
+<tr><td><code>unattached-role</code></td><td>Error</td><td>A role is not connected to an object type</td></tr>
+<tr><td><code>reading-arity-mismatch</code></td><td>Error</td><td>A reading's placeholders do not match the fact type's roles</td></tr>
+<tr><td><code>duplicate-object-type-name</code></td><td>Error</td><td>Two object types share a name</td></tr>
+<tr><td><code>subtype-cycle</code></td><td>Error</td><td>Subtype links form a cycle</td></tr>
+<tr><td><code>subtype-kind-mismatch</code></td><td>Error</td><td>An entity type and a value type are linked by subtyping</td></tr>
+<tr><td><code>ring-incompatible-roles</code></td><td>Error</td><td>A ring constraint spans roles with no common object type</td></tr>
+<tr><td><code>set-constraint-length</code></td><td>Error</td><td>Compared role sequences have different lengths</td></tr>
+<tr><td><code>set-constraint-compatibility</code></td><td>Error</td><td>Compared roles are played by incompatible types</td></tr>
+<tr><td><code>bad-frequency-range</code></td><td>Error</td><td>A frequency or cardinality range is impossible</td></tr>
+<tr><td><code>unused-object-type</code></td><td>Warning</td><td>An object type plays no roles and is not part of a subtype graph</td></tr>
+<tr><td><code>frequency-is-uniqueness</code></td><td>Warning</td><td>A frequency of exactly 1 should be a uniqueness constraint</td></tr>
+<tr><td><code>redundant-spanning-uniqueness</code></td><td>Warning</td><td>A spanning uniqueness constraint is implied by a narrower one</td></tr>
+<tr><td><code>ambiguous-identification-path</code></td><td>Warning</td><td>A subtype has several supertypes but no single identification path</td></tr>
+<tr><td><code>implied-mandatory</code></td><td>Warning</td><td>A subset constraint from mandatory roles makes the superset roles mandatory</td></tr>
+</tbody>
+</table></div>
+<p>Turn validation off with <code>orm.validation.enabled</code> if you want to sketch freely.</p>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

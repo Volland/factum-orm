@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapping rules · Factum</title>
+<meta name="description" content="How Factum maps an ORM conceptual schema to a relational schema (Rmap) and to a LadybugDB property graph.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mapping rules · Factum">
+<meta property="og:description" content="How Factum maps an ORM conceptual schema to a relational schema (Rmap) and to a LadybugDB property graph.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html" aria-current="page">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="file-format.html">File format</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>Mapping rules</h1><p>One conceptual schema, two database designs — and why each choice was made.</p></div>
+
+<section><div class="wrap prose">
+
+<div class="toc">
+  <strong>On this page</strong>
+  <ul>
+    <li><a href="#why">Why the mappings differ</a></li>
+    <li><a href="#relational">Relational (Rmap)</a></li>
+    <li><a href="#graph">Property graph (LadybugDB)</a></li>
+    <li><a href="#multiplicity">Uniqueness becomes multiplicity</a></li>
+    <li><a href="#reification">N-ary fact types and reification</a></li>
+    <li><a href="#subtypes">Subtypes</a></li>
+    <li><a href="#unenforced">What a schema cannot enforce</a></li>
+  </ul>
+</div>
+
+<h2 id="why">Why the mappings differ</h2>
+<p>An ORM schema is deliberately implementation-free: it says which facts exist and which
+   combinations are legal, not where they are stored. Turning it into a database is a separate
+   decision, and the right answer depends on the target. Factum performs both mappings from the same
+   model and annotates each with the reasoning, so the output is reviewable rather than magic.</p>
+<p>Throughout, this example model is used:</p>
+<pre><code>Person(.nr) works for Company(.name)      <span class="c">-- each Person works for at most one Company, mandatory</span>
+Person(.nr) has Skill(.code)              <span class="c">-- many to many</span>
+Person(.nr) is of GenderCode              <span class="c">-- GenderCode is a value type, values {'M', 'F'}</span>
+Manager is a kind of Person</code></pre>
+
+<h2 id="relational">Relational (Rmap)</h2>
+<p>The relational mapping follows the classic Rmap procedure:</p>
+<ul>
+  <li>a fact type whose only uniqueness constraint <strong>spans every role</strong> becomes its own
+      table with a composite primary key;</li>
+  <li>an <strong>n:1 or 1:1</strong> fact type is absorbed as a column into the table of the object
+      type playing the uniquely-constrained role — for 1:1, the mandatory side, so the column is
+      never null;</li>
+  <li>a <strong>unary</strong> fact type becomes a boolean column;</li>
+  <li><strong>mandatory</strong> roles produce <code>NOT NULL</code>, optional roles <code>NULL</code>;</li>
+  <li>an entity type's <strong>reference mode</strong> expands into its identifying column; compound
+      identifiers expand recursively, and a type with no reference scheme gets a surrogate key and a
+      mapping note saying so;</li>
+  <li><strong>objectified</strong> fact types map to their own table, keyed by the objectified roles;</li>
+  <li><strong>subtypes</strong> are absorbed into their supertype's table with optional columns, and
+      an exclusive subtype partition adds a discriminator column with a <code>CHECK</code>;</li>
+  <li><strong>value constraints</strong> become <code>CHECK</code> constraints.</li>
+</ul>
+<p>Applied to the example:</p>
+<pre><code><span class="k">CREATE TABLE</span> "Person" (
+    "personNr" integer <span class="k">NOT NULL</span>,
+    "companyName" varchar(255) <span class="k">NOT NULL</span>,   <span class="c">-- absorbed: Person works for Company</span>
+    "genderCode" varchar(1) <span class="k">NOT NULL</span>,
+    <span class="k">CONSTRAINT</span> "PK_Person" <span class="k">PRIMARY KEY</span> ("personNr"),
+    <span class="k">CONSTRAINT</span> "CK_Person_genderCode" <span class="k">CHECK</span> ("genderCode" <span class="k">IN</span> (<span class="s">'M'</span>, <span class="s">'F'</span>))
+);
+
+<span class="k">CREATE TABLE</span> "PersonHasSkill" (          <span class="c">-- m:n needs its own table</span>
+    "personNr" integer <span class="k">NOT NULL</span>,
+    "skillCode" varchar(255) <span class="k">NOT NULL</span>,
+    <span class="k">CONSTRAINT</span> "PK_PersonHasSkill" <span class="k">PRIMARY KEY</span> ("personNr", "skillCode")
+);</code></pre>
+<p>Dialects: PostgreSQL, SQL Server, MySQL, SQLite and ANSI SQL, chosen with
+   <code>orm.ddl.dialect</code>. Identifiers are quoted where the dialect would otherwise fold their
+   case.</p>
+
+<h2 id="graph">Property graph (LadybugDB)</h2>
+<p>The graph mapping targets <a href="https://docs.ladybugdb.com/">LadybugDB</a>, whose Cypher DDL
+   declares typed node and relationship tables. The rules:</p>
+<ul>
+  <li>an <strong>entity type</strong> becomes a node table, keyed by its reference mode, by a
+      single-role preferred identifier over a value type, or — failing both — by a generated
+      <code>SERIAL</code> key, since LadybugDB requires a primary key;</li>
+  <li>a <strong>value type</strong> stays a property of the object it describes. It is promoted to a
+      node only when it is played many-to-many or in an n-ary fact type, where a single-valued
+      property could not hold it;</li>
+  <li>a <strong>binary</strong> fact type between two nodes becomes a relationship table, with the
+      multiplicity read off its uniqueness constraints;</li>
+  <li>a <strong>unary</strong> fact type becomes a <code>BOOLEAN</code> property;</li>
+  <li>an <strong>n-ary or objectified</strong> fact type is reified into a node with one
+      <code>MANY_ONE</code> relationship per role.</li>
+</ul>
+<pre><code><span class="c">// Entity type Person</span>
+<span class="k">CREATE NODE TABLE</span> Person(
+    nr INT64 <span class="k">PRIMARY KEY</span>,   <span class="c">// Reference mode Person(.nr)</span>
+    genderCode STRING     <span class="c">// From "Person is of GenderCode"; mandatory; values {'M', 'F'}</span>
+);
+
+<span class="k">CREATE REL TABLE</span> WORKS_FOR(<span class="k">FROM</span> Person <span class="k">TO</span> Company, MANY_ONE);
+<span class="k">CREATE REL TABLE</span> HAS(<span class="k">FROM</span> Person <span class="k">TO</span> Skill, MANY_MANY);
+<span class="k">CREATE REL TABLE</span> IS_A_PERSON(<span class="k">FROM</span> Manager <span class="k">TO</span> Person, ONE_ONE);</code></pre>
+<p>Note what did <em>not</em> become a node: <code>GenderCode</code> is a lexical value played
+   single-valued, so it is a property. That is the difference between a model drawn by hand and one
+   derived from ORM — the decision follows from the constraints instead of taste.</p>
+
+<h2 id="multiplicity">Uniqueness becomes multiplicity</h2>
+<p>A uniqueness constraint on a role says each player of that role appears at most once, which is
+   exactly what a "one" end of a relationship means:</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Uniqueness in ORM</th><th>Multiplicity</th><th>Reads as</th></tr></thead>
+<tbody>
+<tr><td>On the <em>from</em> role only</td><td><code>MANY_ONE</code></td><td>Each Person works for at most one Company</td></tr>
+<tr><td>On the <em>to</em> role only</td><td><code>ONE_MANY</code></td><td>Each Company employs at most one Person</td></tr>
+<tr><td>On both roles</td><td><code>ONE_ONE</code></td><td>A one-to-one correspondence</td></tr>
+<tr><td>Spanning both roles</td><td><code>MANY_MANY</code></td><td>Neither side is restricted</td></tr>
+</tbody>
+</table></div>
+<p>The direction comes from the fact type's primary reading, so the relationship type reads the way
+   you wrote the predicate.</p>
+
+<h2 id="reification">N-ary fact types and reification</h2>
+<p>A property-graph edge joins exactly two nodes. A ternary or higher fact type is a hyperedge and
+   simply cannot be one, so Factum <strong>reifies</strong> it: the fact becomes a node, and each
+   role becomes a <code>MANY_ONE</code> relationship from that node to its player. This is the Levi
+   (bipartite) form of the hyperedge.</p>
+<pre><code><span class="c">// "Student in Course during Semester scored Grade" — 4-ary</span>
+<span class="k">CREATE NODE TABLE</span> StudentInCourseDuringSemesterScoredGrade(id SERIAL <span class="k">PRIMARY KEY</span>);
+
+<span class="k">CREATE REL TABLE</span> HAS_STUDENT(<span class="k">FROM</span> Enrolment <span class="k">TO</span> Student,
+                                <span class="k">FROM</span> StudentInCourseDuringSemesterScoredGrade <span class="k">TO</span> Student, MANY_ONE);
+<span class="k">CREATE REL TABLE</span> HAS_COURSE(<span class="k">FROM</span> Enrolment <span class="k">TO</span> Course,
+                               <span class="k">FROM</span> StudentInCourseDuringSemesterScoredGrade <span class="k">TO</span> Course, MANY_ONE);</code></pre>
+<p>Two things worth noticing:</p>
+<ul>
+  <li>Role links to the same player <strong>share one relationship table</strong> with several
+      <code>FROM … TO …</code> pairs, which LadybugDB supports, rather than producing a separate
+      long-named table per fact type.</li>
+  <li>The generated node name is the whole reading, which is unambiguous but verbose.
+      <strong>Objectify the fact type</strong> in the diagram — give it a name like
+      <code>Result</code> — and the node takes that name instead. Objectification is ORM's own way of
+      saying "this fact is a thing", and the mapping honours it.</li>
+</ul>
+
+<h2 id="subtypes">Subtypes</h2>
+<p>Set <code>orm.graph.subtypeStrategy</code>:</p>
+<ul>
+  <li><strong><code>nodeTable</code></strong> (default) — each subtype gets its own label and
+      inherits the supertype's identifier, joined by an <code>IS_A</code> relationship. Relationships
+      can then point at the subtype specifically.</li>
+  <li><strong><code>absorb</code></strong> — subtypes are folded into the supertype's node with
+      optional properties, and an exclusive partition adds a discriminator property. A role that is
+      mandatory for the subtype becomes <em>optional</em> on the merged node, because it only binds
+      for those instances; Factum notes this rather than silently over-constraining.</li>
+</ul>
+
+<h2 id="unenforced">What a schema cannot enforce</h2>
+<p>LadybugDB checks primary keys and relationship multiplicities. It has no <code>CHECK</code>
+   constraints and no <code>NOT NULL</code>, so mandatory roles, value ranges, ring constraints,
+   subset/exclusion/equality constraints and external uniqueness have no schema-level equivalent.</p>
+<p>Rather than dropping them, Factum tracks exactly which constraints the generated schema really
+   enforces and verbalizes the rest into the script:</p>
+<pre><code><span class="c">// ---------------------------------------------------------------------------</span>
+<span class="c">// Constraints the schema cannot enforce. LadybugDB checks primary keys and</span>
+<span class="c">// relationship multiplicities; the rules below must be upheld by the</span>
+<span class="c">// application or by a validation query.</span>
+<span class="c">// ---------------------------------------------------------------------------</span>
+<span class="c">//   [mandatory] It is necessary that each Person works for some Company.</span>
+<span class="c">//   [uniqueness] In each population of "Person has Skill", each Person, Skill</span>
+<span class="c">//                combination occurs at most once.</span>
+<span class="c">//   [value] It is necessary that the possible values of GenderCode are {'M', 'F'}.</span></code></pre>
+<div class="note">
+  That second one is easy to miss: <code>MANY_MANY</code> permits duplicate edges between the same
+  pair of nodes, so a spanning uniqueness constraint is <em>not</em> enforced by the schema. The same
+  list appears under <em>Not enforced by the schema</em> in the Graph tab.
+</div>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

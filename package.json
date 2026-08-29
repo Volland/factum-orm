@@ -13,11 +13,11 @@
   "preview": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/USERNAME/factum-orm.git"
+    "url": "https://github.com/Volland/factum-orm.git"
   },
-  "homepage": "https://github.com/USERNAME/factum-orm#readme",
+  "homepage": "https://volland.github.io/factum-orm/",
   "bugs": {
-    "url": "https://github.com/USERNAME/factum-orm/issues"
+    "url": "https://github.com/Volland/factum-orm/issues"
   },
   "engines": {
     "vscode": "^1.85.0"

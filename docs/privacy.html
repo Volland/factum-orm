@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Factum</title>
+<meta name="description" content="Factum runs entirely on your machine. It collects no data and makes no network requests.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Privacy · Factum">
+<meta property="og:description" content="Factum runs entirely on your machine. It collects no data and makes no network requests.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="file-format.html">File format</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>Privacy</h1><p>Short version: Factum collects nothing and sends nothing.</p></div>
+
+<section><div class="wrap prose">
+
+<h2>What Factum does with your data</h2>
+<p>Nothing leaves your machine. The extension:</p>
+<ul>
+  <li>has <strong>no telemetry</strong> and no analytics of any kind;</li>
+  <li>makes <strong>no network requests</strong> — every feature, including verbalization,
+      validation and both schema mappings, runs locally;</li>
+  <li>reads and writes <strong>only the files you open or explicitly save</strong>: your
+      <code>.orm.json</code> models, a <code>.orm</code> file you choose to import, and any image or
+      script you export;</li>
+  <li>stores <strong>no account, credential or licence</strong> information, because it needs
+      none.</li>
+</ul>
+
+<h2>What it never touches</h2>
+<p>Factum does not connect to your databases. The SQL and Cypher it generates is text in an editor;
+   running it is your decision, with your own tools.</p>
+
+<h2>What others may collect</h2>
+<p>Two things sit outside the extension:</p>
+<ul>
+  <li><strong>The Marketplace.</strong> Installing from the Visual Studio Marketplace means Microsoft
+      records the install and version, as it does for every extension. See the
+      <a href="https://privacy.microsoft.com/privacystatement">Microsoft Privacy Statement</a>.</li>
+  <li><strong>This website.</strong> It is served as static files by GitHub Pages, which logs
+      requests as described in the
+      <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.
+      The site sets no cookies, loads no fonts or scripts from third parties, and has no
+      analytics.</li>
+</ul>
+
+<h2>Verifying this</h2>
+<p>The extension is MIT licensed and the full source is on <a href="https://github.com/Volland/factum-orm">GitHub</a>. There is no
+   minified third-party bundle to take on trust: the only runtime dependency is an XML parser, used
+   to read NORMA files.</p>
+
+<p class="section-lede" style="margin-top:34px">Last updated: with the 0.1.0 release.</p>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

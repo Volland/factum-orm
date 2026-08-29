@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ · Factum</title>
+<meta name="description" content="Common questions about Factum, Object-Role Modeling, NORMA compatibility and the generated schemas.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FAQ · Factum">
+<meta property="og:description" content="Common questions about Factum, Object-Role Modeling, NORMA compatibility and the generated schemas.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="file-format.html">File format</a>
+    <a href="faq.html" aria-current="page">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>Frequently asked questions</h1><p>What Factum is, what it is not, and how it relates to the rest of the ORM world.</p></div>
+
+<section><div class="wrap prose">
+
+<h2>Object-Role Modeling</h2>
+
+<details open>
+<summary>What is Object-Role Modeling?</summary>
+<p>ORM is a fact-based modeling method: you describe a domain as elementary facts —
+   <em>Person works for Company</em> — rather than as tables, entities-with-attributes or classes.
+   Because facts carry no attributes, every constraint must be stated explicitly, and the resulting
+   model can be verbalized in plain language and checked with sample data. It was developed by Terry
+   Halpin and the fact-oriented modeling community.</p>
+</details>
+
+<details>
+<summary>How is this different from an ER diagram or a UML class diagram?</summary>
+<p>In ER and UML you decide early what is an entity, what is an attribute and what is a relationship.
+   That decision is a design commitment, and it is often wrong — attributes turn out to need their
+   own properties, or to be many-valued, and the model has to be reshaped. ORM has no attributes at
+   all, so those changes are additive rather than structural. ORM also expresses constraints ER
+   cannot draw — external uniqueness, ring, subset, exclusion and equality constraints among
+   them — and every one of them verbalizes.</p>
+</details>
+
+<details>
+<summary>Is ORM only for databases?</summary>
+<p>No. It is a way of agreeing what is true in a domain, which is useful for API design, event
+   schemas and ontologies too. Factum's mappings are one use of a model, not its purpose — a model
+   that is never mapped can still be the clearest statement of a domain you have.</p>
+</details>
+
+<h2>Using Factum</h2>
+
+<details>
+<summary>Do I need NORMA or Visual Studio installed?</summary>
+<p>No. Factum is a self-contained VS Code extension with no external dependencies — no database
+   engine, no Java, no Visual Studio.</p>
+</details>
+
+<details>
+<summary>Can it open my existing NORMA <code>.orm</code> files?</summary>
+<p>Yes. Run <code>ORM: Import NORMA (.orm) File</code>, or right-click the file in the Explorer. The
+   importer reads objects, fact types, readings, constraints, subtypes, value restrictions and the
+   diagram geometry, and writes an <code>.orm.json</code> beside the original. Anything it could not
+   read is reported.</p>
+<p>The import is one-way: Factum does not write NORMA XML back. Your original file is never
+   modified.</p>
+</details>
+
+<details>
+<summary>Which databases can it generate?</summary>
+<p>SQL DDL for PostgreSQL, SQL Server, MySQL, SQLite and ANSI SQL, and Cypher DDL for
+   <a href="https://docs.ladybugdb.com/">LadybugDB</a>. Other property graph databases will need
+   small syntax adjustments to the generated script — the mapping itself is standard labeled
+   property graph shape.</p>
+</details>
+
+<details>
+<summary>Does it work in VSCodium, Cursor or Windsurf?</summary>
+<p>The extension uses only stable VS Code APIs, so it runs in any recent VS Code-compatible editor.
+   Editors that use Open VSX rather than the Microsoft Marketplace may need the
+   <code>.vsix</code> installed manually until the extension is mirrored there.</p>
+</details>
+
+<details>
+<summary>Can I edit the model file by hand, or generate it from a script?</summary>
+<p>Yes — that is why the format is plain JSON. Ids are stable, references are by id, and missing
+   collections are repaired on load. See the <a href="file-format.html">file format</a> reference.
+   The model, verbalizer, validator and mappers are plain TypeScript with no VS Code or DOM
+   dependencies, so they can also be reused outside the editor.</p>
+</details>
+
+<details>
+<summary>How do I get a diagram into a paper or a README?</summary>
+<p><code>ORM: Export Diagram as SVG</code> for print and documentation, or
+   <code>ORM: Export Diagram as PNG</code> for a 2× raster image. Both render the diagram alone,
+   without the editor chrome.</p>
+</details>
+
+<h2>Behaviour</h2>
+
+<details>
+<summary>Why does it say my fact type needs a uniqueness constraint?</summary>
+<p>Every ORM fact type carries at least one uniqueness constraint, which says how often a fact may
+   repeat. For an <em>n</em>-ary fact type each internal uniqueness constraint must span at least
+   <em>n−1</em> roles; a narrower one means the fact type is not elementary and should be split into
+   two. Factum reports both cases. See the
+   <a href="reference.html#rules">validation rules</a>.</p>
+</details>
+
+<details>
+<summary>Why did my value type not become a node in the graph schema?</summary>
+<p>Because it is lexical and single-valued, so it belongs in a property. A value type is promoted to
+   a node only when it is played many-to-many or in an n-ary fact type, where a single-valued
+   property could not hold it. The mapping notes say which rule applied.</p>
+</details>
+
+<details>
+<summary>My generated graph node has a very long name. Can I change it?</summary>
+<p>Objectify the fact type. A reified n-ary fact type is named after its whole reading, which is
+   unambiguous but verbose; objectifying it — ORM's own way of saying "this fact is a thing" — lets
+   you name it, and the mapping uses that name.</p>
+</details>
+
+<details>
+<summary>Does undo work?</summary>
+<p>Yes. Diagram edits are written to the underlying text document, so
+   <kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd> and the rest of VS Code's undo stack work as usual, as do the
+   dirty indicator, file watching and source control.</p>
+</details>
+
+<h2>Project</h2>
+
+<details>
+<summary>Is this affiliated with the ORM Foundation or NORMA?</summary>
+<p>No. Factum is an independent MIT-licensed implementation. Object-Role Modeling is the work of
+   Terry Halpin and the fact-oriented modeling community; the
+   <a href="https://www.ormfoundation.org/">ORM Foundation</a> is the place to go for the method
+   itself.</p>
+</details>
+
+<details>
+<summary>How do I report a bug or ask for a feature?</summary>
+<p>Open an issue on <a href="https://github.com/Volland/factum-orm/issues">GitHub</a>. A copy of the
+   <code>.orm.json</code> that reproduces the problem helps enormously — it is a small text file.</p>
+</details>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

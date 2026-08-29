@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File format · Factum</title>
+<meta name="description" content="The .orm.json file format: object types, fact types, readings, constraints and diagram layout.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="File format · Factum">
+<meta property="og:description" content="The .orm.json file format: object types, fact types, readings, constraints and diagram layout.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="file-format.html" aria-current="page">File format</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>File format</h1><p>A model is one JSON file. Here is every field in it.</p></div>
+
+<section><div class="wrap prose">
+
+<h2>Overview</h2>
+<p>A model is stored as <code>*.orm.json</code>: the conceptual schema and its diagram layout in one
+   id-addressed structure. The diagram is a VS Code custom editor over that text document, so the
+   dirty indicator, undo stack, file watching and source control all behave normally — and
+   <code>ORM: Open Model Source (JSON)</code> shows the text at any time.</p>
+<p>Elements refer to each other by id, never by position, so hand edits and merges are safe. Missing
+   collections are repaired on load, which means the smallest valid model is <code>{}</code>.</p>
+
+<pre><code>{
+  "version": 1,
+  "name": "HR",
+  "objectTypes": [
+    { "id": "ot_person", "name": "Person", "kind": "entity",
+      "refMode": "nr", "dataType": "integer" },
+    { "id": "ot_gender", "name": "GenderCode", "kind": "value",
+      "dataType": "string", "dataTypeLength": 1 }
+  ],
+  "factTypes": [
+    {
+      "id": "ft_works",
+      "roles": [
+        { "id": "r1", "objectTypeId": "ot_person" },
+        { "id": "r2", "objectTypeId": "ot_company" }
+      ],
+      "readings": [
+        { "id": "rd1", "roleOrder": ["r1", "r2"],
+          "text": "{0} works for {1}", "isPrimary": true },
+        { "id": "rd2", "roleOrder": ["r2", "r1"], "text": "{0} employs {1}" }
+      ]
+    }
+  ],
+  "subtypeRelations": [
+    { "id": "st1", "subtypeId": "ot_manager", "supertypeId": "ot_person",
+      "isPreferredIdentificationPath": true }
+  ],
+  "constraints": [
+    { "id": "uc1", "kind": "uniqueness", "roles": ["r1"] },
+    { "id": "mc1", "kind": "mandatory", "roles": ["r1"] },
+    { "id": "vc1", "kind": "value", "objectTypeId": "ot_gender",
+      "ranges": [{ "value": "M" }, { "value": "F" }] }
+  ],
+  "diagram": {
+    "shapes": {
+      "ot_person": { "x": 120, "y": 200 },
+      "ft_works": { "x": 290, "y": 150, "orientation": "horizontal" }
+    }
+  }
+}</code></pre>
+
+<h2>Object types</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Field</th><th>Type</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>id</code></td><td>string</td><td>Unique within the model</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Display name; must be unique</td></tr>
+<tr><td><code>kind</code></td><td><code>entity</code> | <code>value</code></td><td>Entity types need a reference scheme; value types are lexical</td></tr>
+<tr><td><code>refMode</code></td><td>string</td><td>Reference mode, e.g. <code>nr</code> in <code>Person(.nr)</code></td></tr>
+<tr><td><code>dataType</code></td><td>string</td><td><code>string</code>, <code>text</code>, <code>integer</code>, <code>decimal</code>, <code>float</code>, <code>money</code>, <code>boolean</code>, <code>date</code>, <code>time</code>, <code>dateTime</code>, <code>guid</code>, <code>binary</code>, <code>autoCounter</code></td></tr>
+<tr><td><code>dataTypeLength</code>, <code>dataTypeScale</code></td><td>number</td><td>Size for sized types</td></tr>
+<tr><td><code>isIndependent</code></td><td>boolean</td><td>May have instances that play no roles — drawn as <code>!</code></td></tr>
+<tr><td><code>isPersonal</code></td><td>boolean</td><td>Verbalized with <em>who</em> rather than <em>that</em></td></tr>
+<tr><td><code>objectifiedFactTypeId</code></td><td>string</td><td>Set when this entity type objectifies a fact type</td></tr>
+<tr><td><code>note</code></td><td>string</td><td>Free text</td></tr>
+</tbody>
+</table></div>
+
+<h2>Fact types, roles and readings</h2>
+<p>A fact type holds an ordered list of <strong>roles</strong> and one or more
+   <strong>readings</strong>. A role names the object type that plays it
+   (<code>objectTypeId</code>, or <code>null</code> while unattached) and may carry a
+   <code>name</code>.</p>
+<p>Readings use <code>{0}</code>, <code>{1}</code>, … placeholders indexing into
+   <code>roleOrder</code> — the same convention NORMA uses — so the same fact type can be read in
+   either direction. Mark one reading <code>isPrimary</code>; it is the one shown on the diagram.</p>
+<p>A fact type may also be <code>isDerived</code>, with a <code>derivationRule</code> and an optional
+   <code>isStored</code> flag. Derivation rules are stored and verbalized, not evaluated.</p>
+
+<h2>Constraints</h2>
+<p>Every constraint has an <code>id</code>, a <code>kind</code>, an optional <code>name</code> and an
+   optional <code>modality</code> (<code>alethic</code>, the default, or <code>deontic</code>).</p>
+<div class="table-scroll"><table>
+<thead><tr><th><code>kind</code></th><th>Shape</th></tr></thead>
+<tbody>
+<tr><td><code>uniqueness</code></td><td><code>roles: []</code>, optional <code>isPreferredIdentifier</code></td></tr>
+<tr><td><code>mandatory</code></td><td><code>roles: []</code> — one role is simple, several is disjunctive</td></tr>
+<tr><td><code>frequency</code></td><td><code>roles: []</code>, <code>min</code>, <code>max</code> (<code>null</code> for unbounded)</td></tr>
+<tr><td><code>ring</code></td><td><code>roles: [a, b]</code>, <code>types: []</code> — irreflexive, symmetric, acyclic, …</td></tr>
+<tr><td><code>subset</code>, <code>exclusion</code>, <code>equality</code></td><td><code>roleSequences: [[…], […]]</code>; for subset, the first is the subset</td></tr>
+<tr><td><code>value</code></td><td><code>objectTypeId</code> or <code>roleId</code>, plus <code>ranges: []</code></td></tr>
+<tr><td><code>cardinality</code></td><td><code>objectTypeId</code> or <code>roleId</code>, plus <code>min</code>, <code>max</code></td></tr>
+<tr><td><code>subtypeSet</code></td><td><code>supertypeId</code>, <code>subtypeRelationIds: []</code>, <code>isExclusive</code>, <code>isExhaustive</code></td></tr>
+</tbody>
+</table></div>
+<p>A value range is either a single <code>value</code>, or a <code>min</code>/<code>max</code> pair
+   with optional <code>minInclusive</code> and <code>maxInclusive</code> flags.</p>
+
+<h2>Diagram</h2>
+<p><code>diagram.shapes</code> maps an element id to its position: <code>x</code>, <code>y</code>,
+   optional <code>w</code>/<code>h</code>, and for fact types an <code>orientation</code> of
+   <code>horizontal</code> or <code>vertical</code>. External constraints may carry their own
+   position; anything without one is placed automatically. Deleting a shape entry simply re-places
+   the element — the model itself is unaffected.</p>
+
+<h2>Version</h2>
+<p><code>version</code> is the format version, currently <code>1</code>. Files that omit it are read
+   as version 1.</p>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

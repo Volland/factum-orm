@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factum — Object-Role Modeling for VS Code</title>
+<meta name="description" content="Draw ORM 2 conceptual schemas in VS Code, read them back as English sentences, validate them, and map them to a relational or property graph schema.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Factum — Object-Role Modeling for VS Code">
+<meta property="og:description" content="Model the facts, not the tables. ORM 2 diagrams, FORML verbalization, validation, and mapping to SQL or a property graph — inside VS Code.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="file-format.html">File format</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<div class="hero wrap">
+  <span class="eyebrow">VS Code extension · ORM 2</span>
+  <h1>Model the facts,<br>not the tables.</h1>
+  <p class="lede">
+    Factum brings Object-Role Modeling to VS Code. Draw a conceptual schema, read it back as
+    sentences a domain expert can confirm, and map it to a relational <em>or</em> property graph
+    schema — without leaving the editor.
+  </p>
+  <div class="cta">
+    <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
+    <a class="button ghost" href="getting-started.html">Read the guide</a>
+  </div>
+  <figure class="shot">
+    <img src="assets/screenshot-diagram.png" alt="The Factum diagram editor showing an ORM schema for Person, Company and Skill, with the live FORML verbalization panel beside it.">
+    <figcaption>An ORM 2 diagram and its live verbalization. Every sentence is generated from the model.</figcaption>
+  </figure>
+</div>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Why fact-based modeling</h2>
+    <p class="section-lede">
+      ORM describes a domain as <strong>elementary facts</strong> — <em>Person works for Company</em> —
+      rather than as tables or classes. Because those facts carry no attributes, every constraint has
+      to be stated explicitly, and the whole model can be read back in plain language.
+    </p>
+    <div class="grid">
+      <article class="card">
+        <div class="mark">✓</div>
+        <h3>Validated by people, not guesswork</h3>
+        <p>A schema you can read aloud is a schema a domain expert can approve or reject, before a
+          single table exists.</p>
+      </article>
+      <article class="card">
+        <div class="mark">◇</div>
+        <h3>No premature attributes</h3>
+        <p>Deciding what becomes a column is a design step, not a modeling step. ORM keeps the two
+          apart, so the model outlives the schema.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⇄</div>
+        <h3>One model, two targets</h3>
+        <p>The same conceptual schema maps to relational tables and to a labeled property graph.
+          Compare them side by side and pick.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What it does</h2>
+    <p class="section-lede">Everything runs locally, in a VS Code custom editor over a plain JSON file.</p>
+    <div class="grid">
+      <article class="card">
+        <div class="mark">▤</div>
+        <h3>Full ORM 2 notation</h3>
+        <p>Entity and value types with reference modes, unary through n-ary fact types, multiple
+          readings, subtyping, objectification and derived fact types.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⊸</div>
+        <h3>Every constraint</h3>
+        <p>Internal and external uniqueness, preferred identifiers, simple and disjunctive mandatory,
+          frequency, all ten ring types, subset, exclusion, equality, value and cardinality — each
+          with an alethic or deontic modality.</p>
+      </article>
+      <article class="card">
+        <div class="mark">❝</div>
+        <h3>Live verbalization</h3>
+        <p>A FORML rendering of the model that updates as you draw. Click a sentence to select what
+          it describes.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⚠</div>
+        <h3>Validation as you go</h3>
+        <p>Missing reference schemes, fact types without uniqueness, constraints too narrow to keep a
+          fact type elementary, subtype cycles — all in the Problems panel.</p>
+      </article>
+      <article class="card">
+        <div class="mark">⌥</div>
+        <h3>NORMA import</h3>
+        <p>Reads NORMA / ORM 2 XML — objects, facts, readings, constraints, subtypes, value
+          restrictions and diagram geometry.</p>
+      </article>
+      <article class="card">
+        <div class="mark">↗</div>
+        <h3>Export &amp; layout</h3>
+        <p>SVG and PNG export for papers and docs, plus deterministic force-directed auto-layout.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Read your model back in English</h2>
+    <p class="section-lede">
+      Verbalization is what makes a conceptual schema reviewable. Factum generates it from the
+      constraints themselves, so the sentences cannot drift from the diagram.
+    </p>
+<pre><code>Each Person works for exactly one Company.
+In each population of "Person has Skill", each Person, Skill combination occurs at most once.
+It is necessary that the possible values of GenderCode are {'M', 'F'}.
+Each Manager is a kind of Person.</code></pre>
+    <p class="section-lede" style="margin-top:22px">
+      A mandatory role plus a uniqueness constraint reads as <em>exactly one</em>; drop the mandatory
+      dot and the same fact type reads <em>at most one</em>. The wording follows the model.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Two mappings from one schema</h2>
+    <p class="section-lede">
+      A conceptual schema is not a database design. Factum derives both, and explains every choice it
+      made rather than leaving you to reverse-engineer the output.
+    </p>
+
+    <h3>Relational — Rmap</h3>
+    <p class="section-lede">
+      Functional fact types are absorbed as columns, compound-unique fact types get their own table,
+      unaries become booleans, mandatory roles become <code>NOT NULL</code>, and value constraints
+      become <code>CHECK</code> constraints. Emits PostgreSQL, SQL Server, MySQL, SQLite or ANSI SQL.
+    </p>
+<pre><code><span class="k">CREATE TABLE</span> "Person" (
+    "personNr" integer <span class="k">NOT NULL</span>,
+    "companyName" varchar(255) <span class="k">NOT NULL</span>, <span class="c">-- From "Person works for Company"</span>
+    "genderCode" varchar(1) <span class="k">NOT NULL</span>,
+    <span class="k">CONSTRAINT</span> "PK_Person" <span class="k">PRIMARY KEY</span> ("personNr"),
+    <span class="k">CONSTRAINT</span> "CK_Person_genderCode" <span class="k">CHECK</span> ("genderCode" <span class="k">IN</span> (<span class="s">'M'</span>, <span class="s">'F'</span>))
+);</code></pre>
+
+    <h3>Property graph — LadybugDB</h3>
+    <p class="section-lede">
+      ORM knows more than a hand-drawn graph model does, and the mapping uses it: uniqueness
+      constraints become relationship multiplicities, lexical value types become properties, and an
+      n-ary fact type — which no edge can hold — is reified into a node.
+    </p>
+<pre><code><span class="k">CREATE NODE TABLE</span> Person(nr INT64 <span class="k">PRIMARY KEY</span>, genderCode STRING);
+<span class="k">CREATE REL TABLE</span> WORKS_FOR(<span class="k">FROM</span> Person <span class="k">TO</span> Company, MANY_ONE);
+<span class="k">CREATE REL TABLE</span> HAS_STUDENT(<span class="k">FROM</span> Enrolment <span class="k">TO</span> Student, MANY_ONE);
+
+<span class="c">// Constraints the schema cannot enforce:</span>
+<span class="c">//   [mandatory] It is necessary that each Person works for some Company.</span></code></pre>
+
+    <figure class="shot">
+      <img src="assets/screenshot-graph.png" alt="The Graph tab listing node tables, relationship tables with their multiplicities, and the constraints the schema cannot enforce.">
+      <figcaption>The Graph tab: node tables, relationships with multiplicities, and the rules a property graph cannot hold.</figcaption>
+    </figure>
+
+    <div class="cta" style="justify-content:flex-start;margin-top:30px">
+      <a class="button ghost" href="mapping.html">How both mappings work</a>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Models are just files</h2>
+    <p class="section-lede">
+      A model is one <code>.orm.json</code> file holding the schema and its layout. It diffs, merges
+      and reviews like the rest of your source, and it is safe to hand-edit — the diagram is a custom
+      editor over the text document, so VS Code's dirty state, undo stack and file watching all work
+      normally.
+    </p>
+    <div class="cta" style="justify-content:flex-start">
+      <a class="button ghost" href="file-format.html">Read the format</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="text-align:center">
+    <h2>Start modeling</h2>
+    <p class="section-lede" style="margin-inline:auto">
+      Install the extension, run <code>ORM: New ORM Model</code>, and you have a working schema in a
+      minute.
+    </p>
+    <div class="cta">
+      <a class="button primary" href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Install from Marketplace</a>
+      <a class="button ghost" href="getting-started.html">Getting started</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

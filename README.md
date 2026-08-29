@@ -8,6 +8,8 @@ and map it to a relational **or** property graph schema — without leaving the 
 In the spirit of [NORMA](https://www.ormfoundation.org/), but native to VS Code and storing models as
 plain JSON, so they diff and merge like the rest of your source.
 
+**[Documentation and guide →](https://volland.github.io/factum-orm/)**
+
 ![The ORM diagram editor with live FORML verbalization](media/screenshot-diagram.png)
 
 ## Why Object-Role Modeling
@@ -222,6 +224,14 @@ Mapping notes explaining each choice appear beside the schema and as comments in
 - The graph mapping targets LadybugDB's Cypher DDL. Other property graph databases will need small
   syntax adjustments.
 - Sample populations and fact instances are not yet modeled.
+
+## Documentation
+
+The full documentation site lives in [`docs/`](docs/) and is published with GitHub Pages:
+[getting started](https://volland.github.io/factum-orm/getting-started.html),
+[mapping rules](https://volland.github.io/factum-orm/mapping.html),
+[reference](https://volland.github.io/factum-orm/reference.html) and the
+[file format](https://volland.github.io/factum-orm/file-format.html).
 
 ## Development
 

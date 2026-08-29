@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · Factum</title>
+<meta name="description" content="Install Factum, draw your first ORM 2 schema, add constraints and generate a database schema.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Getting started · Factum">
+<meta property="og:description" content="Install Factum, draw your first ORM 2 schema, add constraints and generate a database schema.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="getting-started.html" aria-current="page">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="file-format.html">File format</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="page-head wrap prose"><h1>Getting started</h1><p>From an empty editor to a validated schema, in about five minutes.</p></div>
+
+<section><div class="wrap prose">
+
+<div class="toc">
+  <strong>On this page</strong>
+  <ul>
+    <li><a href="#install">Install</a></li>
+    <li><a href="#first">Create your first model</a></li>
+    <li><a href="#workspace">The workspace</a></li>
+    <li><a href="#drawing">Draw object types and fact types</a></li>
+    <li><a href="#constraints">Add constraints</a></li>
+    <li><a href="#verbalize">Check the verbalization</a></li>
+    <li><a href="#generate">Generate a database schema</a></li>
+    <li><a href="#norma">Import an existing NORMA model</a></li>
+  </ul>
+</div>
+
+<h2 id="install">Install</h2>
+<p>Install <strong>Factum — Object-Role Modeling (ORM 2)</strong> from the
+   <a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Visual Studio Marketplace</a>, or from the Extensions view
+   (<kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>X</kbd>) by searching for <code>Factum ORM</code>.</p>
+<p>To install a build yourself:</p>
+<pre><code>code --install-extension factum-orm-0.1.0.vsix</code></pre>
+<p>There are no external dependencies — no database, no Java, no NORMA installation.</p>
+
+<h2 id="first">Create your first model</h2>
+<ol class="steps">
+  <li><strong>Run <code>ORM: New ORM Model</code></strong> from the Command Palette
+      (<kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd>) and choose where to save it. Models are
+      saved as <code>*.orm.json</code>.</li>
+  <li><strong>The diagram opens</strong> with a small starter schema — Person, Company, Skill and a
+      subtype — so you have something to take apart rather than a blank canvas.</li>
+  <li><strong>Open an existing model</strong> any time by clicking a <code>.orm.json</code> file. To
+      see the text behind the picture, run <code>ORM: Open Model Source (JSON)</code>.</li>
+</ol>
+
+<h2 id="workspace">The workspace</h2>
+<p>The editor has three parts:</p>
+<ul>
+  <li><strong>The toolbar</strong> — drawing tools on the left, constraint buttons in the middle
+      (they act on the roles you have selected), view and export actions on the right.</li>
+  <li><strong>The canvas</strong> — your diagram. Drag to move shapes, drag empty space to
+      marquee-select, scroll to zoom, press <kbd>F</kbd> to fit.</li>
+  <li><strong>The side panel</strong> — <em>Properties</em>, <em>Verbalization</em>,
+      <em>Relational</em>, <em>Graph</em> and <em>Problems</em>.</li>
+</ul>
+
+<h2 id="drawing">Draw object types and fact types</h2>
+<p>Press a tool key, then click the canvas:</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Key</th><th>Adds</th><th>Notation</th></tr></thead>
+<tbody>
+<tr><td><kbd>E</kbd></td><td>Entity type</td><td>Solid rounded rectangle</td></tr>
+<tr><td><kbd>T</kbd></td><td>Value type</td><td>Dashed rounded rectangle</td></tr>
+<tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Unary, binary or ternary fact type</td><td>A strip of role boxes</td></tr>
+<tr><td><kbd>S</kbd></td><td>Subtype link</td><td>Arrow from subtype to supertype</td></tr>
+<tr><td><kbd>C</kbd></td><td>Connect a role to an object type</td><td>Drag from a role box to a shape</td></tr>
+</tbody>
+</table></div>
+
+<p><strong>Naming.</strong> Double-click an object type to rename it in place. Typing
+   <code>Person(.nr)</code> sets the name <em>and</em> the reference mode in one go — the shape then
+   reads <code>Person</code> with <code>(.nr)</code> underneath, meaning each Person is identified by
+   a person number.</p>
+
+<p><strong>Readings.</strong> Double-click a fact type to edit its reading. Readings use
+   <code>{0}</code> and <code>{1}</code> placeholders for the role players, so
+   <code>{0} works for {1}</code> verbalizes as <em>Person works for Company</em>. Add a second,
+   reverse reading (<code>{0} employs {1}</code>) in the Properties tab and the verbalizer will
+   use whichever direction reads better.</p>
+
+<div class="note">
+  A new fact type arrives with a uniqueness constraint already on it — the pattern most models start
+  from. Adjust it rather than starting from nothing.
+</div>
+
+<h2 id="constraints">Add constraints</h2>
+<p>Constraints apply to <strong>roles</strong>, so select role boxes first: click one, then
+   <kbd>Shift</kbd>-click to add more. The constraint buttons light up as soon as a selection makes
+   them possible.</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Button</th><th>Constraint</th><th>Says</th></tr></thead>
+<tbody>
+<tr><td><span class="pill">U</span></td><td>Uniqueness</td><td>Each player of these roles appears at most once</td></tr>
+<tr><td><span class="pill">P</span></td><td>Preferred identifier</td><td>This uniqueness constraint identifies the object type</td></tr>
+<tr><td><span class="pill">●</span></td><td>Mandatory</td><td>Every instance plays this role</td></tr>
+<tr><td><span class="pill">n</span></td><td>Frequency</td><td>Players appear a bounded number of times</td></tr>
+<tr><td><span class="pill">↺</span></td><td>Ring</td><td>Irreflexive, acyclic, symmetric … over two roles of one type</td></tr>
+<tr><td><span class="pill">⊆</span> <span class="pill">✕</span> <span class="pill">=</span></td><td>Subset, exclusion, equality</td><td>Compare role sequences across two fact types</td></tr>
+</tbody>
+</table></div>
+<p>Select the constraint itself to tune it in the Properties tab — frequency bounds, ring types, or
+   switching a constraint from <em>alethic</em> (cannot be violated) to <em>deontic</em> (should not
+   be).</p>
+
+<h2 id="verbalize">Check the verbalization</h2>
+<p>Open the <em>Verbalization</em> tab as you draw. This is the step that makes ORM worth the effort:
+   the sentences are generated from the constraints, so if they say something you did not mean, the
+   model is wrong — not the wording.</p>
+<pre><code>Each Person works for exactly one Company.</code></pre>
+<p>Remove the mandatory dot and the same fact type reads:</p>
+<pre><code>Each Person works for at most one Company.</code></pre>
+<p>Click any sentence to select the element it describes.</p>
+
+<h2 id="generate">Generate a database schema</h2>
+<p>The <em>Relational</em> and <em>Graph</em> tabs show both mappings live, each with a copy button.
+   To open a full script in its own editor:</p>
+<ul>
+  <li><code>ORM: Generate Relational Schema (SQL DDL)</code> — set the dialect with
+      <code>orm.ddl.dialect</code>.</li>
+  <li><code>ORM: Generate Property Graph Schema (LadybugDB)</code> — Cypher DDL.</li>
+</ul>
+<p>If the model still has errors you will be asked whether to generate anyway; the output is honest
+   about what it could not map. See <a href="mapping.html">Mapping rules</a> for the details.</p>
+
+<h2 id="norma">Import an existing NORMA model</h2>
+<p>Right-click a <code>.orm</code> file in the Explorer and choose
+   <strong>Import NORMA (.orm) File</strong>, or run the command and pick the file. Factum reads the
+   objects, fact types, readings, constraints, subtypes, value restrictions and the diagram
+   geometry, then writes an <code>.orm.json</code> beside the original and opens it.</p>
+<p>The original file is never modified. Anything the importer could not read is reported so you know
+   what to check.</p>
+
+<h2>Next</h2>
+<ul>
+  <li><a href="mapping.html">How the relational and graph mappings work</a></li>
+  <li><a href="reference.html">Every command, setting and shortcut</a></li>
+  <li><a href="file-format.html">The <code>.orm.json</code> format</a></li>
+</ul>
+
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>
