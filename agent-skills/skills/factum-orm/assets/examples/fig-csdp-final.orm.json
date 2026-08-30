@@ -1,0 +1,487 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "CSDP step 7 — the finished schema",
+  "objectTypes": [
+    {
+      "id": "academic",
+      "name": "Academic",
+      "kind": "entity",
+      "refMode": "empNr",
+      "dataType": "integer"
+    },
+    {
+      "id": "empname",
+      "name": "EmpName",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "dept",
+      "name": "Dept",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "room",
+      "name": "Room",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "rank",
+      "name": "Rank",
+      "kind": "entity",
+      "refMode": "code"
+    },
+    {
+      "id": "date",
+      "name": "Date",
+      "kind": "entity",
+      "refMode": "mdy",
+      "dataType": "date"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "named",
+      "roles": [
+        {
+          "id": "named.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "named.r1",
+          "objectTypeId": "empname"
+        }
+      ],
+      "readings": [
+        {
+          "id": "named.rd",
+          "roleOrder": [
+            "named.r0",
+            "named.r1"
+          ],
+          "text": "{0} has {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101,
+            "Adams"
+          ]
+        },
+        {
+          "values": [
+            102,
+            "Brown"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "Cheng"
+          ]
+        },
+        {
+          "values": [
+            104,
+            "Diaz"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "dept"
+        }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101,
+            "Computing"
+          ]
+        },
+        {
+          "values": [
+            102,
+            "Computing"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "Physics"
+          ]
+        },
+        {
+          "values": [
+            104,
+            "Physics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "occupies",
+      "roles": [
+        {
+          "id": "occupies.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "occupies.r1",
+          "objectTypeId": "room"
+        }
+      ],
+      "readings": [
+        {
+          "id": "occupies.rd",
+          "roleOrder": [
+            "occupies.r0",
+            "occupies.r1"
+          ],
+          "text": "{0} occupies {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101,
+            "A-12"
+          ]
+        },
+        {
+          "values": [
+            102,
+            "A-14"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "B-03"
+          ]
+        },
+        {
+          "values": [
+            104,
+            "A-12"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hasrank",
+      "roles": [
+        {
+          "id": "hasrank.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "hasrank.r1",
+          "objectTypeId": "rank"
+        }
+      ],
+      "readings": [
+        {
+          "id": "hasrank.rd",
+          "roleOrder": [
+            "hasrank.r0",
+            "hasrank.r1"
+          ],
+          "text": "{0} has {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101,
+            "P"
+          ]
+        },
+        {
+          "values": [
+            102,
+            "SL"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "L"
+          ]
+        },
+        {
+          "values": [
+            104,
+            "P"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tenured",
+      "roles": [
+        {
+          "id": "tenured.r0",
+          "objectTypeId": "academic"
+        }
+      ],
+      "readings": [
+        {
+          "id": "tenured.rd",
+          "roleOrder": [
+            "tenured.r0"
+          ],
+          "text": "{0} is tenured",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101
+          ]
+        },
+        {
+          "values": [
+            104
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contract",
+      "roles": [
+        {
+          "id": "contract.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "contract.r1",
+          "objectTypeId": "date"
+        }
+      ],
+      "readings": [
+        {
+          "id": "contract.rd",
+          "roleOrder": [
+            "contract.r0",
+            "contract.r1"
+          ],
+          "text": "{0} is contracted till {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            102,
+            "2027-06-30"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "2026-12-31"
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "named.r0"
+      ]
+    },
+    {
+      "id": "uc1b",
+      "kind": "uniqueness",
+      "roles": [
+        "named.r1"
+      ]
+    },
+    {
+      "id": "mc1",
+      "kind": "mandatory",
+      "roles": [
+        "named.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "mc2",
+      "kind": "mandatory",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "uc3",
+      "kind": "uniqueness",
+      "roles": [
+        "occupies.r0"
+      ]
+    },
+    {
+      "id": "uc4",
+      "kind": "uniqueness",
+      "roles": [
+        "hasrank.r0"
+      ]
+    },
+    {
+      "id": "mc4",
+      "kind": "mandatory",
+      "roles": [
+        "hasrank.r0"
+      ]
+    },
+    {
+      "id": "uc5",
+      "kind": "uniqueness",
+      "roles": [
+        "tenured.r0"
+      ]
+    },
+    {
+      "id": "uc6",
+      "kind": "uniqueness",
+      "roles": [
+        "contract.r0"
+      ]
+    },
+    {
+      "id": "mc-or",
+      "kind": "mandatory",
+      "roles": [
+        "tenured.r0",
+        "contract.r0"
+      ]
+    },
+    {
+      "id": "excl",
+      "kind": "exclusion",
+      "roleSequences": [
+        [
+          "tenured.r0"
+        ],
+        [
+          "contract.r0"
+        ]
+      ]
+    },
+    {
+      "id": "vc",
+      "kind": "value",
+      "objectTypeId": "rank",
+      "ranges": [
+        {
+          "value": "P"
+        },
+        {
+          "value": "SL"
+        },
+        {
+          "value": "L"
+        }
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "academic": {
+        "x": 40,
+        "y": 210
+      },
+      "empname": {
+        "x": 430,
+        "y": 20
+      },
+      "dept": {
+        "x": 430,
+        "y": 90
+      },
+      "room": {
+        "x": 430,
+        "y": 160
+      },
+      "rank": {
+        "x": 430,
+        "y": 230
+      },
+      "date": {
+        "x": 430,
+        "y": 370
+      },
+      "named": {
+        "x": 280,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "works": {
+        "x": 280,
+        "y": 98,
+        "orientation": "horizontal"
+      },
+      "occupies": {
+        "x": 280,
+        "y": 168,
+        "orientation": "horizontal"
+      },
+      "hasrank": {
+        "x": 280,
+        "y": 238,
+        "orientation": "horizontal"
+      },
+      "tenured": {
+        "x": 280,
+        "y": 308,
+        "orientation": "horizontal"
+      },
+      "contract": {
+        "x": 280,
+        "y": 378,
+        "orientation": "horizontal"
+      },
+      "excl": {
+        "x": 214,
+        "y": 348
+      }
+    }
+  }
+}

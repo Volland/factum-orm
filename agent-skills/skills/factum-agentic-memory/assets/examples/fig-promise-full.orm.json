@@ -1,0 +1,1399 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "The promise graph as an ORM 2 conceptual schema",
+  "objectTypes": [
+    {
+      "id": "agent",
+      "name": "Agent",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "promise",
+      "name": "Promise",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "body",
+      "name": "PromiseBody",
+      "kind": "entity",
+      "refMode": "text"
+    },
+    {
+      "id": "kind",
+      "name": "PromiseKind",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "status",
+      "name": "PromiseStatus",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "deadline",
+      "name": "Deadline",
+      "kind": "value",
+      "dataType": "dateTime"
+    },
+    {
+      "id": "assessment",
+      "name": "Assessment",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "verdict",
+      "name": "Verdict",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "stance",
+      "name": "AssessorStance",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "outcome",
+      "name": "Outcome",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "exchange",
+      "name": "PromiseExchange",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "statusEvent",
+      "name": "PromiseStatusEvent",
+      "kind": "entity"
+    },
+    {
+      "id": "at",
+      "name": "Instant",
+      "kind": "value",
+      "dataType": "dateTime"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "promiser",
+      "roles": [
+        {
+          "id": "promiser.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "promiser.r1",
+          "objectTypeId": "agent"
+        }
+      ],
+      "readings": [
+        {
+          "id": "promiser.rd",
+          "roleOrder": [
+            "promiser.r0",
+            "promiser.r1"
+          ],
+          "text": "{0} is made by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "ana"
+          ]
+        },
+        {
+          "values": [
+            "p-2",
+            "bo"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "bo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "promisee",
+      "roles": [
+        {
+          "id": "promisee.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "promisee.r1",
+          "objectTypeId": "agent"
+        }
+      ],
+      "readings": [
+        {
+          "id": "promisee.rd",
+          "roleOrder": [
+            "promisee.r0",
+            "promisee.r1"
+          ],
+          "text": "{0} is made to {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "bo"
+          ]
+        },
+        {
+          "values": [
+            "p-2",
+            "ana"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "ana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "says",
+      "roles": [
+        {
+          "id": "says.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "says.r1",
+          "objectTypeId": "body"
+        }
+      ],
+      "readings": [
+        {
+          "id": "says.rd",
+          "roleOrder": [
+            "says.r0",
+            "says.r1"
+          ],
+          "text": "{0} promises {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "deliver report in format X"
+          ]
+        },
+        {
+          "values": [
+            "p-2",
+            "process report in format X"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "process report in format Y"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kindOf",
+      "roles": [
+        {
+          "id": "kindOf.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "kindOf.r1",
+          "objectTypeId": "kind"
+        }
+      ],
+      "readings": [
+        {
+          "id": "kindOf.rd",
+          "roleOrder": [
+            "kindOf.r0",
+            "kindOf.r1"
+          ],
+          "text": "{0} is of {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "+"
+          ]
+        },
+        {
+          "values": [
+            "p-2",
+            "-"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "-"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inStatus",
+      "roles": [
+        {
+          "id": "inStatus.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "inStatus.r1",
+          "objectTypeId": "status"
+        }
+      ],
+      "readings": [
+        {
+          "id": "inStatus.rd",
+          "roleOrder": [
+            "inStatus.r0",
+            "inStatus.r1"
+          ],
+          "text": "{0} is in {1}",
+          "isPrimary": true
+        }
+      ],
+      "isDerived": true,
+      "isStored": true,
+      "derivationRule": "Promise is in PromiseStatus where PromiseStatus is recorded by the PromiseStatusEvent concerning that Promise with the latest Instant.",
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "broken"
+          ]
+        },
+        {
+          "values": [
+            "p-2",
+            "rejected"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "offered"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dueBy",
+      "roles": [
+        {
+          "id": "dueBy.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "dueBy.r1",
+          "objectTypeId": "deadline"
+        }
+      ],
+      "readings": [
+        {
+          "id": "dueBy.rd",
+          "roleOrder": [
+            "dueBy.r0",
+            "dueBy.r1"
+          ],
+          "text": "{0} is due by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "2026-03-02T09:30:00Z"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dependsOn",
+      "roles": [
+        {
+          "id": "dependsOn.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "dependsOn.r1",
+          "objectTypeId": "promise"
+        }
+      ],
+      "readings": [
+        {
+          "id": "dependsOn.rd",
+          "roleOrder": [
+            "dependsOn.r0",
+            "dependsOn.r1"
+          ],
+          "text": "{0} depends on {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "p-3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assesses",
+      "roles": [
+        {
+          "id": "assesses.r0",
+          "objectTypeId": "assessment"
+        },
+        {
+          "id": "assesses.r1",
+          "objectTypeId": "promise"
+        }
+      ],
+      "readings": [
+        {
+          "id": "assesses.rd",
+          "roleOrder": [
+            "assesses.r0",
+            "assesses.r1"
+          ],
+          "text": "{0} assesses {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "a-1",
+            "p-1"
+          ]
+        },
+        {
+          "values": [
+            "a-2",
+            "p-1"
+          ]
+        },
+        {
+          "values": [
+            "a-3",
+            "p-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assessor",
+      "roles": [
+        {
+          "id": "assessor.r0",
+          "objectTypeId": "assessment"
+        },
+        {
+          "id": "assessor.r1",
+          "objectTypeId": "agent"
+        }
+      ],
+      "readings": [
+        {
+          "id": "assessor.rd",
+          "roleOrder": [
+            "assessor.r0",
+            "assessor.r1"
+          ],
+          "text": "{0} is made by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "a-1",
+            "ana"
+          ]
+        },
+        {
+          "values": [
+            "a-2",
+            "bo"
+          ]
+        },
+        {
+          "values": [
+            "a-3",
+            "ana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gives",
+      "roles": [
+        {
+          "id": "gives.r0",
+          "objectTypeId": "assessment"
+        },
+        {
+          "id": "gives.r1",
+          "objectTypeId": "verdict"
+        }
+      ],
+      "readings": [
+        {
+          "id": "gives.rd",
+          "roleOrder": [
+            "gives.r0",
+            "gives.r1"
+          ],
+          "text": "{0} gives {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "a-1",
+            "partial"
+          ]
+        },
+        {
+          "values": [
+            "a-2",
+            "broken"
+          ]
+        },
+        {
+          "values": [
+            "a-3",
+            "broken"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asStance",
+      "roles": [
+        {
+          "id": "asStance.r0",
+          "objectTypeId": "assessment"
+        },
+        {
+          "id": "asStance.r1",
+          "objectTypeId": "stance"
+        }
+      ],
+      "readings": [
+        {
+          "id": "asStance.rd",
+          "roleOrder": [
+            "asStance.r0",
+            "asStance.r1"
+          ],
+          "text": "{0} is made as {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "a-1",
+            "self"
+          ]
+        },
+        {
+          "values": [
+            "a-2",
+            "witness"
+          ]
+        },
+        {
+          "values": [
+            "a-3",
+            "self"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "supersedes",
+      "roles": [
+        {
+          "id": "supersedes.r0",
+          "objectTypeId": "assessment"
+        },
+        {
+          "id": "supersedes.r1",
+          "objectTypeId": "assessment"
+        }
+      ],
+      "readings": [
+        {
+          "id": "supersedes.rd",
+          "roleOrder": [
+            "supersedes.r0",
+            "supersedes.r1"
+          ],
+          "text": "{0} supersedes {1}",
+          "isPrimary": true
+        }
+      ],
+      "meta": {
+        "description": "An assessment is revised, not overwritten. The superseded verdict stays in the graph, because a changed mind is evidence."
+      },
+      "population": [
+        {
+          "values": [
+            "a-3",
+            "a-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "realises",
+      "roles": [
+        {
+          "id": "realises.r0",
+          "objectTypeId": "outcome"
+        },
+        {
+          "id": "realises.r1",
+          "objectTypeId": "promise"
+        }
+      ],
+      "readings": [
+        {
+          "id": "realises.rd",
+          "roleOrder": [
+            "realises.r0",
+            "realises.r1"
+          ],
+          "text": "{0} realises {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "o-1",
+            "p-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inExchange",
+      "roles": [
+        {
+          "id": "inExchange.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "inExchange.r1",
+          "objectTypeId": "exchange"
+        }
+      ],
+      "readings": [
+        {
+          "id": "inExchange.rd",
+          "roleOrder": [
+            "inExchange.r0",
+            "inExchange.r1"
+          ],
+          "text": "{0} belongs to {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "p-1",
+            "x-1"
+          ]
+        },
+        {
+          "values": [
+            "p-2",
+            "x-1"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "x-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "respondsTo",
+      "roles": [
+        {
+          "id": "respondsTo.r0",
+          "objectTypeId": "promise"
+        },
+        {
+          "id": "respondsTo.r1",
+          "objectTypeId": "promise"
+        }
+      ],
+      "readings": [
+        {
+          "id": "respondsTo.rd",
+          "roleOrder": [
+            "respondsTo.r0",
+            "respondsTo.r1"
+          ],
+          "text": "{0} responds to {1}",
+          "isPrimary": true
+        }
+      ],
+      "meta": {
+        "description": "An acceptance, a rejection or a counter-offer, tied to the promise it answers. Without it, a rejection and the promise it refused are two unrelated rows and no query can pair them."
+      },
+      "population": [
+        {
+          "values": [
+            "p-2",
+            "p-1"
+          ]
+        },
+        {
+          "values": [
+            "p-3",
+            "p-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seConcerns",
+      "roles": [
+        {
+          "id": "seConcerns.r0",
+          "objectTypeId": "statusEvent"
+        },
+        {
+          "id": "seConcerns.r1",
+          "objectTypeId": "promise"
+        }
+      ],
+      "readings": [
+        {
+          "id": "seConcerns.rd",
+          "roleOrder": [
+            "seConcerns.r0",
+            "seConcerns.r1"
+          ],
+          "text": "{0} concerns {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "se-1",
+            "p-1"
+          ]
+        },
+        {
+          "values": [
+            "se-2",
+            "p-1"
+          ]
+        },
+        {
+          "values": [
+            "se-3",
+            "p-1"
+          ]
+        },
+        {
+          "values": [
+            "se-4",
+            "p-2"
+          ]
+        },
+        {
+          "values": [
+            "se-5",
+            "p-2"
+          ]
+        },
+        {
+          "values": [
+            "se-6",
+            "p-3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seRecords",
+      "roles": [
+        {
+          "id": "seRecords.r0",
+          "objectTypeId": "statusEvent"
+        },
+        {
+          "id": "seRecords.r1",
+          "objectTypeId": "status"
+        }
+      ],
+      "readings": [
+        {
+          "id": "seRecords.rd",
+          "roleOrder": [
+            "seRecords.r0",
+            "seRecords.r1"
+          ],
+          "text": "{0} records {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "se-1",
+            "offered"
+          ]
+        },
+        {
+          "values": [
+            "se-2",
+            "accepted"
+          ]
+        },
+        {
+          "values": [
+            "se-3",
+            "broken"
+          ]
+        },
+        {
+          "values": [
+            "se-4",
+            "offered"
+          ]
+        },
+        {
+          "values": [
+            "se-5",
+            "rejected"
+          ]
+        },
+        {
+          "values": [
+            "se-6",
+            "offered"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seAt",
+      "roles": [
+        {
+          "id": "seAt.r0",
+          "objectTypeId": "statusEvent"
+        },
+        {
+          "id": "seAt.r1",
+          "objectTypeId": "at"
+        }
+      ],
+      "readings": [
+        {
+          "id": "seAt.rd",
+          "roleOrder": [
+            "seAt.r0",
+            "seAt.r1"
+          ],
+          "text": "{0} occurred at {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "se-1",
+            "2026-03-02T09:00:00Z"
+          ]
+        },
+        {
+          "values": [
+            "se-2",
+            "2026-03-02T09:01:00Z"
+          ]
+        },
+        {
+          "values": [
+            "se-3",
+            "2026-03-02T09:40:00Z"
+          ]
+        },
+        {
+          "values": [
+            "se-4",
+            "2026-03-02T09:01:00Z"
+          ]
+        },
+        {
+          "values": [
+            "se-5",
+            "2026-03-02T09:02:00Z"
+          ]
+        },
+        {
+          "values": [
+            "se-6",
+            "2026-03-02T09:02:00Z"
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "u1",
+      "kind": "uniqueness",
+      "roles": [
+        "promiser.r0"
+      ]
+    },
+    {
+      "id": "m1",
+      "kind": "mandatory",
+      "roles": [
+        "promiser.r0"
+      ]
+    },
+    {
+      "id": "u2",
+      "kind": "uniqueness",
+      "roles": [
+        "promisee.r0"
+      ]
+    },
+    {
+      "id": "m2",
+      "kind": "mandatory",
+      "roles": [
+        "promisee.r0"
+      ]
+    },
+    {
+      "id": "u3",
+      "kind": "uniqueness",
+      "roles": [
+        "says.r0"
+      ]
+    },
+    {
+      "id": "m3",
+      "kind": "mandatory",
+      "roles": [
+        "says.r0"
+      ]
+    },
+    {
+      "id": "u4",
+      "kind": "uniqueness",
+      "roles": [
+        "kindOf.r0"
+      ]
+    },
+    {
+      "id": "m4",
+      "kind": "mandatory",
+      "roles": [
+        "kindOf.r0"
+      ]
+    },
+    {
+      "id": "u5",
+      "kind": "uniqueness",
+      "roles": [
+        "inStatus.r0"
+      ]
+    },
+    {
+      "id": "m5",
+      "kind": "mandatory",
+      "roles": [
+        "inStatus.r0"
+      ]
+    },
+    {
+      "id": "u6",
+      "kind": "uniqueness",
+      "roles": [
+        "dueBy.r0"
+      ]
+    },
+    {
+      "id": "u7",
+      "kind": "uniqueness",
+      "roles": [
+        "dependsOn.r0",
+        "dependsOn.r1"
+      ]
+    },
+    {
+      "id": "u8",
+      "kind": "uniqueness",
+      "roles": [
+        "assesses.r0"
+      ]
+    },
+    {
+      "id": "m8",
+      "kind": "mandatory",
+      "roles": [
+        "assesses.r0"
+      ]
+    },
+    {
+      "id": "u9",
+      "kind": "uniqueness",
+      "roles": [
+        "assessor.r0"
+      ]
+    },
+    {
+      "id": "m9",
+      "kind": "mandatory",
+      "roles": [
+        "assessor.r0"
+      ]
+    },
+    {
+      "id": "u10",
+      "kind": "uniqueness",
+      "roles": [
+        "gives.r0"
+      ]
+    },
+    {
+      "id": "m10",
+      "kind": "mandatory",
+      "roles": [
+        "gives.r0"
+      ]
+    },
+    {
+      "id": "u10b",
+      "kind": "uniqueness",
+      "roles": [
+        "asStance.r0"
+      ]
+    },
+    {
+      "id": "m10b",
+      "kind": "mandatory",
+      "roles": [
+        "asStance.r0"
+      ]
+    },
+    {
+      "id": "u-sup-a",
+      "kind": "uniqueness",
+      "roles": [
+        "supersedes.r0"
+      ]
+    },
+    {
+      "id": "u-sup-b",
+      "kind": "uniqueness",
+      "roles": [
+        "supersedes.r1"
+      ]
+    },
+    {
+      "id": "ring-sup",
+      "kind": "ring",
+      "roles": [
+        "supersedes.r0",
+        "supersedes.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    },
+    {
+      "id": "u11",
+      "kind": "uniqueness",
+      "roles": [
+        "realises.r0"
+      ]
+    },
+    {
+      "id": "m11",
+      "kind": "mandatory",
+      "roles": [
+        "realises.r0"
+      ]
+    },
+    {
+      "id": "ring",
+      "kind": "ring",
+      "roles": [
+        "dependsOn.r0",
+        "dependsOn.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    },
+    {
+      "id": "u-inx",
+      "kind": "uniqueness",
+      "roles": [
+        "inExchange.r0"
+      ]
+    },
+    {
+      "id": "m-inx",
+      "kind": "mandatory",
+      "roles": [
+        "inExchange.r0"
+      ]
+    },
+    {
+      "id": "u-resp",
+      "kind": "uniqueness",
+      "roles": [
+        "respondsTo.r0"
+      ]
+    },
+    {
+      "id": "ring-resp",
+      "kind": "ring",
+      "roles": [
+        "respondsTo.r0",
+        "respondsTo.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    },
+    {
+      "id": "u-sec",
+      "kind": "uniqueness",
+      "roles": [
+        "seConcerns.r0"
+      ]
+    },
+    {
+      "id": "m-sec",
+      "kind": "mandatory",
+      "roles": [
+        "seConcerns.r0"
+      ]
+    },
+    {
+      "id": "u-ser",
+      "kind": "uniqueness",
+      "roles": [
+        "seRecords.r0"
+      ]
+    },
+    {
+      "id": "m-ser",
+      "kind": "mandatory",
+      "roles": [
+        "seRecords.r0"
+      ]
+    },
+    {
+      "id": "u-sea",
+      "kind": "uniqueness",
+      "roles": [
+        "seAt.r0"
+      ]
+    },
+    {
+      "id": "m-sea",
+      "kind": "mandatory",
+      "roles": [
+        "seAt.r0"
+      ]
+    },
+    {
+      "id": "pid-se",
+      "kind": "uniqueness",
+      "roles": [
+        "seConcerns.r1",
+        "seAt.r1"
+      ],
+      "isPreferredIdentifier": true
+    },
+    {
+      "id": "vc-kind",
+      "kind": "value",
+      "objectTypeId": "kind",
+      "ranges": [
+        {
+          "value": "+"
+        },
+        {
+          "value": "-"
+        }
+      ]
+    },
+    {
+      "id": "vc-status",
+      "kind": "value",
+      "objectTypeId": "status",
+      "ranges": [
+        {
+          "value": "offered"
+        },
+        {
+          "value": "accepted"
+        },
+        {
+          "value": "rejected"
+        },
+        {
+          "value": "kept"
+        },
+        {
+          "value": "broken"
+        },
+        {
+          "value": "withdrawn"
+        }
+      ]
+    },
+    {
+      "id": "vc-verdict",
+      "kind": "value",
+      "objectTypeId": "verdict",
+      "ranges": [
+        {
+          "value": "kept"
+        },
+        {
+          "value": "broken"
+        },
+        {
+          "value": "partial"
+        },
+        {
+          "value": "unknown"
+        }
+      ]
+    },
+    {
+      "id": "vc-stance",
+      "kind": "value",
+      "objectTypeId": "stance",
+      "ranges": [
+        {
+          "value": "self"
+        },
+        {
+          "value": "witness"
+        }
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "body": {
+        "x": 40,
+        "y": 30
+      },
+      "kind": {
+        "x": 300,
+        "y": 30
+      },
+      "exchange": {
+        "x": 620,
+        "y": 30
+      },
+      "agent": {
+        "x": 470,
+        "y": 150
+      },
+      "promise": {
+        "x": 40,
+        "y": 260
+      },
+      "status": {
+        "x": 1000,
+        "y": 260
+      },
+      "deadline": {
+        "x": 1000,
+        "y": 360
+      },
+      "statusEvent": {
+        "x": 700,
+        "y": 470
+      },
+      "at": {
+        "x": 1000,
+        "y": 560
+      },
+      "assessment": {
+        "x": 470,
+        "y": 620
+      },
+      "verdict": {
+        "x": 40,
+        "y": 700
+      },
+      "stance": {
+        "x": 40,
+        "y": 790
+      },
+      "outcome": {
+        "x": 470,
+        "y": 790
+      },
+      "says": {
+        "x": 60,
+        "y": 150,
+        "orientation": "vertical"
+      },
+      "kindOf": {
+        "x": 250,
+        "y": 160,
+        "orientation": "vertical"
+      },
+      "inExchange": {
+        "x": 450,
+        "y": 90,
+        "orientation": "horizontal"
+      },
+      "promiser": {
+        "x": 300,
+        "y": 210,
+        "orientation": "horizontal"
+      },
+      "promisee": {
+        "x": 300,
+        "y": 300,
+        "orientation": "horizontal"
+      },
+      "respondsTo": {
+        "x": 150,
+        "y": 380,
+        "orientation": "horizontal"
+      },
+      "ring": {
+        "x": 176,
+        "y": 460
+      },
+      "ring-resp": {
+        "x": 100,
+        "y": 430
+      },
+      "dependsOn": {
+        "x": 150,
+        "y": 460,
+        "orientation": "horizontal"
+      },
+      "inStatus": {
+        "x": 830,
+        "y": 268,
+        "orientation": "horizontal"
+      },
+      "dueBy": {
+        "x": 830,
+        "y": 360,
+        "orientation": "horizontal"
+      },
+      "seConcerns": {
+        "x": 400,
+        "y": 478,
+        "orientation": "horizontal"
+      },
+      "seRecords": {
+        "x": 860,
+        "y": 470,
+        "orientation": "horizontal"
+      },
+      "seAt": {
+        "x": 860,
+        "y": 560,
+        "orientation": "horizontal"
+      },
+      "pid-se": {
+        "x": 780,
+        "y": 560
+      },
+      "assesses": {
+        "x": 300,
+        "y": 560,
+        "orientation": "horizontal"
+      },
+      "assessor": {
+        "x": 480,
+        "y": 380,
+        "orientation": "vertical"
+      },
+      "gives": {
+        "x": 250,
+        "y": 708,
+        "orientation": "horizontal"
+      },
+      "asStance": {
+        "x": 250,
+        "y": 798,
+        "orientation": "horizontal"
+      },
+      "supersedes": {
+        "x": 560,
+        "y": 700,
+        "orientation": "horizontal"
+      },
+      "ring-sup": {
+        "x": 620,
+        "y": 760
+      },
+      "realises": {
+        "x": 480,
+        "y": 720,
+        "orientation": "vertical"
+      }
+    }
+  }
+}

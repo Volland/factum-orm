@@ -1,0 +1,184 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "Split into two binaries",
+  "objectTypes": [
+    {
+      "id": "academic",
+      "name": "Academic",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "rank",
+      "name": "Rank",
+      "kind": "entity",
+      "refMode": "code"
+    },
+    {
+      "id": "dept",
+      "name": "Dept",
+      "kind": "entity",
+      "refMode": "name"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "hasrank",
+      "roles": [
+        {
+          "id": "hasrank.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "hasrank.r1",
+          "objectTypeId": "rank"
+        }
+      ],
+      "readings": [
+        {
+          "id": "hasrank.rd",
+          "roleOrder": [
+            "hasrank.r0",
+            "hasrank.r1"
+          ],
+          "text": "{0} has {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101,
+            "P"
+          ]
+        },
+        {
+          "values": [
+            102,
+            "SL"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "L"
+          ]
+        },
+        {
+          "values": [
+            104,
+            "P"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "works",
+      "roles": [
+        {
+          "id": "works.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "works.r1",
+          "objectTypeId": "dept"
+        }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": [
+            "works.r0",
+            "works.r1"
+          ],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            101,
+            "Computing"
+          ]
+        },
+        {
+          "values": [
+            102,
+            "Computing"
+          ]
+        },
+        {
+          "values": [
+            103,
+            "Physics"
+          ]
+        },
+        {
+          "values": [
+            104,
+            "Physics"
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc1",
+      "kind": "uniqueness",
+      "roles": [
+        "hasrank.r0"
+      ]
+    },
+    {
+      "id": "mc1",
+      "kind": "mandatory",
+      "roles": [
+        "hasrank.r0"
+      ]
+    },
+    {
+      "id": "uc2",
+      "kind": "uniqueness",
+      "roles": [
+        "works.r0"
+      ]
+    },
+    {
+      "id": "mc2",
+      "kind": "mandatory",
+      "roles": [
+        "works.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "academic": {
+        "x": 40,
+        "y": 100
+      },
+      "rank": {
+        "x": 330,
+        "y": 20
+      },
+      "dept": {
+        "x": 330,
+        "y": 180
+      },
+      "hasrank": {
+        "x": 220,
+        "y": 28,
+        "orientation": "horizontal"
+      },
+      "works": {
+        "x": 220,
+        "y": 188,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

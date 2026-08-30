@@ -1,0 +1,78 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "A ring constraint",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "manages",
+      "roles": [
+        {
+          "id": "manages.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "manages.r1",
+          "objectTypeId": "person"
+        }
+      ],
+      "readings": [
+        {
+          "id": "manages.rd",
+          "roleOrder": [
+            "manages.r0",
+            "manages.r1"
+          ],
+          "text": "{0} manages {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "manages.r1"
+      ]
+    },
+    {
+      "id": "rc",
+      "kind": "ring",
+      "roles": [
+        "manages.r0",
+        "manages.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 60,
+        "y": 140
+      },
+      "manages": {
+        "x": 250,
+        "y": 148,
+        "orientation": "horizontal"
+      },
+      "rc": {
+        "x": 276,
+        "y": 60
+      }
+    }
+  }
+}

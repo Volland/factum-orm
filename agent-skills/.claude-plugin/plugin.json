@@ -1,0 +1,10 @@
+{
+  "name": "factum",
+  "version": "1.0.0",
+  "description": "The Factum Skill Set - an ORM 2 modelling copilot. Draw and review Object-Role Modeling diagrams, author and repair .orm.json models, run Halpin's design procedure, read models back as FORML sentences, and design agent memory, promise graphs and audit logs as conceptual schemas.",
+  "author": { "name": "Volodymyr Pavlyshyn" },
+  "homepage": "https://www.factum-orm.com/",
+  "repository": "https://github.com/Volland/factum-book-models",
+  "license": "MIT",
+  "keywords": ["orm", "orm2", "object-role-modeling", "forml", "conceptual-model", "fact-based-modelling", "agent-memory", "knowledge-graph", "factum"]
+}

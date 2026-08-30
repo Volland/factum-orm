@@ -1,0 +1,536 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "The tamper-evident chain: derivation, order and connectivity",
+  "objectTypes": [
+    {
+      "id": "event",
+      "name": "AuditEvent",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "run",
+      "name": "Run",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "digest",
+      "name": "Digest",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "algo",
+      "name": "DigestAlgorithm",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "canon",
+      "name": "CanonicalForm",
+      "kind": "value",
+      "dataType": "text"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "follows",
+      "roles": [
+        {
+          "id": "follows.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "follows.r1",
+          "objectTypeId": "event"
+        }
+      ],
+      "readings": [
+        {
+          "id": "follows.rd",
+          "roleOrder": [
+            "follows.r0",
+            "follows.r1"
+          ],
+          "text": "{0} immediately follows {1}",
+          "isPrimary": true
+        }
+      ],
+      "meta": {
+        "description": "Predecessor within one run. That the predecessor belongs to the same Run is a join constraint ORM cannot state; it is enforced by the writer and checked by the verifier."
+      },
+      "population": [
+        {
+          "values": [
+            "e-2",
+            "e-1"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "e-2"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "e-3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "opens",
+      "roles": [
+        {
+          "id": "opens.r0",
+          "objectTypeId": "run"
+        },
+        {
+          "id": "opens.r1",
+          "objectTypeId": "event"
+        }
+      ],
+      "readings": [
+        {
+          "id": "opens.rd",
+          "roleOrder": [
+            "opens.r0",
+            "opens.r1"
+          ],
+          "text": "{0} is opened by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "r-1",
+            "e-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inRun",
+      "roles": [
+        {
+          "id": "inRun.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "inRun.r1",
+          "objectTypeId": "run"
+        }
+      ],
+      "readings": [
+        {
+          "id": "inRun.rd",
+          "roleOrder": [
+            "inRun.r0",
+            "inRun.r1"
+          ],
+          "text": "{0} belongs to {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "r-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canonical",
+      "roles": [
+        {
+          "id": "canonical.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "canonical.r1",
+          "objectTypeId": "canon"
+        }
+      ],
+      "readings": [
+        {
+          "id": "canonical.rd",
+          "roleOrder": [
+            "canonical.r0",
+            "canonical.r1"
+          ],
+          "text": "{0} has canonical form {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "run.start|agent-7|-|2026-03-02T09:00:00Z|allowed"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "db.read|agent-7|urn:db:customers|2026-03-02T09:00:04Z|allowed"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "db.write|agent-7|urn:db:orders|2026-03-02T09:00:09Z|denied"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "run.end|agent-7|-|2026-03-02T09:00:11Z|allowed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sealedWith",
+      "roles": [
+        {
+          "id": "sealedWith.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "sealedWith.r1",
+          "objectTypeId": "algo"
+        }
+      ],
+      "readings": [
+        {
+          "id": "sealedWith.rd",
+          "roleOrder": [
+            "sealedWith.r0",
+            "sealedWith.r1"
+          ],
+          "text": "{0} is sealed with {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "sha-256/v1"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "sha-256/v1"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "sha-256/v1"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "sha-256/v1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chains",
+      "roles": [
+        {
+          "id": "chains.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "chains.r1",
+          "objectTypeId": "digest"
+        }
+      ],
+      "readings": [
+        {
+          "id": "chains.rd",
+          "roleOrder": [
+            "chains.r0",
+            "chains.r1"
+          ],
+          "text": "{0} is sealed by {1}",
+          "isPrimary": true
+        }
+      ],
+      "isDerived": true,
+      "isStored": true,
+      "derivationRule": "AuditEvent is sealed by Digest where Digest is the AuditEvent's DigestAlgorithm applied to its CanonicalForm concatenated with the Digest of the AuditEvent it immediately follows, or with the empty string where the AuditEvent opens its Run.",
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "5f2a…"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "c704…"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "91be…"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "0dd3…"
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "u1a",
+      "kind": "uniqueness",
+      "roles": [
+        "follows.r0"
+      ]
+    },
+    {
+      "id": "u1b",
+      "kind": "uniqueness",
+      "roles": [
+        "follows.r1"
+      ]
+    },
+    {
+      "id": "ring",
+      "kind": "ring",
+      "roles": [
+        "follows.r0",
+        "follows.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    },
+    {
+      "id": "u-opens-a",
+      "kind": "uniqueness",
+      "roles": [
+        "opens.r0"
+      ]
+    },
+    {
+      "id": "u-opens-b",
+      "kind": "uniqueness",
+      "roles": [
+        "opens.r1"
+      ]
+    },
+    {
+      "id": "m-opens",
+      "kind": "mandatory",
+      "roles": [
+        "opens.r0"
+      ]
+    },
+    {
+      "id": "m-chain",
+      "kind": "mandatory",
+      "roles": [
+        "opens.r1",
+        "follows.r0"
+      ]
+    },
+    {
+      "id": "x-chain",
+      "kind": "exclusion",
+      "roleSequences": [
+        [
+          "opens.r1"
+        ],
+        [
+          "follows.r0"
+        ]
+      ]
+    },
+    {
+      "id": "u3",
+      "kind": "uniqueness",
+      "roles": [
+        "inRun.r0"
+      ]
+    },
+    {
+      "id": "m3",
+      "kind": "mandatory",
+      "roles": [
+        "inRun.r0"
+      ]
+    },
+    {
+      "id": "u-canon-a",
+      "kind": "uniqueness",
+      "roles": [
+        "canonical.r0"
+      ]
+    },
+    {
+      "id": "u-canon-b",
+      "kind": "uniqueness",
+      "roles": [
+        "canonical.r1"
+      ]
+    },
+    {
+      "id": "m-canon",
+      "kind": "mandatory",
+      "roles": [
+        "canonical.r0"
+      ]
+    },
+    {
+      "id": "u-algo",
+      "kind": "uniqueness",
+      "roles": [
+        "sealedWith.r0"
+      ]
+    },
+    {
+      "id": "m-algo",
+      "kind": "mandatory",
+      "roles": [
+        "sealedWith.r0"
+      ]
+    },
+    {
+      "id": "vc-algo",
+      "kind": "value",
+      "objectTypeId": "algo",
+      "ranges": [
+        {
+          "value": "sha-256/v1"
+        },
+        {
+          "value": "blake3/v1"
+        }
+      ]
+    },
+    {
+      "id": "u2a",
+      "kind": "uniqueness",
+      "roles": [
+        "chains.r0"
+      ]
+    },
+    {
+      "id": "u2b",
+      "kind": "uniqueness",
+      "roles": [
+        "chains.r1"
+      ]
+    },
+    {
+      "id": "m2",
+      "kind": "mandatory",
+      "roles": [
+        "chains.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "event": {
+        "x": 60,
+        "y": 250
+      },
+      "run": {
+        "x": 470,
+        "y": 400
+      },
+      "digest": {
+        "x": 470,
+        "y": 160
+      },
+      "algo": {
+        "x": 470,
+        "y": 250
+      },
+      "canon": {
+        "x": 470,
+        "y": 60
+      },
+      "follows": {
+        "x": 200,
+        "y": 110,
+        "orientation": "horizontal"
+      },
+      "ring": {
+        "x": 226,
+        "y": 60
+      },
+      "canonical": {
+        "x": 290,
+        "y": 68,
+        "orientation": "horizontal"
+      },
+      "chains": {
+        "x": 290,
+        "y": 168,
+        "orientation": "horizontal"
+      },
+      "sealedWith": {
+        "x": 290,
+        "y": 258,
+        "orientation": "horizontal"
+      },
+      "inRun": {
+        "x": 290,
+        "y": 348,
+        "orientation": "horizontal"
+      },
+      "opens": {
+        "x": 290,
+        "y": 430,
+        "orientation": "horizontal"
+      },
+      "x-chain": {
+        "x": 150,
+        "y": 400
+      }
+    }
+  }
+}

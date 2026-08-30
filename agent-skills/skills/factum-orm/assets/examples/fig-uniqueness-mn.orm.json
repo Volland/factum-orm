@@ -1,0 +1,73 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "Many to many",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "skill",
+      "name": "Skill",
+      "kind": "entity",
+      "refMode": "code"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "has",
+      "roles": [
+        {
+          "id": "has.r0",
+          "objectTypeId": "person"
+        },
+        {
+          "id": "has.r1",
+          "objectTypeId": "skill"
+        }
+      ],
+      "readings": [
+        {
+          "id": "has.rd",
+          "roleOrder": [
+            "has.r0",
+            "has.r1"
+          ],
+          "text": "{0} has {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "has.r0",
+        "has.r1"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 40,
+        "y": 60
+      },
+      "skill": {
+        "x": 300,
+        "y": 60
+      },
+      "has": {
+        "x": 196,
+        "y": 68,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

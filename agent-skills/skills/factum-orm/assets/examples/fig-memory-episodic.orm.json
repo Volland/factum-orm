@@ -1,0 +1,322 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "Memory L2/L3 — episodes, participation, and causality as a fact about facts",
+  "objectTypes": [
+    {
+      "id": "episode",
+      "name": "Episode",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "ent",
+      "name": "MemoryEntity",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "roleT",
+      "name": "ParticipantRole",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "at",
+      "name": "Instant",
+      "kind": "value",
+      "dataType": "dateTime"
+    },
+    {
+      "id": "part",
+      "name": "Participation",
+      "kind": "entity",
+      "objectifiedFactTypeId": "participates"
+    },
+    {
+      "id": "salience",
+      "name": "Salience",
+      "kind": "value",
+      "dataType": "decimal"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "participates",
+      "roles": [
+        {
+          "id": "participates.r0",
+          "objectTypeId": "episode"
+        },
+        {
+          "id": "participates.r1",
+          "objectTypeId": "ent"
+        },
+        {
+          "id": "participates.r2",
+          "objectTypeId": "roleT"
+        }
+      ],
+      "readings": [
+        {
+          "id": "participates.rd",
+          "roleOrder": [
+            "participates.r0",
+            "participates.r1",
+            "participates.r2"
+          ],
+          "text": "{0} involves {1} as {2}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "ep-1",
+            "e-ana",
+            "reporter"
+          ]
+        },
+        {
+          "values": [
+            "ep-1",
+            "e-1041",
+            "subject"
+          ]
+        },
+        {
+          "values": [
+            "ep-2",
+            "e-ana",
+            "responder"
+          ]
+        },
+        {
+          "values": [
+            "ep-2",
+            "e-1041",
+            "subject"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "occurred",
+      "roles": [
+        {
+          "id": "occurred.r0",
+          "objectTypeId": "episode"
+        },
+        {
+          "id": "occurred.r1",
+          "objectTypeId": "at"
+        }
+      ],
+      "readings": [
+        {
+          "id": "occurred.rd",
+          "roleOrder": [
+            "occurred.r0",
+            "occurred.r1"
+          ],
+          "text": "{0} occurred at {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "ep-1",
+            "2026-03-02T09:14:00Z"
+          ]
+        },
+        {
+          "values": [
+            "ep-2",
+            "2026-03-02T09:16:00Z"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "leadsto",
+      "roles": [
+        {
+          "id": "leadsto.r0",
+          "objectTypeId": "episode"
+        },
+        {
+          "id": "leadsto.r1",
+          "objectTypeId": "episode"
+        }
+      ],
+      "readings": [
+        {
+          "id": "leadsto.rd",
+          "roleOrder": [
+            "leadsto.r0",
+            "leadsto.r1"
+          ],
+          "text": "{0} leads to {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "ep-1",
+            "ep-2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weighs",
+      "roles": [
+        {
+          "id": "weighs.r0",
+          "objectTypeId": "part"
+        },
+        {
+          "id": "weighs.r1",
+          "objectTypeId": "salience"
+        }
+      ],
+      "readings": [
+        {
+          "id": "weighs.rd",
+          "roleOrder": [
+            "weighs.r0",
+            "weighs.r1"
+          ],
+          "text": "{0} has {1}",
+          "isPrimary": true
+        }
+      ],
+      "meta": {
+        "description": "A Participation is identified by the tuple it objectifies, written here as episode/entity/role."
+      },
+      "population": [
+        {
+          "values": [
+            "ep-1/e-ana/reporter",
+            0.4
+          ]
+        },
+        {
+          "values": [
+            "ep-1/e-1041/subject",
+            0.9
+          ]
+        },
+        {
+          "values": [
+            "ep-2/e-ana/responder",
+            0.8
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "u1",
+      "kind": "uniqueness",
+      "roles": [
+        "participates.r0",
+        "participates.r1",
+        "participates.r2"
+      ]
+    },
+    {
+      "id": "u2",
+      "kind": "uniqueness",
+      "roles": [
+        "occurred.r0"
+      ]
+    },
+    {
+      "id": "m2",
+      "kind": "mandatory",
+      "roles": [
+        "occurred.r0"
+      ]
+    },
+    {
+      "id": "u3",
+      "kind": "uniqueness",
+      "roles": [
+        "leadsto.r0",
+        "leadsto.r1"
+      ]
+    },
+    {
+      "id": "u4",
+      "kind": "uniqueness",
+      "roles": [
+        "weighs.r0"
+      ]
+    },
+    {
+      "id": "ring",
+      "kind": "ring",
+      "roles": [
+        "leadsto.r0",
+        "leadsto.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "episode": {
+        "x": 40,
+        "y": 210
+      },
+      "at": {
+        "x": 40,
+        "y": 60
+      },
+      "ent": {
+        "x": 430,
+        "y": 130
+      },
+      "roleT": {
+        "x": 430,
+        "y": 300
+      },
+      "salience": {
+        "x": 240,
+        "y": 400
+      },
+      "occurred": {
+        "x": 60,
+        "y": 130,
+        "orientation": "vertical"
+      },
+      "participates": {
+        "x": 230,
+        "y": 218,
+        "orientation": "horizontal"
+      },
+      "leadsto": {
+        "x": 190,
+        "y": 60,
+        "orientation": "horizontal"
+      },
+      "weighs": {
+        "x": 250,
+        "y": 340,
+        "orientation": "vertical"
+      },
+      "ring": {
+        "x": 214,
+        "y": 10
+      }
+    }
+  }
+}

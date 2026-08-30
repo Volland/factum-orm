@@ -27,6 +27,7 @@ import { exportNormaFile } from '../io/normaExport.js';
 import { importNormaFile } from '../io/normaImport.js';
 import { exportOssieFile, importOssieFile } from '../io/ossie.js';
 import { exportUmsFile, importUmsFile } from '../io/ums.js';
+import { commandSkills } from './skills.js';
 
 const USAGE = `factum — Object-Role Modeling from the command line
 
@@ -39,11 +40,17 @@ Usage
   factum drift <model.orm.json> <schema.sql> [--dialect …] [--ignore-extra] [--exit-code]
   factum convert <input> [-o output] [--to norma|fbm|ossie|ums]
   factum derive <table.csv> [--name Employee] [--delimiter ,] [-o model.orm.json]
+  factum skills list
+  factum skills install [--target claude|cursor] [--global|--local] [--dir <path>]
 
 Options
   --exit-code   exit 1 when there is something to report, for use in CI
   --strict      treat warnings as errors
   -o, --output  write to a file instead of standard output
+  --target      which agent to install skills for: claude, cursor
+  --global      install for every project; --local for this one only
+  --force       replace skills and commands that are already installed
+  --dry-run     report what would be installed without writing anything
   -h, --help    show this message
 `;
 
@@ -255,6 +262,7 @@ const COMMANDS: Record<string, (args: Args) => number> = {
   drift: commandDrift,
   convert: commandConvert,
   derive: commandDerive,
+  skills: commandSkills,
 };
 
 export function run(argv: string[]): number {

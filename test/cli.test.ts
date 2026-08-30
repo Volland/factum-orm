@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -33,6 +33,55 @@ function capture(argv: string[]): { code: number; out: string; err: string } {
 }
 
 const modelPath = write('model.orm.json', serializeModel(sampleModel()));
+
+// @lat: [[tests#Command line#The skill pack is listed]]
+test('skills list names every skill and command in the pack', () => {
+  const { code, out } = capture(['skills', 'list']);
+  assert.equal(code, 0);
+  assert.match(out, /factum-orm/);
+  assert.match(out, /factum-agentic-memory/);
+  assert.match(out, /\/orm-model/);
+});
+
+// @lat: [[tests#Command line#Installing skills copies the whole skill]]
+test('installing the skill pack copies a skill with its references and assets', () => {
+  const target = mkdtempSync(join(tmpdir(), 'factum-skills-'));
+  const { code, out } = capture(['skills', 'install', '--dir', target]);
+  assert.equal(code, 0);
+  assert.match(out, /Installed 12 of 12/);
+
+  // A skill is a directory, so anything short of a recursive copy leaves the
+  // references and example models the SKILL.md points at behind.
+  assert.ok(existsSync(join(target, 'skills', 'factum-orm', 'SKILL.md')));
+  assert.ok(existsSync(join(target, 'skills', 'factum-orm', 'references', 'csdp.md')));
+  assert.ok(existsSync(join(target, 'skills', 'factum-orm', 'assets', 'starter.orm.json')));
+  assert.ok(existsSync(join(target, 'commands', 'orm-model.md')));
+});
+
+// @lat: [[tests#Command line#An installed skill is not overwritten unasked]]
+test('re-installing leaves what is already there alone unless forced', () => {
+  const target = mkdtempSync(join(tmpdir(), 'factum-skills-'));
+  capture(['skills', 'install', '--dir', target]);
+
+  const again = capture(['skills', 'install', '--dir', target]);
+  assert.equal(again.code, 0);
+  assert.match(again.out, /Installed 0 of 12/);
+  assert.match(again.out, /already there/);
+
+  const forced = capture(['skills', 'install', '--dir', target, '--force']);
+  assert.match(forced.out, /Installed 12 of 12/);
+});
+
+// @lat: [[tests#Command line#Installing skills needs somewhere to put them]]
+test('installing with no target and no terminal to ask says what to pass', () => {
+  const { code, err } = capture(['skills', 'install']);
+  assert.equal(code, 1);
+  assert.match(err, /--target/);
+
+  const unknown = capture(['skills', 'install', '--target', 'vim']);
+  assert.equal(unknown.code, 1);
+  assert.match(unknown.err, /Known targets/);
+});
 
 // @lat: [[tests#Command line#Validate succeeds on a clean model]]
 test('validate exits zero on a clean model and reports the population size', () => {

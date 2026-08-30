@@ -1,0 +1,162 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "The audit event as an elementary fact type",
+  "objectTypes": [
+    {
+      "id": "event",
+      "name": "AuditEvent",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "actor",
+      "name": "Actor",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "action",
+      "name": "Action",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "target",
+      "name": "Resource",
+      "kind": "entity",
+      "refMode": "urn"
+    },
+    {
+      "id": "at",
+      "name": "Instant",
+      "kind": "value",
+      "dataType": "dateTime"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "did",
+      "roles": [
+        {
+          "id": "did.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "did.r1",
+          "objectTypeId": "actor"
+        },
+        {
+          "id": "did.r2",
+          "objectTypeId": "action"
+        },
+        {
+          "id": "did.r3",
+          "objectTypeId": "target"
+        }
+      ],
+      "readings": [
+        {
+          "id": "did.rd",
+          "roleOrder": [
+            "did.r0",
+            "did.r1",
+            "did.r2",
+            "did.r3"
+          ],
+          "text": "{0} records that {1} performed {2} on {3}",
+          "isPrimary": true
+        }
+      ]
+    },
+    {
+      "id": "occurredAt",
+      "roles": [
+        {
+          "id": "occurredAt.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "occurredAt.r1",
+          "objectTypeId": "at"
+        }
+      ],
+      "readings": [
+        {
+          "id": "occurredAt.rd",
+          "roleOrder": [
+            "occurredAt.r0",
+            "occurredAt.r1"
+          ],
+          "text": "{0} occurred at {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "u1",
+      "kind": "uniqueness",
+      "roles": [
+        "did.r0"
+      ]
+    },
+    {
+      "id": "m1",
+      "kind": "mandatory",
+      "roles": [
+        "did.r0"
+      ]
+    },
+    {
+      "id": "u2",
+      "kind": "uniqueness",
+      "roles": [
+        "occurredAt.r0"
+      ]
+    },
+    {
+      "id": "m2",
+      "kind": "mandatory",
+      "roles": [
+        "occurredAt.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "event": {
+        "x": 40,
+        "y": 200
+      },
+      "actor": {
+        "x": 470,
+        "y": 60
+      },
+      "action": {
+        "x": 470,
+        "y": 160
+      },
+      "target": {
+        "x": 470,
+        "y": 260
+      },
+      "at": {
+        "x": 470,
+        "y": 380
+      },
+      "did": {
+        "x": 250,
+        "y": 208,
+        "orientation": "horizontal"
+      },
+      "occurredAt": {
+        "x": 250,
+        "y": 388,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

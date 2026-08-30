@@ -312,6 +312,22 @@ Tables the model says nothing about can be excluded. A conceptual model usually 
 
 Covers the `factum` binary and the MCP server, described in [[tooling#Tooling#The command line]].
 
+### The skill pack is listed
+
+`factum skills list` names the two skills and the ten commands the pack carries, which is the check that the pack shipped with the package at all.
+
+### Installing skills copies the whole skill
+
+A skill is a directory of a `SKILL.md` with its references and example models, so the install has to be recursive; a file-only copy leaves a skill pointing at references that are not there.
+
+### An installed skill is not overwritten unasked
+
+A second install reports what is already in place and leaves it, because a user may have edited it. `--force` replaces.
+
+### Installing skills needs somewhere to put them
+
+With no target and no terminal to ask in, the command says which flags to pass rather than guessing a directory, and an unknown target lists the ones it knows.
+
 ### Validate succeeds on a clean model
 
 `validate` exits zero on a clean model and reports how many sample facts it carries.

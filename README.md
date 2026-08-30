@@ -181,6 +181,23 @@ It exposes `read_model`, `verbalize_model`, `validate_model`, `generate_schema`,
 `detect_drift`, `read_population` and `apply_model`. Everything is read-only except the last, which
 validates first and refuses to write a model with blocking errors.
 
+### The skill pack
+
+Ten slash commands and two skills, distilled from *[Fact-Based Agents](https://leanpub.com/fact-basedagents)*,
+that put the modelling procedure itself in front of your agent — `/orm-model` runs Halpin's seven
+steps with you, `/orm-review` reads a model back and argues with it, `/orm-fix` works through
+validator codes, `/orm-memory` designs an agent's memory as a conceptual schema.
+
+```bash
+factum skills install            # asks which agent, and whether globally or here
+factum skills list               # what is in the pack
+```
+
+Claude Code and Cursor are both offered, globally or for the current project; `--target claude`,
+`--global`/`--local` and `--dir <path>` skip the question. Nothing already installed is overwritten
+unless you pass `--force`. The pack is plain markdown in
+[`agent-skills/`](agent-skills/), so it also works as a Claude Code plugin directory as it stands.
+
 ## Quick start
 
 1. Run **ORM: New ORM Model** from the Command Palette and choose where to save it.

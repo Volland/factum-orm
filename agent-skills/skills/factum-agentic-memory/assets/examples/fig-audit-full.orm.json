@@ -1,0 +1,1047 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "The audit log as an ORM 2 conceptual schema",
+  "objectTypes": [
+    {
+      "id": "event",
+      "name": "AuditEvent",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "actor",
+      "name": "Actor",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "action",
+      "name": "Action",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "resource",
+      "name": "Resource",
+      "kind": "entity",
+      "refMode": "urn"
+    },
+    {
+      "id": "at",
+      "name": "Instant",
+      "kind": "value",
+      "dataType": "dateTime"
+    },
+    {
+      "id": "outcome",
+      "name": "EventOutcome",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "run",
+      "name": "Run",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "promise",
+      "name": "Promise",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "digest",
+      "name": "Digest",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "algo",
+      "name": "DigestAlgorithm",
+      "kind": "value",
+      "dataType": "string"
+    },
+    {
+      "id": "canon",
+      "name": "CanonicalForm",
+      "kind": "value",
+      "dataType": "text"
+    },
+    {
+      "id": "principal",
+      "name": "Principal",
+      "kind": "entity",
+      "refMode": "id"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "byActor",
+      "roles": [
+        {
+          "id": "byActor.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "byActor.r1",
+          "objectTypeId": "actor"
+        }
+      ],
+      "readings": [
+        {
+          "id": "byActor.rd",
+          "roleOrder": [
+            "byActor.r0",
+            "byActor.r1"
+          ],
+          "text": "{0} was performed by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "agent-7"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "agent-7"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "agent-7"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "agent-7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ofAction",
+      "roles": [
+        {
+          "id": "ofAction.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "ofAction.r1",
+          "objectTypeId": "action"
+        }
+      ],
+      "readings": [
+        {
+          "id": "ofAction.rd",
+          "roleOrder": [
+            "ofAction.r0",
+            "ofAction.r1"
+          ],
+          "text": "{0} performed {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "run.start"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "db.read"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "db.write"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "run.end"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onResource",
+      "roles": [
+        {
+          "id": "onResource.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "onResource.r1",
+          "objectTypeId": "resource"
+        }
+      ],
+      "readings": [
+        {
+          "id": "onResource.rd",
+          "roleOrder": [
+            "onResource.r0",
+            "onResource.r1"
+          ],
+          "text": "{0} acted on {1}",
+          "isPrimary": true
+        }
+      ],
+      "meta": {
+        "description": "Optional. A run.start acts on no resource, and an audit log that cannot record that event is an audit log with a hole in it."
+      },
+      "population": [
+        {
+          "values": [
+            "e-2",
+            "urn:db:customers"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "urn:db:orders"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "occurredAt",
+      "roles": [
+        {
+          "id": "occurredAt.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "occurredAt.r1",
+          "objectTypeId": "at"
+        }
+      ],
+      "readings": [
+        {
+          "id": "occurredAt.rd",
+          "roleOrder": [
+            "occurredAt.r0",
+            "occurredAt.r1"
+          ],
+          "text": "{0} occurred at {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "2026-03-02T09:00:00Z"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "2026-03-02T09:00:04Z"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "2026-03-02T09:00:09Z"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "2026-03-02T09:00:11Z"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hadOutcome",
+      "roles": [
+        {
+          "id": "hadOutcome.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "hadOutcome.r1",
+          "objectTypeId": "outcome"
+        }
+      ],
+      "readings": [
+        {
+          "id": "hadOutcome.rd",
+          "roleOrder": [
+            "hadOutcome.r0",
+            "hadOutcome.r1"
+          ],
+          "text": "{0} had {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "allowed"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "allowed"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "denied"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "allowed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inRun",
+      "roles": [
+        {
+          "id": "inRun.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "inRun.r1",
+          "objectTypeId": "run"
+        }
+      ],
+      "readings": [
+        {
+          "id": "inRun.rd",
+          "roleOrder": [
+            "inRun.r0",
+            "inRun.r1"
+          ],
+          "text": "{0} belongs to {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "r-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "opens",
+      "roles": [
+        {
+          "id": "opens.r0",
+          "objectTypeId": "run"
+        },
+        {
+          "id": "opens.r1",
+          "objectTypeId": "event"
+        }
+      ],
+      "readings": [
+        {
+          "id": "opens.rd",
+          "roleOrder": [
+            "opens.r0",
+            "opens.r1"
+          ],
+          "text": "{0} is opened by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "r-1",
+            "e-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "follows",
+      "roles": [
+        {
+          "id": "follows.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "follows.r1",
+          "objectTypeId": "event"
+        }
+      ],
+      "readings": [
+        {
+          "id": "follows.rd",
+          "roleOrder": [
+            "follows.r0",
+            "follows.r1"
+          ],
+          "text": "{0} immediately follows {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-2",
+            "e-1"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "e-2"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "e-3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "discharges",
+      "roles": [
+        {
+          "id": "discharges.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "discharges.r1",
+          "objectTypeId": "promise"
+        }
+      ],
+      "readings": [
+        {
+          "id": "discharges.rd",
+          "roleOrder": [
+            "discharges.r0",
+            "discharges.r1"
+          ],
+          "text": "{0} discharges {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-2",
+            "p-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canonical",
+      "roles": [
+        {
+          "id": "canonical.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "canonical.r1",
+          "objectTypeId": "canon"
+        }
+      ],
+      "readings": [
+        {
+          "id": "canonical.rd",
+          "roleOrder": [
+            "canonical.r0",
+            "canonical.r1"
+          ],
+          "text": "{0} has canonical form {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "run.start|agent-7|-|2026-03-02T09:00:00Z|allowed"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "db.read|agent-7|urn:db:customers|2026-03-02T09:00:04Z|allowed"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "db.write|agent-7|urn:db:orders|2026-03-02T09:00:09Z|denied"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "run.end|agent-7|-|2026-03-02T09:00:11Z|allowed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sealedWith",
+      "roles": [
+        {
+          "id": "sealedWith.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "sealedWith.r1",
+          "objectTypeId": "algo"
+        }
+      ],
+      "readings": [
+        {
+          "id": "sealedWith.rd",
+          "roleOrder": [
+            "sealedWith.r0",
+            "sealedWith.r1"
+          ],
+          "text": "{0} is sealed with {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "sha-256/v1"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "sha-256/v1"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "sha-256/v1"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "sha-256/v1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chains",
+      "roles": [
+        {
+          "id": "chains.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "chains.r1",
+          "objectTypeId": "digest"
+        }
+      ],
+      "readings": [
+        {
+          "id": "chains.rd",
+          "roleOrder": [
+            "chains.r0",
+            "chains.r1"
+          ],
+          "text": "{0} is sealed by {1}",
+          "isPrimary": true
+        }
+      ],
+      "isDerived": true,
+      "isStored": true,
+      "derivationRule": "AuditEvent is sealed by Digest where Digest is the AuditEvent's DigestAlgorithm applied to its CanonicalForm concatenated with the Digest of the AuditEvent it immediately follows, or with the empty string where the AuditEvent opens its Run.",
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "5f2a…"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "c704…"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "91be…"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "0dd3…"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onBehalf",
+      "roles": [
+        {
+          "id": "onBehalf.r0",
+          "objectTypeId": "actor"
+        },
+        {
+          "id": "onBehalf.r1",
+          "objectTypeId": "principal"
+        },
+        {
+          "id": "onBehalf.r2",
+          "objectTypeId": "run"
+        }
+      ],
+      "readings": [
+        {
+          "id": "onBehalf.rd0",
+          "roleOrder": [
+            "onBehalf.r0",
+            "onBehalf.r1",
+            "onBehalf.r2"
+          ],
+          "text": "{0} acts for {1} in {2}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "agent-7",
+            "acme",
+            "r-1"
+          ]
+        },
+        {
+          "values": [
+            "agent-7",
+            "globex",
+            "r-2"
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "u1a",
+      "kind": "uniqueness",
+      "roles": [
+        "byActor.r0"
+      ]
+    },
+    {
+      "id": "m1a",
+      "kind": "mandatory",
+      "roles": [
+        "byActor.r0"
+      ]
+    },
+    {
+      "id": "u1b",
+      "kind": "uniqueness",
+      "roles": [
+        "ofAction.r0"
+      ]
+    },
+    {
+      "id": "m1b",
+      "kind": "mandatory",
+      "roles": [
+        "ofAction.r0"
+      ]
+    },
+    {
+      "id": "u1c",
+      "kind": "uniqueness",
+      "roles": [
+        "onResource.r0"
+      ]
+    },
+    {
+      "id": "u2",
+      "kind": "uniqueness",
+      "roles": [
+        "occurredAt.r0"
+      ]
+    },
+    {
+      "id": "m2",
+      "kind": "mandatory",
+      "roles": [
+        "occurredAt.r0"
+      ]
+    },
+    {
+      "id": "u3",
+      "kind": "uniqueness",
+      "roles": [
+        "hadOutcome.r0"
+      ]
+    },
+    {
+      "id": "m3",
+      "kind": "mandatory",
+      "roles": [
+        "hadOutcome.r0"
+      ]
+    },
+    {
+      "id": "u4",
+      "kind": "uniqueness",
+      "roles": [
+        "inRun.r0"
+      ]
+    },
+    {
+      "id": "m4",
+      "kind": "mandatory",
+      "roles": [
+        "inRun.r0"
+      ]
+    },
+    {
+      "id": "u5a",
+      "kind": "uniqueness",
+      "roles": [
+        "follows.r0"
+      ]
+    },
+    {
+      "id": "u5b",
+      "kind": "uniqueness",
+      "roles": [
+        "follows.r1"
+      ]
+    },
+    {
+      "id": "u-opens-a",
+      "kind": "uniqueness",
+      "roles": [
+        "opens.r0"
+      ]
+    },
+    {
+      "id": "u-opens-b",
+      "kind": "uniqueness",
+      "roles": [
+        "opens.r1"
+      ]
+    },
+    {
+      "id": "m-opens",
+      "kind": "mandatory",
+      "roles": [
+        "opens.r0"
+      ]
+    },
+    {
+      "id": "m-chain",
+      "kind": "mandatory",
+      "roles": [
+        "opens.r1",
+        "follows.r0"
+      ]
+    },
+    {
+      "id": "x-chain",
+      "kind": "exclusion",
+      "roleSequences": [
+        [
+          "opens.r1"
+        ],
+        [
+          "follows.r0"
+        ]
+      ]
+    },
+    {
+      "id": "u6",
+      "kind": "uniqueness",
+      "roles": [
+        "discharges.r0",
+        "discharges.r1"
+      ]
+    },
+    {
+      "id": "u-canon-a",
+      "kind": "uniqueness",
+      "roles": [
+        "canonical.r0"
+      ]
+    },
+    {
+      "id": "u-canon-b",
+      "kind": "uniqueness",
+      "roles": [
+        "canonical.r1"
+      ]
+    },
+    {
+      "id": "m-canon",
+      "kind": "mandatory",
+      "roles": [
+        "canonical.r0"
+      ]
+    },
+    {
+      "id": "u-algo",
+      "kind": "uniqueness",
+      "roles": [
+        "sealedWith.r0"
+      ]
+    },
+    {
+      "id": "m-algo",
+      "kind": "mandatory",
+      "roles": [
+        "sealedWith.r0"
+      ]
+    },
+    {
+      "id": "u7a",
+      "kind": "uniqueness",
+      "roles": [
+        "chains.r0"
+      ]
+    },
+    {
+      "id": "u7b",
+      "kind": "uniqueness",
+      "roles": [
+        "chains.r1"
+      ]
+    },
+    {
+      "id": "m7",
+      "kind": "mandatory",
+      "roles": [
+        "chains.r0"
+      ]
+    },
+    {
+      "id": "u8",
+      "kind": "uniqueness",
+      "roles": [
+        "onBehalf.r0",
+        "onBehalf.r2"
+      ]
+    },
+    {
+      "id": "ring",
+      "kind": "ring",
+      "roles": [
+        "follows.r0",
+        "follows.r1"
+      ],
+      "types": [
+        "irreflexive",
+        "acyclic"
+      ]
+    },
+    {
+      "id": "vc-out",
+      "kind": "value",
+      "objectTypeId": "outcome",
+      "ranges": [
+        {
+          "value": "allowed"
+        },
+        {
+          "value": "denied"
+        },
+        {
+          "value": "failed"
+        }
+      ]
+    },
+    {
+      "id": "vc-algo",
+      "kind": "value",
+      "objectTypeId": "algo",
+      "ranges": [
+        {
+          "value": "sha-256/v1"
+        },
+        {
+          "value": "blake3/v1"
+        }
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "event": {
+        "x": 40,
+        "y": 360
+      },
+      "actor": {
+        "x": 560,
+        "y": 140
+      },
+      "action": {
+        "x": 560,
+        "y": 230
+      },
+      "resource": {
+        "x": 560,
+        "y": 320
+      },
+      "at": {
+        "x": 560,
+        "y": 410
+      },
+      "outcome": {
+        "x": 560,
+        "y": 500
+      },
+      "run": {
+        "x": 560,
+        "y": 590
+      },
+      "promise": {
+        "x": 40,
+        "y": 660
+      },
+      "digest": {
+        "x": 40,
+        "y": 160
+      },
+      "algo": {
+        "x": 40,
+        "y": 60
+      },
+      "canon": {
+        "x": 340,
+        "y": 20
+      },
+      "principal": {
+        "x": 940,
+        "y": 230
+      },
+      "byActor": {
+        "x": 320,
+        "y": 148,
+        "orientation": "horizontal"
+      },
+      "ofAction": {
+        "x": 320,
+        "y": 238,
+        "orientation": "horizontal"
+      },
+      "onResource": {
+        "x": 320,
+        "y": 328,
+        "orientation": "horizontal"
+      },
+      "occurredAt": {
+        "x": 320,
+        "y": 418,
+        "orientation": "horizontal"
+      },
+      "hadOutcome": {
+        "x": 320,
+        "y": 508,
+        "orientation": "horizontal"
+      },
+      "inRun": {
+        "x": 320,
+        "y": 598,
+        "orientation": "horizontal"
+      },
+      "opens": {
+        "x": 320,
+        "y": 680,
+        "orientation": "horizontal"
+      },
+      "follows": {
+        "x": 220,
+        "y": -80,
+        "orientation": "horizontal"
+      },
+      "ring": {
+        "x": 246,
+        "y": -150
+      },
+      "discharges": {
+        "x": 60,
+        "y": 540,
+        "orientation": "vertical"
+      },
+      "chains": {
+        "x": 60,
+        "y": 250,
+        "orientation": "vertical"
+      },
+      "canonical": {
+        "x": 200,
+        "y": 100,
+        "orientation": "horizontal"
+      },
+      "sealedWith": {
+        "x": 60,
+        "y": 100,
+        "orientation": "vertical"
+      },
+      "onBehalf": {
+        "x": 760,
+        "y": 238,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

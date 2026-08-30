@@ -1,0 +1,50 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "Starter",
+  "lang": "en",
+  "note": "A minimal valid model. Replace Person and Company with two things from your domain, keep the population rows real, and check it before adding anything else.",
+  "objectTypes": [
+    { "id": "person", "name": "Person", "kind": "entity", "refMode": "nr" },
+    { "id": "company", "name": "Company", "kind": "entity", "refMode": "name" }
+  ],
+  "factTypes": [
+    {
+      "id": "works",
+      "roles": [
+        { "id": "works.r0", "objectTypeId": "person" },
+        { "id": "works.r1", "objectTypeId": "company" }
+      ],
+      "readings": [
+        {
+          "id": "works.rd",
+          "roleOrder": ["works.r0", "works.r1"],
+          "text": "{0} works for {1}",
+          "isPrimary": true
+        },
+        {
+          "id": "works.rd2",
+          "roleOrder": ["works.r1", "works.r0"],
+          "text": "{0} employs {1}"
+        }
+      ],
+      "population": [
+        { "values": ["101", "Acme"] },
+        { "values": ["102", "Acme"] },
+        { "values": ["103", "Globex"] }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    { "id": "uc-works", "kind": "uniqueness", "roles": ["works.r0"] },
+    { "id": "mc-works", "kind": "mandatory", "roles": ["works.r0"] }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": { "x": 40, "y": 60 },
+      "company": { "x": 300, "y": 60 },
+      "works": { "x": 196, "y": 68, "orientation": "horizontal" }
+    }
+  }
+}

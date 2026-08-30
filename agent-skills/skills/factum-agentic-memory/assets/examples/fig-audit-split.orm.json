@@ -1,0 +1,326 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "The same event, split into elementary facts",
+  "objectTypes": [
+    {
+      "id": "event",
+      "name": "AuditEvent",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "actor",
+      "name": "Actor",
+      "kind": "entity",
+      "refMode": "id"
+    },
+    {
+      "id": "action",
+      "name": "Action",
+      "kind": "entity",
+      "refMode": "name"
+    },
+    {
+      "id": "resource",
+      "name": "Resource",
+      "kind": "entity",
+      "refMode": "urn"
+    },
+    {
+      "id": "at",
+      "name": "Instant",
+      "kind": "value",
+      "dataType": "dateTime"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "byActor",
+      "roles": [
+        {
+          "id": "byActor.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "byActor.r1",
+          "objectTypeId": "actor"
+        }
+      ],
+      "readings": [
+        {
+          "id": "byActor.rd",
+          "roleOrder": [
+            "byActor.r0",
+            "byActor.r1"
+          ],
+          "text": "{0} was performed by {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "agent-7"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "agent-7"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "agent-7"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "agent-7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ofAction",
+      "roles": [
+        {
+          "id": "ofAction.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "ofAction.r1",
+          "objectTypeId": "action"
+        }
+      ],
+      "readings": [
+        {
+          "id": "ofAction.rd",
+          "roleOrder": [
+            "ofAction.r0",
+            "ofAction.r1"
+          ],
+          "text": "{0} performed {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "run.start"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "db.read"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "db.write"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "run.end"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onResource",
+      "roles": [
+        {
+          "id": "onResource.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "onResource.r1",
+          "objectTypeId": "resource"
+        }
+      ],
+      "readings": [
+        {
+          "id": "onResource.rd",
+          "roleOrder": [
+            "onResource.r0",
+            "onResource.r1"
+          ],
+          "text": "{0} acted on {1}",
+          "isPrimary": true
+        }
+      ],
+      "meta": {
+        "description": "Optional, and deliberately so: run.start and run.end act on no resource. The sample population contains both kinds."
+      },
+      "population": [
+        {
+          "values": [
+            "e-2",
+            "urn:db:customers"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "urn:db:orders"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "occurredAt",
+      "roles": [
+        {
+          "id": "occurredAt.r0",
+          "objectTypeId": "event"
+        },
+        {
+          "id": "occurredAt.r1",
+          "objectTypeId": "at"
+        }
+      ],
+      "readings": [
+        {
+          "id": "occurredAt.rd",
+          "roleOrder": [
+            "occurredAt.r0",
+            "occurredAt.r1"
+          ],
+          "text": "{0} occurred at {1}",
+          "isPrimary": true
+        }
+      ],
+      "population": [
+        {
+          "values": [
+            "e-1",
+            "2026-03-02T09:00:00Z"
+          ]
+        },
+        {
+          "values": [
+            "e-2",
+            "2026-03-02T09:00:04Z"
+          ]
+        },
+        {
+          "values": [
+            "e-3",
+            "2026-03-02T09:00:09Z"
+          ]
+        },
+        {
+          "values": [
+            "e-4",
+            "2026-03-02T09:00:11Z"
+          ]
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "u1",
+      "kind": "uniqueness",
+      "roles": [
+        "byActor.r0"
+      ]
+    },
+    {
+      "id": "m1",
+      "kind": "mandatory",
+      "roles": [
+        "byActor.r0"
+      ]
+    },
+    {
+      "id": "u2",
+      "kind": "uniqueness",
+      "roles": [
+        "ofAction.r0"
+      ]
+    },
+    {
+      "id": "m2",
+      "kind": "mandatory",
+      "roles": [
+        "ofAction.r0"
+      ]
+    },
+    {
+      "id": "u3",
+      "kind": "uniqueness",
+      "roles": [
+        "onResource.r0"
+      ]
+    },
+    {
+      "id": "u4",
+      "kind": "uniqueness",
+      "roles": [
+        "occurredAt.r0"
+      ]
+    },
+    {
+      "id": "m4",
+      "kind": "mandatory",
+      "roles": [
+        "occurredAt.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "event": {
+        "x": 40,
+        "y": 190
+      },
+      "actor": {
+        "x": 470,
+        "y": 30
+      },
+      "action": {
+        "x": 470,
+        "y": 140
+      },
+      "resource": {
+        "x": 470,
+        "y": 250
+      },
+      "at": {
+        "x": 470,
+        "y": 360
+      },
+      "byActor": {
+        "x": 250,
+        "y": 38,
+        "orientation": "horizontal"
+      },
+      "ofAction": {
+        "x": 250,
+        "y": 148,
+        "orientation": "horizontal"
+      },
+      "onResource": {
+        "x": 250,
+        "y": 258,
+        "orientation": "horizontal"
+      },
+      "occurredAt": {
+        "x": 250,
+        "y": 368,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

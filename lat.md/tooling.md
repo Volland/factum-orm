@@ -30,6 +30,16 @@ The existing schema is read from SQL text — a dump, a migration — rather tha
 
 The subtlety is in reading a column type: a type can contain spaces (`double precision`, `timestamp with time zone`), so the parser cuts at the first column-constraint keyword and reads the size out of what is left, rather than stopping at the first space.
 
+## The skill pack
+
+The `agent-skills/` directory carries two skills and ten slash commands distilled from the book, and [[src/cli/skills.ts#commandSkills]] installs them into a coding agent.
+
+Nothing is converted on the way in. Claude Code and Cursor both read `<root>/skills/<name>/SKILL.md` and `<root>/commands/<name>.md`, so the only thing that differs between them is the root — `.claude` or `.cursor`, under the home directory for every project or under the working directory for one. [[src/cli/skills.ts#SKILL_TARGETS]] is that table, and `--dir` covers anything not in it.
+
+Two details are load-bearing. A skill is a *directory* — a `SKILL.md` beside the references and example models it points at — so the copy is recursive or the skill arrives broken. And an install never overwrites: a user may have edited a skill, so what is already there is reported and left, and `--force` is the way to say otherwise.
+
+The pack is ordinary markdown in the repository rather than a generated artifact, which is why it also works as a Claude Code plugin directory as it stands.
+
 ## The MCP server
 
 [[src/mcp/server.ts#createServer]] exposes the model to an agent as tools over stdio.

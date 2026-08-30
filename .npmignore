@@ -1,11 +1,11 @@
 # The npm package ships the built CLI and MCP server, not the sources.
-src/
-test/
-out-test/
-docs/
-examples/
-lat.md/
-openspec/
+/src/
+/test/
+/out-test/
+/docs/
+/examples/
+/lat.md/
+/openspec/
 .claude/
 .omc/
 .github/
@@ -17,5 +17,5 @@ tsconfig*.json
 .mcp.json
 CLAUDE.md
 PUBLISHING.md
-scripts/
+/scripts/
 .vscodeignore

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "Subtyping",
+  "objectTypes": [
+    {
+      "id": "person",
+      "name": "Person",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "student",
+      "name": "Student",
+      "kind": "entity"
+    },
+    {
+      "id": "subject",
+      "name": "Subject",
+      "kind": "entity",
+      "refMode": "code"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "enrolled",
+      "roles": [
+        {
+          "id": "enrolled.r0",
+          "objectTypeId": "student"
+        },
+        {
+          "id": "enrolled.r1",
+          "objectTypeId": "subject"
+        }
+      ],
+      "readings": [
+        {
+          "id": "enrolled.rd",
+          "roleOrder": [
+            "enrolled.r0",
+            "enrolled.r1"
+          ],
+          "text": "{0} is enrolled in {1}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [
+    {
+      "id": "st",
+      "subtypeId": "student",
+      "supertypeId": "person",
+      "isPreferredIdentificationPath": true
+    }
+  ],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "enrolled.r0",
+        "enrolled.r1"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "person": {
+        "x": 60,
+        "y": 30
+      },
+      "student": {
+        "x": 60,
+        "y": 170
+      },
+      "subject": {
+        "x": 330,
+        "y": 170
+      },
+      "enrolled": {
+        "x": 220,
+        "y": 178,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}

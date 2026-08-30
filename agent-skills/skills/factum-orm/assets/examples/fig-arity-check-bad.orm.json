@@ -1,0 +1,87 @@
+{
+  "$schema": "https://www.factum-orm.com/schema/orm-model-2.schema.json",
+  "version": 2,
+  "name": "A ternary that should be split",
+  "objectTypes": [
+    {
+      "id": "academic",
+      "name": "Academic",
+      "kind": "entity",
+      "refMode": "nr"
+    },
+    {
+      "id": "rank",
+      "name": "Rank",
+      "kind": "entity",
+      "refMode": "code"
+    },
+    {
+      "id": "dept",
+      "name": "Dept",
+      "kind": "entity",
+      "refMode": "name"
+    }
+  ],
+  "factTypes": [
+    {
+      "id": "rankdept",
+      "roles": [
+        {
+          "id": "rankdept.r0",
+          "objectTypeId": "academic"
+        },
+        {
+          "id": "rankdept.r1",
+          "objectTypeId": "rank"
+        },
+        {
+          "id": "rankdept.r2",
+          "objectTypeId": "dept"
+        }
+      ],
+      "readings": [
+        {
+          "id": "rankdept.rd",
+          "roleOrder": [
+            "rankdept.r0",
+            "rankdept.r1",
+            "rankdept.r2"
+          ],
+          "text": "{0} of {1} works for {2}",
+          "isPrimary": true
+        }
+      ]
+    }
+  ],
+  "subtypeRelations": [],
+  "constraints": [
+    {
+      "id": "uc",
+      "kind": "uniqueness",
+      "roles": [
+        "rankdept.r0"
+      ]
+    }
+  ],
+  "diagram": {
+    "shapes": {
+      "academic": {
+        "x": 40,
+        "y": 100
+      },
+      "rank": {
+        "x": 330,
+        "y": 30
+      },
+      "dept": {
+        "x": 330,
+        "y": 170
+      },
+      "rankdept": {
+        "x": 210,
+        "y": 108,
+        "orientation": "horizontal"
+      }
+    }
+  }
+}
