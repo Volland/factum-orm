@@ -41,13 +41,13 @@ Usage
   factum convert <input> [-o output] [--to norma|fbm|ossie|ums]
   factum derive <table.csv> [--name Employee] [--delimiter ,] [-o model.orm.json]
   factum skills list
-  factum skills install [--target claude|cursor] [--global|--local] [--dir <path>]
+  factum skills install [--target claude|cursor|codex|opencode] [--global|--local] [--dir <path>]
 
 Options
   --exit-code   exit 1 when there is something to report, for use in CI
   --strict      treat warnings as errors
   -o, --output  write to a file instead of standard output
-  --target      which agent to install skills for: claude, cursor
+  --target      which agent to install skills for: claude, cursor, codex, opencode
   --global      install for every project; --local for this one only
   --force       replace skills and commands that are already installed
   --dry-run     report what would be installed without writing anything

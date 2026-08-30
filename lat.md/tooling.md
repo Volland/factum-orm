@@ -34,7 +34,9 @@ The subtlety is in reading a column type: a type can contain spaces (`double pre
 
 The `agent-skills/` directory carries two skills and ten slash commands distilled from the book, and [[src/cli/skills.ts#commandSkills]] installs them into a coding agent.
 
-Nothing is converted on the way in. Claude Code and Cursor both read `<root>/skills/<name>/SKILL.md` and `<root>/commands/<name>.md`, so the only thing that differs between them is the root — `.claude` or `.cursor`, under the home directory for every project or under the working directory for one. [[src/cli/skills.ts#SKILL_TARGETS]] is that table, and `--dir` covers anything not in it.
+Nothing is converted on the way in. Claude Code, Cursor, the Codex CLI and OpenCode all read `<root>/skills/<name>/SKILL.md`, so what differs is the root and whether the slash commands travel with the skills. [[src/cli/skills.ts#SKILL_TARGETS]] is that table, and `--dir` covers anything not in it.
+
+Two entries in it are not what they look like. OpenCode is configured under `~/.config/opencode` rather than `~/.opencode`, which is where its binary lives; and Cursor reserves `~/.cursor/skills-cursor` for the skills it ships itself, so a personal skill belongs in `~/.cursor/skills`. Only Claude Code and Cursor read the pack's slash commands, and for the other two the commands are left out rather than written somewhere nothing reads — the same procedures are in the skills.
 
 Two details are load-bearing. A skill is a *directory* — a `SKILL.md` beside the references and example models it points at — so the copy is recursive or the skill arrives broken. And an install never overwrites: a user may have edited a skill, so what is already there is reported and left, and `--force` is the way to say otherwise.
 

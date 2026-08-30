@@ -2,9 +2,9 @@
  * `factum skills` — installs the bundled skill pack into a coding agent.
  *
  * The pack is plain markdown: a `SKILL.md` per skill with its references and
- * example models beside it, and one file per slash command. Claude Code and
- * Cursor both read that layout, so nothing is converted on the way in; the only
- * thing that differs between them is which directory to write to.
+ * example models beside it, and one file per slash command. Every agent here
+ * reads that skill layout, so nothing is converted on the way in; what differs
+ * is the directory to write to, and whether the slash commands travel too.
  */
 
 import { cpSync, existsSync, mkdirSync, readdirSync, readSync, statSync } from 'node:fs';
@@ -20,14 +20,24 @@ export interface SkillArgs {
 export interface SkillTarget {
   id: string;
   label: string;
-  /** The agent's configuration directory, under `$HOME` or the project root. */
-  root: string;
+  /** Configuration directory under `$HOME`, for an install covering every project. */
+  global: string;
+  /** Configuration directory under the working directory, for one project. */
+  local: string;
+  /**
+   * Whether the agent reads the pack's slash commands as well as its skills.
+   * Where it does not, only the skills are installed — they carry the same
+   * procedures, and inventing a commands directory would install nothing.
+   */
+  commands: boolean;
   /** What to tell the user once the files are in place. */
   note: string;
 }
 
 /**
- * Both agents read `<root>/skills/<name>/SKILL.md` and `<root>/commands/<name>.md`.
+ * Every one of these reads `<root>/skills/<name>/SKILL.md`, which is why the
+ * pack is copied rather than converted. Only the root differs, and OpenCode's
+ * is not simply `~/.opencode` — that is where its binary lives.
  *
  * Cursor's own built-in `create-skill` skill documents `~/.cursor/skills` and
  * `.cursor/skills`, and reserves `~/.cursor/skills-cursor` for skills it manages
@@ -37,14 +47,34 @@ export const SKILL_TARGETS: SkillTarget[] = [
   {
     id: 'claude',
     label: 'Claude Code',
-    root: '.claude',
+    global: '.claude',
+    local: '.claude',
+    commands: true,
     note: 'Commands are /orm-model, /orm-review and so on; the skills load themselves when a task mentions ORM, FORML or agent memory.',
   },
   {
     id: 'cursor',
     label: 'Cursor',
-    root: '.cursor',
+    global: '.cursor',
+    local: '.cursor',
+    commands: true,
     note: 'Restart Cursor, or reload the window, before the new skills are offered.',
+  },
+  {
+    id: 'codex',
+    label: 'Codex CLI',
+    global: '.codex',
+    local: '.codex',
+    commands: false,
+    note: 'The skills load themselves when a task mentions ORM, FORML or agent memory. The pack\'s slash commands are Claude Code and Cursor specific, so they were not installed; the same procedures are in the skills.',
+  },
+  {
+    id: 'opencode',
+    label: 'OpenCode',
+    global: '.config/opencode',
+    local: '.opencode',
+    commands: false,
+    note: 'The skills load themselves when a task mentions ORM, FORML or agent memory. The pack\'s slash commands are Claude Code and Cursor specific, so they were not installed; the same procedures are in the skills.',
   },
 ];
 
@@ -86,14 +116,16 @@ function planFor(pack: string, target: SkillTarget, root: string): Plan {
     if (!statSync(from).isDirectory()) continue;
     entries.push({ from, to: join(root, 'skills', name), name, kind: 'skill' });
   }
-  for (const name of listDir(join(pack, 'commands'))) {
-    if (!name.endsWith('.md')) continue;
-    entries.push({
-      from: join(pack, 'commands', name),
-      to: join(root, 'commands', name),
-      name: name.replace(/\.md$/, ''),
-      kind: 'command',
-    });
+  if (target.commands) {
+    for (const name of listDir(join(pack, 'commands'))) {
+      if (!name.endsWith('.md')) continue;
+      entries.push({
+        from: join(pack, 'commands', name),
+        to: join(root, 'commands', name),
+        name: name.replace(/\.md$/, ''),
+        kind: 'command',
+      });
+    }
   }
   return { label: target.label, root, entries };
 }
@@ -134,24 +166,26 @@ function chooseDestination(args: SkillArgs): { target: SkillTarget; root: string
   if (typeof dir === 'string') return { target, root: resolve(dir) };
 
   if (typeof wanted === 'string' || global || local) {
-    const root = local ? join(process.cwd(), target.root) : join(homedir(), target.root);
+    const root = local ? join(process.cwd(), target.local) : join(homedir(), target.global);
     return { target, root };
   }
 
   if (!process.stdin.isTTY) {
-    return 'Nothing to install into. Pass --target claude|cursor with --global or --local, or --dir <path>.';
+    const ids = SKILL_TARGETS.map((t) => t.id).join('|');
+    return `Nothing to install into. Pass --target ${ids} with --global or --local, or --dir <path>.`;
   }
 
-  const choices: { target: SkillTarget; root: string; where: string }[] = [];
+  const choices: { target: SkillTarget; root: string; where: string; scope: string }[] = [];
   for (const t of SKILL_TARGETS) {
-    choices.push({ target: t, root: join(homedir(), t.root), where: `~/${t.root}` });
-    choices.push({ target: t, root: join(process.cwd(), t.root), where: `./${t.root}` });
+    choices.push({ target: t, root: join(homedir(), t.global), where: `~/${t.global}`, scope: 'all your projects' });
+    choices.push({ target: t, root: join(process.cwd(), t.local), where: `./${t.local}`, scope: 'this project only' });
   }
+  const column = Math.max(...choices.map((c) => c.where.length));
   process.stdout.write('\nWhere should the Factum skills go?\n\n');
   choices.forEach((choice, index) => {
-    const scope = choice.where.startsWith('~') ? 'all your projects' : 'this project only';
+    const number = String(index + 1).padStart(2);
     process.stdout.write(
-      `  ${index + 1}) ${choice.target.label.padEnd(12)} ${choice.where.padEnd(10)} ${scope}\n`,
+      `  ${number}) ${choice.target.label.padEnd(12)} ${choice.where.padEnd(column)}  ${choice.scope}\n`,
     );
   });
   const answer = ask(`\nChoose 1-${choices.length}, or anything else to cancel: `);

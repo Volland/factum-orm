@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { run } from '../src/cli/main.js';
+import { SKILL_TARGETS } from '../src/cli/skills.js';
 import { createServer } from '../src/mcp/server.js';
 import { serializeModel } from '../src/model/model.js';
 import { sampleModel } from '../src/model/sample.js';
@@ -56,6 +57,30 @@ test('installing the skill pack copies a skill with its references and assets', 
   assert.ok(existsSync(join(target, 'skills', 'factum-orm', 'references', 'csdp.md')));
   assert.ok(existsSync(join(target, 'skills', 'factum-orm', 'assets', 'starter.orm.json')));
   assert.ok(existsSync(join(target, 'commands', 'orm-model.md')));
+});
+
+// @lat: [[tests#Command line#Each agent gets the layout it reads]]
+test('an agent that does not read the slash commands gets only the skills', () => {
+  const target = mkdtempSync(join(tmpdir(), 'factum-skills-'));
+  const { code, out } = capture(['skills', 'install', '--target', 'codex', '--dir', target]);
+  assert.equal(code, 0);
+  assert.match(out, /Installed 2 of 2/);
+  assert.ok(existsSync(join(target, 'skills', 'factum-orm', 'SKILL.md')));
+  // Writing commands into a directory the agent never reads installs nothing.
+  assert.ok(!existsSync(join(target, 'commands')));
+});
+
+// @lat: [[tests#Command line#OpenCode is not configured under its own dot directory]]
+test('the target table keeps each agent\'s real configuration directory', () => {
+  const byId = Object.fromEntries(SKILL_TARGETS.map((t) => [t.id, t]));
+  assert.deepEqual(Object.keys(byId).sort(), ['claude', 'codex', 'cursor', 'opencode']);
+  // ~/.opencode is where the binary lives; the configuration is elsewhere.
+  assert.equal(byId.opencode.global, '.config/opencode');
+  assert.equal(byId.opencode.local, '.opencode');
+  // Cursor reserves ~/.cursor/skills-cursor for skills it manages itself.
+  assert.equal(byId.cursor.global, '.cursor');
+  assert.ok(byId.claude.commands && byId.cursor.commands);
+  assert.ok(!byId.codex.commands && !byId.opencode.commands);
 });
 
 // @lat: [[tests#Command line#An installed skill is not overwritten unasked]]

@@ -193,9 +193,17 @@ factum skills install            # asks which agent, and whether globally or her
 factum skills list               # what is in the pack
 ```
 
-Claude Code and Cursor are both offered, globally or for the current project; `--target claude`,
-`--global`/`--local` and `--dir <path>` skip the question. Nothing already installed is overwritten
-unless you pass `--force`. The pack is plain markdown in
+| Agent | Skills install to | Slash commands |
+| --- | --- | --- |
+| Claude Code | `~/.claude/skills` or `./.claude/skills` | yes |
+| Cursor | `~/.cursor/skills` or `./.cursor/skills` | yes |
+| Codex CLI | `~/.codex/skills` or `./.codex/skills` | skills only |
+| OpenCode | `~/.config/opencode/skills` or `./.opencode/skills` | skills only |
+
+`--target <agent>`, `--global`/`--local` and `--dir <path>` skip the question. Nothing already
+installed is overwritten unless you pass `--force`. Codex and OpenCode read the skills but not the
+pack's slash commands, so those are left out rather than written where nothing reads them; the same
+procedures are in the skills either way. The pack is plain markdown in
 [`agent-skills/`](agent-skills/), so it also works as a Claude Code plugin directory as it stands.
 
 ## Quick start

@@ -320,6 +320,14 @@ Covers the `factum` binary and the MCP server, described in [[tooling#Tooling#Th
 
 A skill is a directory of a `SKILL.md` with its references and example models, so the install has to be recursive; a file-only copy leaves a skill pointing at references that are not there.
 
+### Each agent gets the layout it reads
+
+An agent that reads skills but not the pack's slash commands gets only the skills, because writing commands into a directory it never reads installs nothing while looking like it worked.
+
+### OpenCode is not configured under its own dot directory
+
+The target table is checked against the directories each agent actually uses: OpenCode's configuration is `~/.config/opencode` and `~/.opencode` is where its binary lives, and Cursor reserves `~/.cursor/skills-cursor` for skills it manages itself.
+
 ### An installed skill is not overwritten unasked
 
 A second install reports what is already in place and leaves it, because a user may have edited it. `--force` replaces.
