@@ -172,6 +172,14 @@ The exported document has types with labels, primary keys, properties and relati
 
 Importing UMS produces a usable model and warns that the attributes have already been formed. The warning matters more than the model: what comes back is the shape of the data, not the elementary facts behind it.
 
+### An FBM page names a value type as a value type
+
+Each page instance carries the concept type of what it draws, so a value type is written as `ValueType` rather than as an entity, and a fact type instance carries the name its `FactType` element was written under rather than an internal id.
+
+### An FBM page instance that is not a shape is skipped
+
+A page draws reading text, fact type names, role names and constraint markers as instances of their own. Only the ones naming an object or fact type become shapes, so an invisible marker at the origin cannot overwrite the position of what it labels.
+
 ### A NORMA unary is stated against an implicit boolean
 
 NORMA writes a unary fact type as a binary against a value type flagged `IsImplicitBooleanValue`.

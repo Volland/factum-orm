@@ -520,15 +520,31 @@ function importDiagram(root: XmlNode, model: OrmModel, warnings: string[]): void
   // so it is only carried when it looks like a BCP 47 tag.
   if (language && /^[a-z]{2}(-[A-Za-z0-9]+)*$/.test(language)) model.lang = language;
 
-  const byName = new Map<string, Id>();
-  for (const ot of model.objectTypes) byName.set(ot.name, ot.id);
+  // A page draws more than the model holds shapes for — reading text, fact type
+  // names, role names and constraint markers each get an instance of their own.
+  // Taking all of them made a shape out of every one, and let an invisible
+  // marker at the origin overwrite the position of the thing it belongs to.
+  const objectTypesByName = new Map<string, Id>();
+  for (const ot of model.objectTypes) objectTypesByName.set(ot.name, ot.id);
+  const factTypesByName = new Map<string, Id>();
+  for (const ft of model.factTypes) factTypesByName.set(fbmFactTypeName(ft, model), ft.id);
 
   for (const wrapper of list(page.ConceptInstance)) {
     for (const node of list((wrapper as XmlNode).ConceptInstance)) {
       const shape = node as XmlNode;
       const symbol = str(shape['@Symbol']);
       if (!symbol) continue;
-      const id = byName.get(symbol) ?? symbol;
+      const conceptType = str(shape['@ConceptType']);
+      let id: Id | undefined;
+      if (conceptType === 'ValueType' || conceptType === 'EntityType') {
+        id = objectTypesByName.get(symbol);
+      } else if (conceptType === 'FactType') {
+        id = factTypesByName.get(symbol);
+      } else if (!conceptType) {
+        // A page that names no concept type is matched by name alone.
+        id = objectTypesByName.get(symbol) ?? factTypesByName.get(symbol);
+      }
+      if (!id) continue;
       const x = num(shape['@X']);
       const y = num(shape['@Y']);
       if (x === undefined || y === undefined) continue;
@@ -660,17 +676,25 @@ function entityTypeNode(ot: ObjectType, model: OrmModel): XmlNode {
   };
 }
 
+/**
+ * The name a fact type is written under. The page's `Symbol` has to agree with
+ * it, because that is how a reader matches a shape to what it draws.
+ */
+function fbmFactTypeName(ft: FactType, model: OrmModel): string {
+  const reading = primaryReading(ft);
+  return pascalCase(reading ? readingName(ft, reading, model) : ft.id);
+}
+
 function factTypeNode(
   ft: FactType,
   model: OrmModel,
   mandatoryRoles: Set<Id>,
   objectifiedBy: Map<Id, Id>,
 ): XmlNode {
-  const reading = primaryReading(ft);
   return {
     '@Id': ft.id,
     '@GUID': ft.meta?.guid ?? '',
-    '@Name': pascalCase(reading ? readingName(ft, reading, model) : ft.id),
+    '@Name': fbmFactTypeName(ft, model),
     '@DBName': ft.hints?.relational?.tableName ?? '',
     '@ObjectifyingEntityTypeId': objectifiedBy.get(ft.id) ?? '',
     '@IsObjectified': String(objectifiedBy.has(ft.id)),
@@ -876,16 +900,34 @@ function synonymNodes(model: OrmModel): XmlNode[] {
   return nodes;
 }
 
+/**
+ * A page instance names what it draws by symbol and concept type. A value type
+ * is `ValueType` and not `EntityType`; an objectified type is drawn as the
+ * entity it is, which is what Boston writes beside the fact type's own instance.
+ */
+function conceptInstanceOf(model: OrmModel): Map<Id, { symbol: string; conceptType: string }> {
+  const byId = new Map<Id, { symbol: string; conceptType: string }>();
+  for (const ot of model.objectTypes) {
+    byId.set(ot.id, { symbol: ot.name, conceptType: ot.kind === 'value' ? 'ValueType' : 'EntityType' });
+  }
+  for (const ft of model.factTypes) {
+    byId.set(ft.id, { symbol: fbmFactTypeName(ft, model), conceptType: 'FactType' });
+  }
+  return byId;
+}
+
 function pageNode(model: OrmModel): XmlNode {
-  const byId = new Map<Id, string>();
-  for (const ot of model.objectTypes) byId.set(ot.id, ot.name);
+  const byId = conceptInstanceOf(model);
   const instances: XmlNode[] = [];
   let n = 0;
   for (const [id, shape] of Object.entries(model.diagram.shapes)) {
+    const concept = byId.get(id);
+    // A shape for something the model no longer holds has nothing to name.
+    if (!concept) continue;
     n += 1;
     instances.push({
-      '@Symbol': byId.get(id) ?? id,
-      '@ConceptType': byId.has(id) ? 'EntityType' : 'FactType',
+      '@Symbol': concept.symbol,
+      '@ConceptType': concept.conceptType,
       '@RoleId': 'NotUsed',
       '@X': String(Math.round(shape.x)),
       '@Y': String(Math.round(shape.y)),

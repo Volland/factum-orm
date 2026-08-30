@@ -102,6 +102,8 @@ Two shapes do not line up one-to-one and are where the module spends its effort.
 
 Boston writes `<ORMModel>` and newer exports write `<FBMModel>`; both appear in the metamodel repository's own examples, so both are read.
 
+The page is the third mismatch. FBM draws more than Factum keeps shapes for — an instance each for reading text, fact type names, role names and constraint markers, several sharing one symbol — so import matches on `ConceptType` and keeps only what names an object or fact type, rather than letting an invisible marker at the origin overwrite the position of the thing it labels. Export goes the same way through [[src/io/fbm.ts#conceptInstanceOf]]: a value type is written as `ValueType` and not as an entity, and a fact type instance carries the name [[src/io/fbm.ts#fbmFactTypeName]] wrote its `FactType` element under, which is how a reader matches a shape to what it draws.
+
 ### Ossie
 
 [[src/io/ossie.ts#importOssieFile]] and [[src/io/ossie.ts#exportOssieFile]] convert the ontology section, which is conceptual and close to term-for-term with ORM.

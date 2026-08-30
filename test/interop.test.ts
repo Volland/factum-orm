@@ -205,6 +205,64 @@ const FBM_SUBTYPE = `<?xml version="1.0" encoding="utf-8"?>
   </ORMModel>
 </Model>`;
 
+// @lat: [[tests#Interchange#An FBM page names a value type as a value type]]
+test('an exported FBM page names each shape by its own concept type', () => {
+  const model = sampleModel();
+  const { text } = exportFbmFile(model);
+  const instances = [...text.matchAll(/<ConceptInstance Symbol="([^"]*)" ConceptType="([^"]*)"/g)].map(
+    (m) => [m[1], m[2]],
+  );
+
+  // The bug this guards: every object type was written as an EntityType, so a
+  // reader drew value types as entities.
+  assert.deepEqual(
+    instances.find(([symbol]) => symbol === 'GenderCode'),
+    ['GenderCode', 'ValueType'],
+  );
+  assert.deepEqual(
+    instances.find(([symbol]) => symbol === 'Person'),
+    ['Person', 'EntityType'],
+  );
+
+  // A fact type instance has to carry the name the FactType element was written
+  // under, not an internal id, or nothing can match the shape to what it draws.
+  const factNames = [...text.matchAll(/<FactType Id="[^"]*" GUID="[^"]*" Name="([^"]*)"/g)].map((m) => m[1]);
+  const drawnFacts = instances.filter(([, kind]) => kind === 'FactType').map(([symbol]) => symbol);
+  assert.ok(drawnFacts.length, 'no fact type was drawn');
+  for (const symbol of drawnFacts) {
+    assert.ok(factNames.includes(symbol), `${symbol} names no exported fact type`);
+  }
+});
+
+// @lat: [[tests#Interchange#An FBM page instance that is not a shape is skipped]]
+test('page instances for constraints and reading text do not become shapes', () => {
+  const { model } = importFbmFile(`<?xml version="1.0" encoding="utf-8"?>
+<Model XSDVersionNr="1.7">
+  <ORMModel Name="Draw" ModelId="_M">
+    <ValueTypes>
+      <ValueType Id="Code" Name="Code" DataType="TextVariableLength"/>
+    </ValueTypes>
+    <EntityTypes>
+      <EntityType Id="Person" Name="Person"/>
+    </EntityTypes>
+  </ORMModel>
+  <ORMDiagram>
+    <Page Id="_P" Name="ORMModel1" Language="ORMModel">
+      <ConceptInstance>
+        <ConceptInstance Symbol="Person" ConceptType="EntityType" X="137" Y="54" Visible="true"/>
+        <ConceptInstance Symbol="Code" ConceptType="ValueType" X="216" Y="49" Visible="true"/>
+        <ConceptInstance Symbol="InternalUniquenessConstraint6" ConceptType="RoleConstraint" X="0" Y="0" Visible="false"/>
+        <ConceptInstance Symbol="Person" ConceptType="FactTypeName" X="0" Y="0" Visible="false"/>
+      </ConceptInstance>
+    </Page>
+  </ORMDiagram>
+</Model>`);
+
+  assert.deepEqual(Object.keys(model.diagram.shapes).sort(), ['Code', 'Person']);
+  // A marker at the origin must not overwrite the position of what it labels.
+  assert.deepEqual(model.diagram.shapes.Person, { x: 137, y: 54 });
+});
+
 // @lat: [[tests#Interchange#An FBM subtype fact type takes its constraints with it]]
 test('constraints over a skipped FBM subtype fact type are dropped with it', () => {
   const { model } = importFbmFile(FBM_SUBTYPE);
