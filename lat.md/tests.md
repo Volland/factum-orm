@@ -128,6 +128,24 @@ The exported XML contains `Mandatory="true"`, not a bare `Mandatory` flag. The X
 
 `ManyToOne` produces a uniqueness constraint over every role but the last, `OneToOne` adds the reverse, and a relationship named in `identify_by` gets a preferred identifier. A relationship with no multiplicity stays many-to-many.
 
+### Ossie reads a nested concept block
+
+An ontology entry may inline its concept name (`concept: Cinema`) or nest it with its attributes under a `concept` block, as FactEngine writes it. Both import to the same model, with keys left null throughout treated as absent.
+
+### An Ossie preferred identifier is a reference scheme
+
+A concept whose `identify_by` names a one-to-one binary gets its preferred identifier on the constraint over the roles opposite it.
+
+That is where the rest of the model looks for one; placed anywhere else, the concept validates as having no reference scheme.
+
+### Ossie reports an identifier it cannot carry
+
+`identify_by` naming a relationship that is not a one-to-one binary — a composite or external identifier the format states no other way — is reported as a warning rather than marked in a place nothing reads.
+
+### Ossie reports external identification
+
+`identify_by` naming a relationship declared on another concept is external identification, which ORM states as an external uniqueness constraint the importer does not build. The loss is warned about rather than dropped silently.
+
 ### Ossie extends resolves data types and subtyping
 
 `Salary extends NrDollars extends Decimal` gives Salary a decimal data type, and `extends` naming a declared concept subtypes it while naming a built-in does not.
@@ -153,6 +171,24 @@ The exported document has types with labels, primary keys, properties and relati
 ### UMS import warns that it is a logical schema
 
 Importing UMS produces a usable model and warns that the attributes have already been formed. The warning matters more than the model: what comes back is the shape of the data, not the elementary facts behind it.
+
+### A NORMA unary is stated against an implicit boolean
+
+NORMA writes a unary fact type as a binary against a value type flagged `IsImplicitBooleanValue`.
+
+Neither that value type nor the role playing it is part of the model anyone drew, so both are left out and the fact type keeps the arity its reading assumes.
+
+### NORMA role proxies complete an implied fact type
+
+An implied fact type borrows a role from the fact type it objectifies, stating it as a `RoleProxy` with its own id, or as an `ObjectifiedUnaryRole`. Skipped, the fact type arrives a role short of what its readings refer to.
+
+### A subtype link takes its implied constraints with it
+
+Both NORMA and FBM state a subtype link as a fact type whose meta roles carry the mandatory and uniqueness constraints the link implies. Factum carries the link as a subtype relation, so those constraints have to go rather than dangle.
+
+### An FBM subtype fact type takes its constraints with it
+
+The same in FBM, where the duplicate fact type is flagged `IsSubtypeRelationshipFactType` and its roles are named by role constraints elsewhere in the document.
 
 ### A model survives a NORMA round trip
 

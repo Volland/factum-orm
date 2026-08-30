@@ -33,6 +33,20 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
+<h2 id="0-4-2">0.4.2</h2>
+<p>Interchange fixes, all found by running the FactEngine community&rsquo;s
+<a href="https://github.com/FactEngineCommunity/Fact-Based-Modelling-MetaModel">test models</a> &mdash;
+31 NORMA and 30 Boston files &mdash; through import, validation, verbalization and both mappings.
+None of them failed to load; they loaded into models that were quietly wrong.</p>
+<ul>
+  <li><strong>Ossie ontologies that nest their concept block now import.</strong> An entry may name its concept inline (<code>concept: Person</code>) or nest it with its attributes under <code>concept:</code>, as FactEngine writes it. Only the first form was understood, so every concept in a nested file arrived named by an <em>object</em>: no value types, no subtyping, no reference schemes, and every role unattached.</li>
+  <li><strong>An Ossie <code>identify_by</code> produces a usable preferred identifier.</strong> It was marked on the uniqueness over the concept&rsquo;s own role, where nothing looks for it, so every Ossie-imported entity type reported having no reference scheme. An <code>identify_by</code> naming something that cannot carry one is now reported rather than marked in the wrong place.</li>
+  <li><strong>NORMA role proxies are read.</strong> An implied fact type borrows a role from the fact type it objectifies and states it as a <code>RoleProxy</code>, or an <code>ObjectifiedUnaryRole</code>, carrying its own id. Both were skipped, leaving those fact types a role short of what their own readings referred to.</li>
+  <li><strong>A NORMA unary fact type stays unary.</strong> NORMA stores one as a binary against a value type flagged <code>IsImplicitBooleanValue</code>. That value type was becoming a real concept named after the reading, with a spurious role and value constraint.</li>
+  <li><strong>A subtype link no longer leaves its constraints dangling.</strong> NORMA and FBM both state one as a fact type whose meta roles carry the mandatory and uniqueness constraints the link implies; those constraints now go with the roles they name.</li>
+  <li>A <a href="ai-native.html">human-first, AI-native</a> rebrand of this site: why elementary facts are the layer language models have been missing, <a href="for-agents.html">the MCP server for agent users</a>, and two articles &mdash; <a href="llm-fact-gap.html">the fact layer itself</a> and <a href="forml-for-llms.html">FORML as a context format</a>.</li>
+</ul>
+
 <h2 id="0-4-1">0.4.1</h2>
 <ul>
   <li>The JSON Schema moved to the project&rsquo;s own domain: models now declare <code>https://www.factum-orm.com/schema/orm-model-2.schema.json</code>. The previous address still redirects, and a document naming it is upgraded on load, so nothing breaks and the ecosystem converges on one URL.</li>

@@ -78,6 +78,127 @@ const NORMA_XML = `<?xml version="1.0" encoding="utf-8"?>
   </ormDiagram:ORMDiagram>
 </ormRoot:ORM2>`;
 
+/**
+ * The shapes NORMA generates around an objectified unary, which no hand-written
+ * fixture would think to include: a unary stated as a binary against an implicit
+ * boolean value type, and an implied fact type reaching into it with a role
+ * proxy and an objectified unary role.
+ */
+const NORMA_OBJECTIFIED = `<?xml version="1.0" encoding="utf-8"?>
+<ormRoot:ORM2 xmlns:orm="http://schemas.neumont.edu/ORM/2006-04/ORMCore"
+              xmlns:ormRoot="http://schemas.neumont.edu/ORM/2006-04/ORMRoot">
+  <orm:ORMModel id="_M2" Name="Births">
+    <orm:Objects>
+      <orm:EntityType id="_Person" Name="Person"/>
+      <orm:EntityType id="_Parent" Name="Parent"/>
+      <orm:ValueType id="_Bool" Name="Person was born" IsImplicitBooleanValue="true">
+        <orm:ValueRestriction>
+          <orm:ValueConstraint id="_VCBool">
+            <orm:ValueRanges><orm:ValueRange id="_VRBool" MinValue="True" MaxValue="True"/></orm:ValueRanges>
+          </orm:ValueConstraint>
+        </orm:ValueRestriction>
+      </orm:ValueType>
+      <orm:ObjectifiedType id="_Birth" Name="Birth">
+        <orm:NestedPredicate id="_NP1" ref="_FUnary"/>
+      </orm:ObjectifiedType>
+    </orm:Objects>
+    <orm:Facts>
+      <orm:Fact id="_FUnary" _Name="PersonWasBorn">
+        <orm:FactRoles>
+          <orm:Role id="_RU1"><orm:RolePlayer ref="_Person"/></orm:Role>
+          <orm:Role id="_RU2"><orm:RolePlayer ref="_Bool"/></orm:Role>
+        </orm:FactRoles>
+        <orm:ReadingOrders>
+          <orm:ReadingOrder id="_ROU">
+            <orm:RoleSequence><orm:Role ref="_RU1"/></orm:RoleSequence>
+            <orm:Readings><orm:Reading id="_RDU"><orm:Data>{0} was born</orm:Data></orm:Reading></orm:Readings>
+          </orm:ReadingOrder>
+        </orm:ReadingOrders>
+      </orm:Fact>
+      <orm:ImpliedFact id="_FImplied" _Name="PersonIsInvolvedInBirth">
+        <orm:FactRoles>
+          <orm:ObjectifiedUnaryRole id="_RI1"><orm:RolePlayer ref="_Person"/></orm:ObjectifiedUnaryRole>
+          <orm:Role id="_RI2"><orm:RolePlayer ref="_Birth"/></orm:Role>
+        </orm:FactRoles>
+        <orm:ReadingOrders>
+          <orm:ReadingOrder id="_ROI">
+            <orm:RoleSequence><orm:Role ref="_RI1"/><orm:Role ref="_RI2"/></orm:RoleSequence>
+            <orm:Readings><orm:Reading id="_RDI"><orm:Data>{0} is involved in {1}</orm:Data></orm:Reading></orm:Readings>
+          </orm:ReadingOrder>
+        </orm:ReadingOrders>
+      </orm:ImpliedFact>
+      <orm:ImpliedFact id="_FProxy" _Name="ParentIsInvolvedInBirth">
+        <orm:FactRoles>
+          <orm:RoleProxy id="_RP1"><orm:Role ref="_RU1"/></orm:RoleProxy>
+          <orm:Role id="_RP2"><orm:RolePlayer ref="_Parent"/></orm:Role>
+        </orm:FactRoles>
+        <orm:ReadingOrders>
+          <orm:ReadingOrder id="_ROP">
+            <orm:RoleSequence><orm:Role ref="_RP1"/><orm:Role ref="_RP2"/></orm:RoleSequence>
+            <orm:Readings><orm:Reading id="_RDP"><orm:Data>{0} is involved in {1}</orm:Data></orm:Reading></orm:Readings>
+          </orm:ReadingOrder>
+        </orm:ReadingOrders>
+      </orm:ImpliedFact>
+      <orm:SubtypeFact id="_SF2">
+        <orm:FactRoles>
+          <orm:SubtypeMetaRole id="_SM1"><orm:RolePlayer ref="_Parent"/></orm:SubtypeMetaRole>
+          <orm:SupertypeMetaRole id="_SM2"><orm:RolePlayer ref="_Person"/></orm:SupertypeMetaRole>
+        </orm:FactRoles>
+      </orm:SubtypeFact>
+    </orm:Facts>
+    <orm:Constraints>
+      <orm:UniquenessConstraint id="_UCBool" IsInternal="true">
+        <orm:RoleSequence><orm:Role ref="_RU2"/></orm:RoleSequence>
+      </orm:UniquenessConstraint>
+      <orm:UniquenessConstraint id="_UCSub" IsInternal="true">
+        <orm:RoleSequence><orm:Role ref="_SM1"/></orm:RoleSequence>
+      </orm:UniquenessConstraint>
+      <orm:MandatoryConstraint id="_MCSub" IsSimple="true">
+        <orm:RoleSequence><orm:Role ref="_SM2"/></orm:RoleSequence>
+      </orm:MandatoryConstraint>
+    </orm:Constraints>
+  </orm:ORMModel>
+</ormRoot:ORM2>`;
+
+// @lat: [[tests#Interchange#A NORMA unary is stated against an implicit boolean]]
+test('a unary fact type stated against an implicit boolean imports as a unary', () => {
+  const { model } = importNormaFile(NORMA_OBJECTIFIED);
+  // The implicit boolean is NORMA's encoding, not a concept anyone modelled.
+  assert.ok(!model.objectTypes.some((o) => o.id === '_Bool'), 'the implicit boolean became an object type');
+  const unary = model.factTypes.find((f) => f.id === '_FUnary')!;
+  assert.deepEqual(unary.roles.map((r) => r.id), ['_RU1']);
+  // Its value restriction and the uniqueness over its role go with it.
+  assert.ok(!model.constraints.some((c) => c.id === '_VCBool' || c.id === '_UCBool'));
+});
+
+// @lat: [[tests#Interchange#NORMA role proxies complete an implied fact type]]
+test('role proxies and objectified unary roles complete an implied fact type', () => {
+  const { model, warnings } = importNormaFile(NORMA_OBJECTIFIED);
+  assert.deepEqual(warnings, []);
+  const byId = Object.fromEntries(model.objectTypes.map((o) => [o.id, o.name]));
+
+  // An ObjectifiedUnaryRole is a role like any other; it was being skipped.
+  const implied = model.factTypes.find((f) => f.id === '_FImplied')!;
+  assert.deepEqual(implied.roles.map((r) => byId[r.objectTypeId!]).sort(), ['Birth', 'Person']);
+
+  // A proxy carries its own id and borrows the player of the role it names.
+  const proxied = model.factTypes.find((f) => f.id === '_FProxy')!;
+  const proxy = proxied.roles.find((r) => r.id === '_RP1');
+  assert.ok(proxy, 'the role proxy was skipped, leaving the reading a role short');
+  assert.equal(byId[proxy.objectTypeId!], 'Person');
+
+  // Which is what the readings were referring to all along.
+  assert.ok(!validateModel(model).some((i) => i.code === 'reading-role-order'));
+});
+
+// @lat: [[tests#Interchange#A subtype link takes its implied constraints with it]]
+test('constraints over subtype meta roles do not survive as dangling references', () => {
+  const { model } = importNormaFile(NORMA_OBJECTIFIED);
+  assert.equal(model.subtypeRelations.length, 1);
+  assert.ok(!model.constraints.some((c) => c.id === '_UCSub' || c.id === '_MCSub'));
+  assert.ok(!validateModel(model).some((i) => i.code === 'dangling-constraint-role'));
+});
+
 test('objects, reference modes and data types are imported', () => {
   const { model } = importNormaFile(NORMA_XML);
   assert.equal(model.name, 'HR');

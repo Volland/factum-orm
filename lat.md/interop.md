@@ -108,6 +108,10 @@ Boston writes `<ORMModel>` and newer exports write `<FBMModel>`; both appear in 
 
 Three conversions carry the weight. A relationship is grouped under the concept playing its first role, so export buckets fact types by the player of their primary reading's first role. `multiplicity: ManyToOne` is uniqueness over every role but the last, and `OneToOne` adds the reverse. And `verbalizes` names its placeholders by concept — `{Person} works for {Company}` — so both directions match placeholders to roles by player name, falling back to the role name when a concept plays more than one.
 
+An ontology entry names its concept in one of two ways, and both are in the wild: the specification's examples inline the name and its attributes on the entry, while FactEngine nests them under a `concept` block and keeps `relationships` outside it. [[src/io/ossie.ts#normalizeEntry]] flattens either into one shape before anything else runs, and rejects an entry naming nothing rather than importing a concept named by an object. Export writes the inline form.
+
+A preferred identifier is the awkward one. `identify_by` names a relationship, but the constraint the rest of the model looks for sits over the roles *opposite* the concept being identified — "each PersonNr identifies at most one Person". That constraint only exists for a one-to-one binary, so [[src/io/ossie.ts#applyMultiplicity]] marks it there and warns about anything else `identify_by` names, rather than flagging a constraint nothing reads as preferred.
+
 Built-in concepts are implicit in every ontology. Import materialises one only when something plays it, and export leaves them out again — otherwise `extends: [Integer]` would come back as a subtype link.
 
 ### UMS
@@ -122,6 +126,10 @@ Built-in concepts are implicit in every ontology. Import materialises one only w
 
 The one structural trap is value constraints: NORMA nests them under the object type or the role in a `ValueRestriction`, not in `<Constraints>` with everything else, so that is where they are written. Diagram geometry is not written at all — NORMA's diagram section carries shape state well beyond position, and a partial one is worse than none.
 
+Reading a NORMA file means undoing three encodings that are internal to the tool rather than part of the model. A **unary fact type** is stored as a binary against a value type flagged `IsImplicitBooleanValue`, so [[src/io/normaImport.ts#implicitBooleanValueTypes]] finds those and [[src/io/normaImport.ts#importFact]] leaves out both the value type and the role playing it. An **implied fact type** borrows a role from the fact type it objectifies, stating it as a `RoleProxy` with its own id or as an `ObjectifiedUnaryRole`; a proxy's player comes from the role it names, which is why [[src/io/normaImport.ts#collectRolePlayers]] runs over the whole document first. And a **subtype link** is a fact type whose meta roles carry the mandatory and uniqueness constraints the link implies.
+
+Each of those leaves roles behind that the model never gets, so both importers gather them and [[src/io/interop.ts#dropConstraintsOverRoles]] takes their constraints with them. Anything else dangling is a real fault and is left for the validator to report.
+
 ## Fidelity
 
 What each converter keeps is a property of the formats, not of the effort spent, and it is worth stating plainly rather than discovering.
@@ -130,4 +138,4 @@ FBM and NORMA are conceptual and round-trip the whole model: every object type, 
 
 The metadata added in format version 2 is what makes the first three work: `meta.guid` carries identity, `hints.relational.tableName` is FBM's `DBName`, `hints.graph.label` is its `GraphLabel`, `meta.synonyms` is `Synonyms`, and `meta.description` is `LongDescription`.
 
-Still missing: FBM sample populations and multi-page diagrams, join paths on set-comparison constraints, and Ossie's `ontology_mappings`, which is where a `hints.ossie` target would land.
+Still missing: FBM sample populations and multi-page diagrams, join paths on set-comparison constraints, external identification from an Ossie `identify_by` that names more than a one-to-one binary, and Ossie's `ontology_mappings`, which is where a `hints.ossie` target would land.

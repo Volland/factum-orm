@@ -66,6 +66,10 @@ interface OssieRelationship {
   verbalizes?: string[];
 }
 
+/**
+ * The flat shape the rest of this file works in: a concept named by a string,
+ * with its attributes and its relationships beside it.
+ */
 interface OssieConcept {
   concept?: string;
   type?: string;
@@ -77,12 +81,34 @@ interface OssieConcept {
   relationships?: OssieRelationship[];
 }
 
+/** A concept's attributes when an entry nests them rather than inlining them. */
+interface OssieConceptBlock {
+  name?: string;
+  type?: string;
+  description?: string;
+  extends?: string[];
+  derived_by?: string[];
+  identify_by?: string[];
+  requires?: string[];
+}
+
+/**
+ * An ontology entry as it is actually written. The specification's own examples
+ * put the concept name and its attributes directly on the entry; FactEngine
+ * nests them under a `concept` block and leaves `relationships` outside it.
+ * Both forms are in the wild, so `normalizeEntry` reads either.
+ */
+interface OssieEntry extends Omit<OssieConcept, 'concept'> {
+  concept?: string | OssieConceptBlock;
+}
+
 interface OssieDocument {
-  version?: string;
+  /** YAML reads an unquoted `1.0` as a number, so this is not always a string. */
+  version?: string | number;
   name?: string;
   description?: string;
   requires?: string[];
-  ontology?: OssieConcept[];
+  ontology?: OssieEntry[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -91,18 +117,32 @@ interface OssieDocument {
 
 export function importOssieFile(text: string): ImportResult {
   const parsed = parseYaml(text) as OssieDocument | undefined;
-  const ontology = parsed?.ontology;
-  if (!parsed || !Array.isArray(ontology)) {
+  const entries = parsed?.ontology;
+  if (!parsed || !Array.isArray(entries)) {
     throw new Error('Not an Ossie ontology: no top-level `ontology` list was found.');
   }
 
   const warnings: string[] = [];
-  const model = emptyModel(parsed.name ?? 'Imported Ontology');
+  // Both entry forms are flattened up front so nothing below has to know which
+  // one this document used.
+  const ontology: OssieConcept[] = [];
+  entries.forEach((entry, index) => {
+    const concept = normalizeEntry(entry);
+    if (concept) ontology.push(concept);
+    else warnings.push(`Ontology entry ${index + 1} names no concept and was skipped.`);
+  });
+
+  const model = emptyModel(nonEmptyString(parsed.name) ?? 'Imported Ontology');
   model.$schema = MODEL_SCHEMA_URL;
   model.generator = { name: 'Factum Ossie importer' };
+  const description = nonEmptyString(parsed.description);
   model.meta = {
-    ...(parsed.description ? { description: parsed.description } : {}),
-    source: { tool: 'Apache Ossie', version: parsed.version },
+    ...(description ? { description } : {}),
+    source: {
+      tool: 'Apache Ossie',
+      // A YAML `version: 1.0` arrives as a number; the model schema wants text.
+      ...(parsed.version != null ? { version: String(parsed.version) } : {}),
+    },
   };
 
   // Concepts first, so relationships can resolve their role players by name.
@@ -163,11 +203,21 @@ export function importOssieFile(text: string): ImportResult {
       }
     }
 
+    const declared = new Set((concept.relationships ?? []).map((r) => r.name).filter(Boolean));
     for (const relationship of concept.relationships ?? []) {
       const factType = importRelationship(concept, host, relationship, resolve, model, warnings);
       if (!factType) continue;
       const identifying = (concept.identify_by ?? []).includes(relationship.name ?? '');
-      applyMultiplicity(model, factType, relationship.multiplicity, identifying);
+      applyMultiplicity(model, factType, relationship, identifying, host, warnings);
+    }
+    // `identify_by` may name a relationship declared on another concept, which
+    // is external identification. ORM states that as an external uniqueness
+    // constraint over the roles opposite this type; nothing here builds one.
+    for (const name of concept.identify_by ?? []) {
+      if (declared.has(name)) continue;
+      warnings.push(
+        `"${host.name}" is identified by "${name}", which is declared on another concept; that external identification was not carried.`,
+      );
     }
   }
 
@@ -175,6 +225,48 @@ export function importOssieFile(text: string): ImportResult {
     model.note = `Ontology requires: ${parsed.requires.join('; ')}`;
   }
   return { model, warnings };
+}
+
+/**
+ * Reads an ontology entry into the flat shape the importer works in, whether it
+ * inlined its concept (`concept: Person`) or nested it (`concept: {name:
+ * Person}`). An entry that names nothing is rejected rather than imported under
+ * an object for a name, which is what produced unusable models before.
+ */
+function normalizeEntry(entry: OssieEntry | undefined): OssieConcept | undefined {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return undefined;
+  const nested = isConceptBlock(entry.concept) ? entry.concept : undefined;
+  const own = entry as OssieConceptBlock;
+  const name = nonEmptyString(nested ? nested.name : entry.concept);
+  if (!name) return undefined;
+  return {
+    concept: name,
+    type: nonEmptyString(nested?.type) ?? nonEmptyString(own.type),
+    description: nonEmptyString(nested?.description) ?? nonEmptyString(own.description),
+    extends: stringList(nested?.extends) ?? stringList(own.extends),
+    derived_by: stringList(nested?.derived_by) ?? stringList(own.derived_by),
+    identify_by: stringList(nested?.identify_by) ?? stringList(own.identify_by),
+    requires: stringList(nested?.requires) ?? stringList(own.requires),
+    relationships: Array.isArray(entry.relationships) ? entry.relationships : undefined,
+  };
+}
+
+function isConceptBlock(value: unknown): value is OssieConceptBlock {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** An empty YAML key reads as null, and a single value need not be a list. */
+function stringList(value: unknown): string[] | undefined {
+  if (typeof value === 'string') return value ? [value] : undefined;
+  if (!Array.isArray(value)) return undefined;
+  const items = value.filter((item): item is string => typeof item === 'string' && item.length > 0);
+  return items.length ? items : undefined;
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
 }
 
 function importRelationship(
@@ -251,24 +343,45 @@ function importRelationship(
  * `ManyToOne` says the last role is functionally determined by the others, which
  * is a uniqueness constraint over every role but the last. `OneToOne` adds the
  * same in the other direction.
+ *
+ * A preferred identifier belongs on the constraint over the roles *opposite* the
+ * concept being identified — "each PersonNr identifies at most one Person" —
+ * which is where the rest of the model looks for it. That only exists when the
+ * relationship is a one-to-one binary, so anything else `identify_by` names is
+ * reported rather than marked in the wrong place.
  */
 function applyMultiplicity(
   model: OrmModel,
   factType: FactType,
-  multiplicity: string | undefined,
+  relationship: OssieRelationship,
   identifying: boolean,
+  host: ObjectType,
+  warnings: string[],
 ): void {
   const roles = factType.roles;
-  if (roles.length < 2 || !multiplicity) return;
-  const leading = roles.slice(0, -1).map((r) => r.id);
-  model.constraints.push({
-    kind: 'uniqueness',
-    id: newId('uc'),
-    roles: leading,
-    ...(identifying ? { isPreferredIdentifier: true } : {}),
-  });
+  const multiplicity = relationship.multiplicity;
+  if (roles.length < 2 || !multiplicity) {
+    if (identifying) {
+      warnings.push(
+        `"${host.name}" is identified by "${relationship.name}", which states no multiplicity; the preferred identifier was not carried.`,
+      );
+    }
+    return;
+  }
+  const identifies = identifying && multiplicity === 'OneToOne' && roles.length === 2;
+  if (identifying && !identifies) {
+    warnings.push(
+      `"${host.name}" is identified by "${relationship.name}", which is not a one-to-one binary; the preferred identifier was not carried.`,
+    );
+  }
+  model.constraints.push({ kind: 'uniqueness', id: newId('uc'), roles: roles.slice(0, -1).map((r) => r.id) });
   if (multiplicity === 'OneToOne' && roles.length === 2) {
-    model.constraints.push({ kind: 'uniqueness', id: newId('uc'), roles: [roles[1].id] });
+    model.constraints.push({
+      kind: 'uniqueness',
+      id: newId('uc'),
+      roles: [roles[1].id],
+      ...(identifies ? { isPreferredIdentifier: true } : {}),
+    });
   }
 }
 

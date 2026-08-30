@@ -13,6 +13,7 @@ import {
   ValueRange,
 } from '../model/types.js';
 import { emptyModel, newId } from '../model/model.js';
+import { dropConstraintsOverRoles } from './interop.js';
 
 /** NORMA stores diagram geometry in inches; VS Code draws in CSS pixels. */
 const PIXELS_PER_INCH = 96;
@@ -56,10 +57,19 @@ export function importNormaFile(xml: string): ImportResult {
   const facts = (first(ormModel.Facts) ?? {}) as XmlNode;
   const constraints = (first(ormModel.Constraints) ?? {}) as XmlNode;
 
-  importObjectTypes(objects, dataTypes, model, warnings);
-  importFactTypes(facts, model, warnings);
+  // NORMA stores a unary fact type as a binary against an implicit boolean
+  // value type. Neither the value type nor the role playing it is part of the
+  // model a modeller drew, so both are left out and the fact type stays unary.
+  const implicitBooleans = implicitBooleanValueTypes(objects);
+
+  importObjectTypes(objects, implicitBooleans, dataTypes, model, warnings);
+  // Roles that were deliberately not imported — a subtype link's meta roles and
+  // the implicit boolean above — take their constraints with them.
+  const droppedRoles = new Set<Id>();
+  importFactTypes(facts, implicitBooleans, model, droppedRoles, warnings);
   importConstraints(constraints, model, warnings);
-  importValueRestrictions(objects, model);
+  dropConstraintsOverRoles(model, droppedRoles);
+  importValueRestrictions(objects, implicitBooleans, model);
   importDiagram(root, model);
 
   return { model, warnings };
@@ -69,8 +79,20 @@ export function importNormaFile(xml: string): ImportResult {
 /* Objects                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/** The value types NORMA generated to stand in for a unary fact type's truth. */
+function implicitBooleanValueTypes(objects: XmlNode): Set<Id> {
+  const ids = new Set<Id>();
+  for (const node of list(objects.ValueType)) {
+    const value = node as XmlNode;
+    const id = str(value['@id']);
+    if (id && str(value['@IsImplicitBooleanValue']) === 'true') ids.add(id);
+  }
+  return ids;
+}
+
 function importObjectTypes(
   objects: XmlNode,
+  implicitBooleans: Set<Id>,
   dataTypes: Map<Id, DataType>,
   model: OrmModel,
   warnings: string[],
@@ -79,6 +101,7 @@ function importObjectTypes(
     model.objectTypes.push(baseObjectType(node, 'entity', dataTypes));
   }
   for (const node of list(objects.ValueType)) {
+    if (implicitBooleans.has(str((node as XmlNode)['@id']) ?? '')) continue;
     model.objectTypes.push(baseObjectType(node, 'value', dataTypes));
   }
   for (const node of list(objects.ObjectifiedType)) {
@@ -151,33 +174,104 @@ function normaDataType(tag: string): DataType {
 /* Facts                                                                       */
 /* -------------------------------------------------------------------------- */
 
-function importFactTypes(facts: XmlNode, model: OrmModel, warnings: string[]): void {
-  for (const node of list(facts.Fact)) {
-    const factType = importFact(node, warnings);
-    if (factType) model.factTypes.push(factType);
-  }
-  for (const node of list(facts.ImpliedFact)) {
-    const factType = importFact(node, warnings);
-    if (factType) model.factTypes.push(factType);
+/** The role elements a fact type can declare, besides a proxy for another's. */
+const ROLE_TAGS = ['Role', 'ObjectifiedUnaryRole'] as const;
+
+function importFactTypes(
+  facts: XmlNode,
+  implicitBooleans: Set<Id>,
+  model: OrmModel,
+  droppedRoles: Set<Id>,
+  warnings: string[],
+): void {
+  // A role proxy names a role in another fact type, so every player has to be
+  // known before any fact is read.
+  const rolePlayers = collectRolePlayers(facts);
+  for (const tag of ['Fact', 'ImpliedFact'] as const) {
+    for (const node of list(facts[tag])) {
+      const factType = importFact(node, implicitBooleans, rolePlayers, droppedRoles, warnings);
+      if (factType) model.factTypes.push(factType);
+    }
   }
   for (const node of list(facts.SubtypeFact)) {
+    const rolesNode = first((node as XmlNode).FactRoles) as XmlNode | undefined;
+    for (const tag of ['SubtypeMetaRole', 'SupertypeMetaRole'] as const) {
+      for (const metaRole of list(rolesNode?.[tag])) {
+        const id = str((metaRole as XmlNode)['@id']);
+        if (id) droppedRoles.add(id);
+      }
+    }
     const relation = importSubtypeFact(node);
     if (relation) model.subtypeRelations.push(relation);
     else warnings.push('A subtype fact could not be read (missing subtype or supertype role player).');
   }
 }
 
-function importFact(node: XmlNode, warnings: string[]): FactType | undefined {
+/** Every declared role in the document, by id, with the object type playing it. */
+function collectRolePlayers(facts: XmlNode): Map<Id, Id | null> {
+  const players = new Map<Id, Id | null>();
+  for (const factTag of ['Fact', 'ImpliedFact'] as const) {
+    for (const node of list(facts[factTag])) {
+      const rolesNode = first((node as XmlNode).FactRoles) as XmlNode | undefined;
+      for (const roleTag of ROLE_TAGS) {
+        for (const roleNode of list(rolesNode?.[roleTag])) {
+          const id = str((roleNode as XmlNode)['@id']);
+          if (!id) continue;
+          const player = first((roleNode as XmlNode).RolePlayer) as XmlNode | undefined;
+          players.set(id, player ? str(player['@ref']) ?? null : null);
+        }
+      }
+    }
+  }
+  return players;
+}
+
+function importFact(
+  node: XmlNode,
+  implicitBooleans: Set<Id>,
+  rolePlayers: Map<Id, Id | null>,
+  droppedRoles: Set<Id>,
+  warnings: string[],
+): FactType | undefined {
   const id = str(node['@id']) ?? newId('ft');
   const rolesNode = first(node.FactRoles) as XmlNode | undefined;
-  const roles: Role[] = list(rolesNode?.Role).map((roleNode) => {
-    const player = first((roleNode as XmlNode).RolePlayer) as XmlNode | undefined;
-    return {
-      id: str((roleNode as XmlNode)['@id']) ?? newId('r'),
-      objectTypeId: player ? str(player['@ref']) ?? null : null,
-      name: nonEmpty(str((roleNode as XmlNode)['@Name'])),
-    };
-  });
+  const roles: Role[] = [];
+  // `ObjectifiedUnaryRole` is a plain role under another name, used where an
+  // implied fact type reaches into an objectified unary.
+  for (const tag of ROLE_TAGS) {
+    for (const roleNode of list(rolesNode?.[tag])) {
+      const player = first((roleNode as XmlNode).RolePlayer) as XmlNode | undefined;
+      const playerId = player ? str(player['@ref']) ?? null : null;
+      const roleId = str((roleNode as XmlNode)['@id']) ?? newId('r');
+      // The role opposite an implicit boolean is what makes NORMA's unary look
+      // binary; dropping it leaves the arity the reading already assumes.
+      if (playerId && implicitBooleans.has(playerId)) {
+        droppedRoles.add(roleId);
+        continue;
+      }
+      roles.push({
+        id: roleId,
+        objectTypeId: playerId,
+        name: nonEmpty(str((roleNode as XmlNode)['@Name'])),
+      });
+    }
+  }
+  // An implied fact type borrows a role from the fact type it objectifies, and
+  // states it as a proxy carrying its own id — the id the readings then refer
+  // to. Skipping proxies left those fact types a role short of their readings.
+  for (const proxyNode of list(rolesNode?.RoleProxy)) {
+    const proxy = proxyNode as XmlNode;
+    const target = str((first(proxy.Role) as XmlNode | undefined)?.['@ref']);
+    const proxyId = str(proxy['@id']);
+    if (!proxyId) continue;
+    if (target && !rolePlayers.has(target)) {
+      warnings.push(`A role proxy in fact type ${id} refers to an unknown role and was left unattached.`);
+    }
+    roles.push({
+      id: proxyId,
+      objectTypeId: (target ? rolePlayers.get(target) : undefined) ?? null,
+    });
+  }
   if (!roles.length) {
     warnings.push(`Fact type ${id} has no roles and was skipped.`);
     return undefined;
@@ -326,9 +420,10 @@ function importConstraints(container: XmlNode, model: OrmModel, warnings: string
   }
 }
 
-function importValueRestrictions(objects: XmlNode, model: OrmModel): void {
+function importValueRestrictions(objects: XmlNode, implicitBooleans: Set<Id>, model: OrmModel): void {
   for (const tag of ['EntityType', 'ValueType', 'ObjectifiedType']) {
     for (const node of list(objects[tag])) {
+      if (implicitBooleans.has(str((node as XmlNode)['@id']) ?? '')) continue;
       const restriction = first((node as XmlNode).ValueRestriction) as XmlNode | undefined;
       if (!restriction) continue;
       for (const key of ['ValueConstraint', 'ValueTypeValueConstraint', 'RoleValueConstraint']) {

@@ -7,7 +7,7 @@
  * to a modeller than an error message.
  */
 
-import { DataType, OrmModel } from '../model/types.js';
+import { DataType, Id, OrmModel } from '../model/types.js';
 
 /** The formats Factum can read and write besides its own. */
 export type InteropFormat = 'norma' | 'fbm' | 'ossie' | 'ums';
@@ -144,6 +144,28 @@ export function pascalCase(value: string): string {
 }
 
 /** `Person works for` → `works_for`, the shape Ossie relationship names take. */
+/**
+ * Drops constraints over roles a converter deliberately did not import.
+ *
+ * Both NORMA and FBM state a subtype link as a fact type with two meta roles,
+ * and attach the mandatory and uniqueness constraints that link implies. Factum
+ * carries the link as a subtype relation instead, so those roles never exist and
+ * their constraints would dangle. Anything else left dangling is a real problem
+ * and is left for the validator to report.
+ */
+export function dropConstraintsOverRoles(model: OrmModel, roleIds: Set<Id>): void {
+  if (!roleIds.size) return;
+  model.constraints = model.constraints.filter((constraint) => {
+    const referenced: Id[] = [
+      ...('roles' in constraint && Array.isArray(constraint.roles) ? constraint.roles : []),
+      ...('roleSequences' in constraint && Array.isArray(constraint.roleSequences)
+        ? constraint.roleSequences.flat()
+        : []),
+    ];
+    return !referenced.some((id) => roleIds.has(id));
+  });
+}
+
 export function snakeCase(value: string): string {
   return (
     value

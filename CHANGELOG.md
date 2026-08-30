@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.4.2 — 2026-08-30
+
+Interchange fixes, all found by running the FactEngine community's
+[test models](https://github.com/FactEngineCommunity/Fact-Based-Modelling-MetaModel) — 31 NORMA and
+30 Boston files — through import, validation, verbalization and both mappings. None of them failed
+to load; they loaded into models that were quietly wrong.
+
+- **Ossie ontologies that nest their concept block now import.** An entry may name its concept inline
+  (`concept: Person`) or nest it with its attributes under `concept:`, as FactEngine writes it. Only
+  the first form was understood, so every concept in a nested file arrived named by an *object*: no
+  value types, no subtyping, no reference schemes, and every role unattached. An entry naming
+  nothing is now rejected rather than imported under an object for a name.
+- **An Ossie `identify_by` produces a usable preferred identifier.** It was marked on the uniqueness
+  over the concept's own role, where nothing looks for it, so every Ossie-imported entity type
+  reported having no reference scheme. It now sits on the constraint over the roles opposite the
+  concept, and an `identify_by` naming something that cannot carry one — a composite or external
+  identifier — is reported instead of marked in the wrong place.
+- **NORMA role proxies are read.** An implied fact type borrows a role from the fact type it
+  objectifies and states it as a `RoleProxy`, or an `ObjectifiedUnaryRole`, carrying its own id.
+  Both were skipped, leaving those fact types a role short of what their own readings referred to —
+  and, where the missing role held the preferred identifier, leaving the objectified type
+  unidentified.
+- **A NORMA unary fact type stays unary.** NORMA stores one as a binary against a value type flagged
+  `IsImplicitBooleanValue`. That value type was becoming a real concept named after the reading,
+  with a spurious role and value constraint. Both the value type and the role playing it are now
+  left out.
+- **A subtype link no longer leaves its constraints dangling.** NORMA and FBM both state one as a
+  fact type whose meta roles carry the mandatory and uniqueness constraints the link implies. Factum
+  carries the link as a subtype relation, so those constraints now go with the roles they name.
+  Anything else dangling is still reported.
+- Documentation site: a **human-first, AI-native** rebrand. A new page on why elementary facts are
+  the layer language models have been missing, a page on the MCP server aimed at people running a
+  coding agent, and two articles — one on the fact layer itself, one on FORML as a context format.
+  The landing page leads with the same position.
+
 ## 0.4.1 — 2026-08-29
 
 - The JSON Schema moved to the project's own domain: models now declare

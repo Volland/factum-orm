@@ -27,6 +27,7 @@ import { constraintRoles, emptyModel, indexModel, newId, primaryReading } from '
 import {
   dataTypeFromNorma,
   dataTypeToNorma,
+  dropConstraintsOverRoles,
   ExportResult,
   ImportResult,
   pascalCase,
@@ -71,9 +72,13 @@ export function importFbmFile(xml: string): ImportResult {
   };
 
   importObjectTypes(ormModel, model);
-  importFactTypes(ormModel, model, warnings);
+  // The fact type FBM generates for a subtype link is skipped, so the
+  // constraints it attaches to that fact type's roles have to go with it.
+  const subtypeFactRoles = new Set<Id>();
+  importFactTypes(ormModel, model, subtypeFactRoles, warnings);
   importSubtypes(ormModel, model);
   importRoleConstraints(ormModel, model, warnings);
+  dropConstraintsOverRoles(model, subtypeFactRoles);
   importNotesAndSynonyms(ormModel, model);
   importDiagram(root, model, warnings);
 
@@ -135,13 +140,26 @@ function importObjectTypes(ormModel: XmlNode, model: OrmModel): void {
   }
 }
 
-function importFactTypes(ormModel: XmlNode, model: OrmModel, warnings: string[]): void {
+function importFactTypes(
+  ormModel: XmlNode,
+  model: OrmModel,
+  subtypeFactRoles: Set<Id>,
+  warnings: string[],
+): void {
   for (const container of list(ormModel.FactTypes)) {
     for (const node of list((container as XmlNode).FactType)) {
       const ft = node as XmlNode;
       // Subtyping is carried by the entity types' SubtypeRelationships elements;
       // the fact type FBM generates alongside it would be a duplicate here.
-      if (bool(ft['@IsSubtypeRelationshipFactType'])) continue;
+      if (bool(ft['@IsSubtypeRelationshipFactType'])) {
+        for (const group of list(ft.RoleGroup)) {
+          for (const roleNode of list((group as XmlNode).Role)) {
+            const roleId = str((roleNode as XmlNode)['@Id']);
+            if (roleId) subtypeFactRoles.add(roleId);
+          }
+        }
+        continue;
+      }
 
       const roles: Role[] = [];
       for (const group of list(ft.RoleGroup)) {

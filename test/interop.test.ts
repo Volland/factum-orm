@@ -6,6 +6,7 @@ import { exportNormaFile } from '../src/io/normaExport.js';
 import { importNormaFile } from '../src/io/normaImport.js';
 import { exportOssieFile, importOssieFile } from '../src/io/ossie.js';
 import { exportUmsFile, importUmsFile } from '../src/io/ums.js';
+import { validateModel } from '../src/core/validate.js';
 import { primaryReading } from '../src/model/model.js';
 import { sampleModel } from '../src/model/sample.js';
 import { Constraint, OrmModel } from '../src/model/types.js';
@@ -174,6 +175,44 @@ ontology:
   extends: [ Person ]
 `;
 
+/**
+ * FBM writes a subtype link twice: as the entity type's SubtypeRelationship and
+ * as a fact type flagged IsSubtypeRelationshipFactType, whose roles carry the
+ * constraints that link implies.
+ */
+const FBM_SUBTYPE = `<?xml version="1.0" encoding="utf-8"?>
+<Model XSDVersionNr="1.7">
+  <ORMModel Name="Staff" ModelId="_M">
+    <EntityTypes>
+      <EntityType Id="Person" Name="Person"/>
+      <EntityType Id="Employee" Name="Employee"/>
+    </EntityTypes>
+    <FactTypes>
+      <FactType Id="EmployeeIsSubtypeOfPerson" Name="EmployeeIsSubtypeOfPerson" IsSubtypeRelationshipFactType="true">
+        <RoleGroup>
+          <Role Id="_SubR" Name="Subtype" SequenceNr="1" Mandatory="true" JoinedObjectTypeId="Employee"/>
+          <Role Id="_SupR" Name="Supertype" SequenceNr="2" Mandatory="false" JoinedObjectTypeId="Person"/>
+        </RoleGroup>
+      </FactType>
+    </FactTypes>
+    <RoleConstraints>
+      <RoleConstraint Id="_UCSub" Name="_UCSub" RoleConstraintType="InternalUniquenessConstraint">
+        <RoleConstraintRoles>
+          <RoleConstraintRole RoleId="_SubR" SequenceNr="1"/>
+        </RoleConstraintRoles>
+      </RoleConstraint>
+    </RoleConstraints>
+  </ORMModel>
+</Model>`;
+
+// @lat: [[tests#Interchange#An FBM subtype fact type takes its constraints with it]]
+test('constraints over a skipped FBM subtype fact type are dropped with it', () => {
+  const { model } = importFbmFile(FBM_SUBTYPE);
+  assert.equal(model.factTypes.length, 0, 'the subtype fact type should not be imported twice');
+  assert.ok(!model.constraints.some((c) => c.id === '_UCSub'));
+  assert.ok(!validateModel(model).some((i) => i.code === 'dangling-constraint-role'));
+});
+
 // @lat: [[tests#Interchange#Ossie verbalizations become placeholder readings]]
 test('Ossie verbalizations are read back as placeholder readings', () => {
   const { model, warnings } = importOssieFile(OSSIE_ONTOLOGY);
@@ -197,6 +236,125 @@ test('Ossie multiplicity becomes uniqueness and identify_by a preferred identifi
   const manages = model.factTypes.find((f) => primaryReading(f)?.text === '{0} manages {1}');
   assert.ok(manages);
   assert.ok(!unique.some((c) => manages.roles.some((r) => c.roles.includes(r.id))));
+});
+
+/**
+ * The same ontology written the other way round: FactEngine nests the concept's
+ * name and attributes under `concept` and leaves `relationships` outside it,
+ * with every unset key present and null.
+ */
+const OSSIE_NESTED = `name: CinemaBookings
+description: 
+ontology:
+- description: 
+  concept:
+    name: Cinema_Id
+    type: ValueType
+    description: 
+    extends: 
+    derived_by: 
+    identify_by: 
+    requires: 
+  relationships: []
+- description: 
+  concept:
+    name: Cinema
+    type: EntityType
+    identify_by:
+    - CinemaHasCinema_Id
+  relationships:
+  - name: CinemaHasCinema_Id
+    roles:
+    - concept: Cinema_Id
+      name: 
+    multiplicity: OneToOne
+    verbalizes:
+    - '{Cinema} has {Cinema_Id}'
+- description: 
+  concept:
+    name: Multiplex
+    type: EntityType
+    extends:
+    - Cinema
+  relationships: []
+version: 1.0
+`;
+
+// @lat: [[tests#Interchange#Ossie reads a nested concept block]]
+test('an ontology that nests its concept block imports the same as an inline one', () => {
+  const { model, warnings } = importOssieFile(OSSIE_NESTED);
+  assert.deepEqual(warnings, []);
+
+  // The bug this guards: the nested block was taken for the name itself, so
+  // every concept arrived named by an object and typed as an entity.
+  assert.deepEqual(
+    model.objectTypes.map((o) => [o.name, o.kind]).sort(),
+    [
+      ['Cinema', 'entity'],
+      ['Cinema_Id', 'value'],
+      ['Multiplex', 'entity'],
+    ],
+  );
+  assert.equal(model.subtypeRelations.length, 1);
+  const [factType] = model.factTypes;
+  assert.ok(factType.roles.every((r) => r.objectTypeId));
+  assert.equal(primaryReading(factType)?.text, '{0} has {1}');
+  // A YAML `version: 1.0` reads as a number; meta.source.version must be text.
+  assert.equal(typeof model.meta?.source?.version, 'string');
+});
+
+// @lat: [[tests#Interchange#An Ossie preferred identifier is a reference scheme]]
+test('a concept identified by a one-to-one relationship has a reference scheme', () => {
+  const { model } = importOssieFile(OSSIE_NESTED);
+  const cinema = model.objectTypes.find((o) => o.name === 'Cinema');
+  assert.ok(cinema);
+  assert.ok(
+    !validateModel(model).some((i) => i.code === 'no-reference-scheme' && i.elementId === cinema.id),
+    'the preferred identifier was placed where nothing looks for it',
+  );
+});
+
+// @lat: [[tests#Interchange#Ossie reports an identifier it cannot carry]]
+test('identify_by naming a relationship that cannot carry an identifier is reported', () => {
+  const { warnings } = importOssieFile(`name: Cinemas
+ontology:
+- concept: RowNr
+  type: ValueType
+- concept: Row
+  type: EntityType
+  identify_by: [ RowHasRowNr ]
+  relationships:
+  - name: RowHasRowNr
+    roles:
+    - concept: RowNr
+    multiplicity: ManyToOne
+    verbalizes: [ '{Row} has {RowNr}' ]
+`);
+  assert.ok(
+    warnings.some((w) => w.includes('RowHasRowNr') && w.includes('preferred identifier')),
+    warnings.join(' | '),
+  );
+});
+
+// @lat: [[tests#Interchange#Ossie reports external identification]]
+test('identify_by naming a relationship declared on another concept is reported', () => {
+  const { warnings } = importOssieFile(`name: Cinemas
+ontology:
+- concept: Cinema
+  type: EntityType
+  relationships:
+  - name: CinemaContainsRow
+    roles:
+    - concept: Row
+    verbalizes: [ '{Cinema} contains {Row}' ]
+- concept: Row
+  type: EntityType
+  identify_by: [ CinemaContainsRow ]
+`);
+  assert.ok(
+    warnings.some((w) => w.includes('CinemaContainsRow') && w.includes('another concept')),
+    warnings.join(' | '),
+  );
 });
 
 // @lat: [[tests#Interchange#Ossie extends resolves data types and subtyping]]

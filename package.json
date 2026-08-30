@@ -2,7 +2,7 @@
   "name": "factum-orm",
   "displayName": "Factum \u2014 Object-Role Modeling (ORM 2)",
   "description": "Visual Object-Role Modeling (ORM 2) editor for VS Code: draw conceptual schemas, verbalize them in FORML, validate them, and map them to relational and property graph schemas. Imports NORMA .orm files.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "publisher": "pavlyshyn",
   "license": "MIT",
   "icon": "media/logo/icon-256.png",
