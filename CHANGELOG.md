@@ -30,6 +30,9 @@ to load; they loaded into models that were quietly wrong.
   fact type whose meta roles carry the mandatory and uniqueness constraints the link implies. Factum
   carries the link as a subtype relation, so those constraints now go with the roles they name.
   Anything else dangling is still reported.
+- Documentation site: a page for **Fact-Based Agents**, the book — ORM 2, FORML and Factum for
+  agentic memory. Linked from the landing page, from the mini book's contents, and from the end of
+  every mini-book chapter, so a reader who wants the long version of a chapter knows where it is.
 - Documentation site: a **human-first, AI-native** rebrand. A new page on why elementary facts are
   the layer language models have been missing, a page on the MCP server aimed at people running a
   coding agent, and two articles — one on the fact layer itself, one on FORML as a context format.

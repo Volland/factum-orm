@@ -78,17 +78,21 @@ Add `--pre-release` if you want the pre-release channel instead of a normal rele
   `![Version](https://img.shields.io/visual-studio-marketplace/v/pavlyshyn.factum-orm)` and the
   matching `/i/` (installs) and `/r/` (rating) badges. They 404 until the first publish, which is why
   they are not there yet.
-- **npm.** The CLI and the MCP server are only useful once they are on a user's `PATH`, which means
-  publishing the package to npm. The name `factum-orm` is unclaimed. `.npmignore` is already set up
-  to ship `bin/`, `out/` and `schema/` only:
+- **npm.** Publishing to npm is what puts `factum` and `factum-mcp` on a user's `PATH`; inside the
+  `.vsix` they ship but are not installable as commands. `factum-orm` is already published and owned
+  by `vpavlyshyn`, so a release is just:
 
   ```bash
-  npm login
-  npm publish --access public
+  npm whoami                    # expect: vpavlyshyn
+  npm pack --dry-run            # confirm the file list before burning a version
+  npm publish                   # --access public only matters for a scoped name
   ```
 
-  Until this is done, `factum` and `factum-mcp` ship inside the `.vsix` but are not installable
-  as commands.
+  `prepublishOnly` runs `npm run package` first, so the bundles are always rebuilt. `.npmignore`
+  ships `bin/`, `out/`, `schema/`, `media/logo/`, `action.yml` and the docs — around 400 kB.
+
+  A published version number is permanent: npm allows unpublishing only within 72 hours, and never
+  allows reusing the number. Bump rather than republish.
 - **Open VSX.** For VSCodium, Cursor and Windsurf users, mirror the release with
   `npx ovsx publish factum-orm-0.4.0.vsix -p <token>`.
 - **A short GIF** of drawing a fact type and watching the verbalization update would carry the

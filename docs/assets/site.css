@@ -471,3 +471,35 @@ pre .del { color: #e2707f; }
 }
 .stat b { display: block; font-size: 24px; color: var(--accent); letter-spacing: -0.02em; font-family: var(--mono); }
 .stat span { color: var(--muted); font-size: 13.5px; }
+
+/* ------------------------------------------------------------------ book -- */
+/* The cover beside the pitch, stacking cover-first on a narrow screen. */
+.book-lead { display: grid; gap: 28px; align-items: start; }
+@media (min-width: 760px) { .book-lead { grid-template-columns: 260px 1fr; gap: 38px; } }
+.book-cover {
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.book-cover img { display: block; width: 100%; }
+
+/* A pointer from a mini-book chapter to the chapter that goes further. */
+.read-on {
+  margin: 34px 0 0;
+  padding: 18px 22px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(168,85,247,.10), rgba(168,85,247,.03));
+  font-size: 15px;
+}
+.read-on p { margin: 0; color: #d5d1e4; }
+.read-on p + p { margin-top: 8px; }
+.read-on strong { color: var(--ink); }
+
+/* The chapter list of the full book: dense, two columns when there is room. */
+.toc-grid { display: grid; gap: 6px 30px; margin: 22px 0 0; padding: 0; list-style: none; }
+@media (min-width: 760px) { .toc-grid { grid-template-columns: 1fr 1fr; } }
+.toc-grid li { display: flex; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); color: #d5d1e4; font-size: 14.5px; }
+.toc-grid li b { color: var(--muted); font: 12.5px var(--mono); padding-top: 2px; }
