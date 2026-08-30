@@ -33,6 +33,12 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
+<h2 id="0-4-3">0.4.3</h2>
+<ul>
+  <li><strong>FBM diagram pages carry the right concept type.</strong> Every shape was exported as <code>EntityType</code>, so a value type came back to Boston drawn as an entity. A fact type&rsquo;s page instance also named it by internal id rather than by the name its <code>FactType</code> element was written under. On the way in, a page instance is now matched on its concept type, so an invisible marker at the origin can no longer overwrite the position of the thing it labels.</li>
+  <li>All 30 Boston models now survive an import, export and re-import with no drift in the shape set, which was not true before.</li>
+</ul>
+
 <h2 id="0-4-2">0.4.2</h2>
 <p>Interchange fixes, all found by running the FactEngine community&rsquo;s
 <a href="https://github.com/FactEngineCommunity/Fact-Based-Modelling-MetaModel">test models</a> &mdash;
@@ -43,7 +49,6 @@ None of them failed to load; they loaded into models that were quietly wrong.</p
   <li><strong>An Ossie <code>identify_by</code> produces a usable preferred identifier.</strong> It was marked on the uniqueness over the concept&rsquo;s own role, where nothing looks for it, so every Ossie-imported entity type reported having no reference scheme. An <code>identify_by</code> naming something that cannot carry one is now reported rather than marked in the wrong place.</li>
   <li><strong>NORMA role proxies are read.</strong> An implied fact type borrows a role from the fact type it objectifies and states it as a <code>RoleProxy</code>, or an <code>ObjectifiedUnaryRole</code>, carrying its own id. Both were skipped, leaving those fact types a role short of what their own readings referred to.</li>
   <li><strong>A NORMA unary fact type stays unary.</strong> NORMA stores one as a binary against a value type flagged <code>IsImplicitBooleanValue</code>. That value type was becoming a real concept named after the reading, with a spurious role and value constraint.</li>
-  <li><strong>FBM diagram pages carry the right concept type.</strong> Every shape was exported as <code>EntityType</code>, so a value type came back to Boston drawn as an entity. A fact type&rsquo;s page instance also named it by internal id rather than by the name its <code>FactType</code> element was written under. On the way in, a page instance is now matched on its concept type, so an invisible marker at the origin can no longer overwrite the position of the thing it labels.</li>
   <li><strong>A subtype link no longer leaves its constraints dangling.</strong> NORMA and FBM both state one as a fact type whose meta roles carry the mandatory and uniqueness constraints the link implies; those constraints now go with the roles they name.</li>
   <li>A page for <a href="book-full.html"><em>Fact-Based Agents</em></a>, the book &mdash; ORM 2, FORML and Factum for agentic memory. Linked from the landing page, from the mini book&rsquo;s contents, and from the end of every mini-book chapter, so a reader who wants the long version of a chapter knows where it is.</li>
   <li>A <a href="ai-native.html">human-first, AI-native</a> rebrand of this site: why elementary facts are the layer language models have been missing, <a href="for-agents.html">the MCP server for agent users</a>, and two articles &mdash; <a href="llm-fact-gap.html">the fact layer itself</a> and <a href="forml-for-llms.html">FORML as a context format</a>.</li>

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.3 — 2026-08-30
+
+- **FBM diagram pages carry the right concept type.** Every shape was exported as `EntityType`, so a
+  value type came back to Boston drawn as an entity — reported by the FactEngine community against
+  `Test01-ValueType-Single`. A fact type's page instance also named it by internal id rather than by
+  the name its `FactType` element was written under, so nothing could match the shape to what it
+  drew. On the way in, a page instance is now matched on its concept type: reading text, fact type
+  names and constraint markers are drawn as instances too, and taking all of them let an invisible
+  marker at the origin overwrite the position of the thing it labels.
+
+  All 30 Boston models now survive an import, export and re-import with no drift in the shape set,
+  which was not true before.
+
 ## 0.4.2 — 2026-08-30
 
 Interchange fixes, all found by running the FactEngine community's
@@ -26,13 +39,6 @@ to load; they loaded into models that were quietly wrong.
   `IsImplicitBooleanValue`. That value type was becoming a real concept named after the reading,
   with a spurious role and value constraint. Both the value type and the role playing it are now
   left out.
-- **FBM diagram pages carry the right concept type.** Every shape was exported as `EntityType`, so a
-  value type came back to Boston drawn as an entity — reported by the FactEngine community against
-  `Test01-ValueType-Single`. A fact type's page instance also named it by internal id rather than by
-  the name its `FactType` element was written under, so nothing could match the shape to what it
-  drew. On the way in, a page instance is now matched on its concept type: reading text, fact type
-  names and constraint markers are drawn as instances too, and taking all of them let an invisible
-  marker at the origin overwrite the position of the thing it labels.
 - **A subtype link no longer leaves its constraints dangling.** NORMA and FBM both state one as a
   fact type whose meta roles carry the mandatory and uniqueness constraints the link implies. Factum
   carries the link as a subtype relation, so those constraints now go with the roles they name.
