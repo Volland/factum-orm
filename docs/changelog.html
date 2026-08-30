@@ -33,6 +33,13 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
+<h2 id="0-5-0">0.5.0</h2>
+<ul>
+  <li><strong>The <a href="skills.html">skill pack</a>, and <code>factum skills install</code>.</strong> Ten slash commands and two skills distilled from <a href="book-full.html"><em>Fact-Based Agents</em></a>, teaching an agent the modelling procedure rather than only handing it a model. <code>/orm-model</code> runs Halpin&rsquo;s seven steps and stops at each for a yes or no; <code>/orm-review</code> reads a model back and argues with it; <code>/orm-fix</code> works through validator codes; <code>/orm-memory</code> designs an agent&rsquo;s memory, promise graph or audit log as a conceptual schema.</li>
+  <li>The command asks which agent and whether to install for every project or this one. Claude Code, Cursor, the Codex CLI and OpenCode all read the same <code>SKILL.md</code> layout, so nothing is converted. An install never replaces what is already there without <code>--force</code>.</li>
+  <li>The published npm package was dropping any directory named <code>examples</code> or <code>scripts</code> at any depth, which would have cost the skill pack 24 of its 52 files. Those ignore patterns are now rooted.</li>
+</ul>
+
 <h2 id="0-4-3">0.4.3</h2>
 <ul>
   <li><strong>FBM diagram pages carry the right concept type.</strong> Every shape was exported as <code>EntityType</code>, so a value type came back to Boston drawn as an entity. A fact type&rsquo;s page instance also named it by internal id rather than by the name its <code>FactType</code> element was written under. On the way in, a page instance is now matched on its concept type, so an invisible marker at the origin can no longer overwrite the position of the thing it labels.</li>
@@ -135,6 +142,7 @@ None of them failed to load; they loaded into models that were quietly wrong.</p
       <ul>
         <li><a href="ai-native.html">Human-first, AI-native</a></li>
         <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="skills.html">The skill pack</a></li>
         <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
         <li><a href="forml-for-llms.html">FORML for language models</a></li>
       </ul>

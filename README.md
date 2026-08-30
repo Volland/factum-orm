@@ -205,6 +205,7 @@ installed is overwritten unless you pass `--force`. Codex and OpenCode read the 
 pack's slash commands, so those are left out rather than written where nothing reads them; the same
 procedures are in the skills either way. The pack is plain markdown in
 [`agent-skills/`](agent-skills/), so it also works as a Claude Code plugin directory as it stands.
+What each command does is on [the skill pack page](https://www.factum-orm.com/skills.html).
 
 ## Quick start
 

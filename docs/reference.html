@@ -42,6 +42,10 @@
     <li><a href="#keyboard">Keyboard and mouse</a></li>
     <li><a href="#constraints">Supported constraints</a></li>
     <li><a href="#rules">Validation rules</a></li>
+    <li><a href="#cli">Command line</a></li>
+    <li><a href="#action">Pull request check</a></li>
+    <li><a href="#skills">Skill pack</a></li>
+    <li><a href="#mcp">MCP server</a></li>
   </ul>
 </div>
 
@@ -164,6 +168,8 @@
 <tr><td><code>factum drift &lt;model&gt; &lt;schema.sql&gt;</code></td><td>Where an existing database disagrees, with the reconciling statements</td></tr>
 <tr><td><code>factum convert &lt;input&gt;</code></td><td>Read or write any interchange format with <code>--to</code></td></tr>
 <tr><td><code>factum derive &lt;table.csv&gt;</code></td><td>A first-draft model from example data</td></tr>
+<tr><td><code>factum skills install</code></td><td>Install the <a href="skills.html">skill pack</a> into a coding agent</td></tr>
+<tr><td><code>factum skills list</code></td><td>The commands and skills the pack carries</td></tr>
 </tbody>
 </table></div>
 <p><code>validate</code> exits 1 on a blocking error, 2 on a usage or IO failure, and 0 otherwise, so
@@ -176,6 +182,26 @@
     model: model/domain.orm.json
     base: /tmp/base.orm.json   <span class="c"># the same file from the base branch</span>
     strict: 'true'</code></pre>
+
+<h2 id="skills">Skill pack</h2>
+<p>Ten slash commands and two skills that put the modelling procedure in front of an agent. See
+   <a href="skills.html">the skill pack</a> for what each one does.</p>
+<pre><code>factum skills install                <span class="c"># asks which agent, and where</span>
+factum skills install --target cursor --local
+factum skills list</code></pre>
+<div class="table-scroll"><table>
+<thead><tr><th>Option</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>--target</code></td><td><code>claude</code>, <code>cursor</code>, <code>codex</code> or <code>opencode</code></td></tr>
+<tr><td><code>--global</code></td><td>Install for every project; <code>--local</code> for this one only</td></tr>
+<tr><td><code>--dir &lt;path&gt;</code></td><td>An explicit configuration directory instead of a known agent</td></tr>
+<tr><td><code>--force</code></td><td>Replace skills and commands that are already installed</td></tr>
+<tr><td><code>--dry-run</code></td><td>Report what would be installed without writing anything</td></tr>
+</tbody>
+</table></div>
+<p>Without a target and with no terminal to ask in, the command says which flags to pass rather than
+   guessing a directory. Codex and OpenCode read the skills but not the slash commands, so those are
+   left out rather than written where nothing reads them.</p>
 
 <h2 id="mcp">MCP server</h2>
 <p><code>factum-mcp</code> exposes the model to a coding agent over stdio, so Claude Code, Copilot or
@@ -205,6 +231,7 @@
       <ul>
         <li><a href="ai-native.html">Human-first, AI-native</a></li>
         <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="skills.html">The skill pack</a></li>
         <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
         <li><a href="forml-for-llms.html">FORML for language models</a></li>
       </ul>

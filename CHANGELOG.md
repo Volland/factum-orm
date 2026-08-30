@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.0 — 2026-08-30
+
+- **The skill pack, and `factum skills install`.** Ten slash commands and two skills distilled from
+  *Fact-Based Agents*, teaching an agent the modelling procedure rather than only handing it a
+  model: `/orm-model` runs Halpin's seven steps and stops at each for a yes or no, `/orm-review`
+  reads a model back and argues with it, `/orm-fix` works through validator codes, `/orm-memory`
+  designs an agent's memory, promise graph or audit log as a conceptual schema.
+
+  The command asks which agent and whether to install for every project or this one. Claude Code,
+  Cursor, the Codex CLI and OpenCode all read the same `SKILL.md` layout, so nothing is converted;
+  `--target`, `--global`/`--local` and `--dir` skip the question, and an install never replaces what
+  is already there without `--force`. Codex and OpenCode read the skills but not the slash commands,
+  so those are left out rather than written where nothing reads them.
+
+  The pack lives in `agent-skills/` as plain markdown, and works as a Claude Code plugin directory
+  as it stands.
+- The published npm package was dropping any directory named `examples` or `scripts` at any depth,
+  which would have cost the skill pack 24 of its 52 files — every example model and its checker.
+  Those ignore patterns are now rooted.
+- Documentation site: a page for the skill pack, and the command in the reference.
+
 ## 0.4.3 — 2026-08-30
 
 - **FBM diagram pages carry the right concept type.** Every shape was exported as `EntityType`, so a
