@@ -3,4 +3,5 @@ This directory defines the high-level concepts, business logic, and architecture
 - [[file-format]] — the `.orm.json` envelope, its metadata, generation hints and extension rules.
 - [[interop]] — how the format compares with NORMA, FBM, UMS and Apache Ossie, and what was adopted from each.
 - [[tooling]] — the CLI, the pull request check, the MCP server and derivation from example data.
+- [[site]] — the static documentation site in `docs/`, including the blog.
 - [[tests]] — specifications for the format, hint, interchange and tooling tests.

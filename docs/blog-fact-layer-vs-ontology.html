@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>An Ontology Is Not a Fact Layer · Factum</title>
+<meta name="description" content="Your ontology says what exists. Your agent needs to know what is allowed. Those are different artifacts, and the gap between them is where agents quietly go wrong.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="application/rss+xml" title="Factum blog" href="blog.xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="An Ontology Is Not a Fact Layer">
+<meta property="og:description" content="Your ontology says what exists. Your agent needs to know what is allowed. Those are different artifacts, and the gap between them is where agents quietly go wrong.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="ai-native.html">AI-native</a>
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="compare.html">Why Factum</a>
+    <a href="faq.html">FAQ</a>
+    <a href="blog.html" aria-current="page">Blog</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<article>
+<div class="page-head wrap">
+  <a class="eyebrow" href="blog.html">Blog</a>
+  <h1>An Ontology Is Not a Fact Layer</h1>
+  <p>Your ontology says what exists. Your agent needs to know what is allowed. Those are different artifacts, and the gap between them is where agents quietly go wrong.</p>
+  <p class="post-meta"><time datetime="2026-09-03">3 September 2026</time> · 15 min read · Volodymyr Pavlyshyn</p>
+  <div class="badges left"><span>AI agents</span><span>ontology</span><span>OWL</span><span>SHACL</span><span>knowledge graphs</span><span>ORM</span><span>conceptual modelling</span><span>Factum</span></div>
+</div>
+
+<section><div class="wrap prose">
+
+<nav class="toc">
+  <strong>In this article</strong>
+  <ul>
+    <li><a href="#the-question-your-agent-is-actually-asking">The question your agent is actually asking</a></li>
+    <li><a href="#what-an-ontology-is-genuinely-for">What an ontology is genuinely for</a></li>
+    <li><a href="#the-gap-two-half-layers-and-the-hole-between-them">The gap: two half-layers, and the hole between them</a></li>
+    <li><a href="#why-conceptual-models-close-it">Why conceptual models close it</a></li>
+    <li><a href="#the-wider-picture-literally">The wider picture, literally</a></li>
+    <li><a href="#where-this-actually-runs">Where this actually runs</a></li>
+    <li><a href="#you-do-not-have-to-choose">You do not have to choose</a></li>
+    <li><a href="#where-a-fact-layer-does-not-help">Where a fact layer does not help</a></li>
+    <li><a href="#the-book">The book</a></li>
+  </ul>
+</nav>
+
+<p>Two teams tell me they have solved agent knowledge. One has an ontology — classes,
+properties, a reasoner, a graph with a few million triples. The other has a
+schema — tables, constraints, a validator that runs in CI.</p>
+<p>Both are right about their own half. Neither has what an agent needs, and the
+reason is the same in both directions: <strong>an ontology states what things are, and a
+schema states how they are stored. Neither states what is allowed.</strong></p>
+<p>That third thing is the fact layer. It is not a new kind of knowledge graph and
+it is not a stricter schema. It is the conceptual layer both of the others assume
+somebody wrote down, and almost nobody did.</p>
+<h2 id="the-question-your-agent-is-actually-asking">The question your agent is actually asking</h2>
+<p>Watch what a coding agent needs when it touches your domain. Not what it
+retrieves — what it needs in order to be right.</p>
+<div class="note">
+<p>Can a customer have two active subscriptions?</p>
+<p>Is <code>company_id</code> optional because the domain permits it, or because the column
+was added in v2?</p>
+<p>If I relax this rule for contractors, what else breaks?</p>
+<p>Is &quot;spend over $50 needs approval&quot; something the system must prevent, or
+something it must be able to record a violation of?</p>
+</div>
+<p>Every one of those is a question about <strong>which populations are legal</strong>. Not about
+which classes exist, not about how rows are laid out. And an agent that gets one
+wrong does not fail loudly — a hallucinated function name is caught by the
+compiler on the next run, a hallucinated <em>rule</em> is caught by nothing, ever. It is
+not an output that gets checked; it is a premise, and premises propagate into the
+migration, the fixture, the validation that never got added, and from there into
+what the <em>next</em> agent infers next month with more supporting evidence than the
+belief had the first time.</p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-context-wall.png" alt="Two ways of answering the same question: reconstructing a domain from artifacts that under-determine it, versus reading a stated rule." loading="lazy"><figcaption>Two ways of answering the same question: reconstructing a domain from artifacts that under-determine it, versus reading a stated rule.</figcaption></figure>
+<h2 id="what-an-ontology-is-genuinely-for">What an ontology is genuinely for</h2>
+<p>I want to be fair here, because the RDF/OWL family is the part of the field
+taking the same problem seriously, and in places it does the job better than
+anything else available.</p>
+<p>An ontology is built to <strong>classify, integrate and infer</strong>. You have data from six
+sources that call the same thing by five names; an ontology gives you shared
+identity and a vocabulary they can all map into. You want to conclude that a
+<code>Manager</code> is a <code>Person</code> without writing that rule six times; a reasoner does it.
+You want a vocabulary that survives being merged with someone else&#39;s; the
+open-world assumption is exactly the right design for that, because a merge
+should not turn silence into a contradiction.</p>
+<p>That is real work, done well. It is also, precisely, not the job of stating what
+a specific system permits — and the mismatch is not cosmetic.</p>
+<h3 id="open-world-the-same-silence-the-opposite-meaning">Open world: the same silence, the opposite meaning</h3>
+<p>Assert that a person works for two companies under <code>owl:maxCardinality 1</code>. A
+reasoner does not raise an error. It concludes the two companies must be <strong>the
+same individual</strong>. That is correct OWL, and it is exactly the wrong behaviour for
+a fact layer, where you wanted to be told your data contradicts your rule.</p>
+<p>Then the deeper one. Under the open-world assumption, the absence of a statement
+means <strong>unknown</strong>. If nothing in your ontology says a customer may have at most
+one active subscription, OWL&#39;s position is that we do not know whether such a
+rule exists. A fact layer&#39;s position is that <strong>there is no such rule.</strong></p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-open-closed-world.png" alt="The same silence read two ways: under an open world the answer is unknown; under a closed world an absent rule means the rule was not stated." loading="lazy"><figcaption>The same silence read two ways: under an open world the answer is unknown; under a closed world an absent rule means the rule was not stated.</figcaption></figure>
+<p>For an agent, &quot;unknown&quot; is not actionable and &quot;there is no such rule&quot; is. This is
+the single highest-leverage difference in the whole comparison, and it is not a
+defect in OWL — it is a principled decision that silence should carry no
+information, made by people solving a different problem. Only one of the two
+readings lets an agent conclude anything from what the document does not say.</p>
+<h3 id="a-triple-is-a-binary-with-no-constraint-layer">A triple is a binary with no constraint layer</h3>
+<p>Subject, predicate, object. Two positions and a label.</p>
+<p>Anything with three participants — <em>this actor performed this action on this
+resource at this time</em> — needs an intermediate node: RDF reification, an n-ary
+pattern, or RDF-star. That is the same move ORM calls <strong>objectification</strong>,
+arrived at by necessity rather than by design, which is why the encodings look
+alike at the end and the intent behind them does not.</p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-triple-vs-fact.png" alt="A triple beside the same statement as an elementary fact type, with the four things the triple cannot say." loading="lazy"><figcaption>A triple beside the same statement as an elementary fact type, with the four things the triple cannot say.</figcaption></figure>
+<p>The fact is the same in both. The layer underneath it is the whole difference:
+one has a first-class place to say <em>mandatory</em>, <em>at most one</em>, <em>at least two</em>,
+<em>never itself</em>, <em>only if</em>, and one does not.</p>
+<h3 id="and-shacl-the-closest-relative-and-a-good-one">And SHACL — the closest relative, and a good one</h3>
+<p>SHACL is the honest counterexample and deserves better than a strawman. It is
+closed-world. It validates rather than infers. It expresses cardinality and value
+ranges, and <code>sh:sparql</code> reaches most of the rest. If you already have an RDF
+graph, SHACL is the right tool and I will not talk you out of it.</p>
+<p>The differences are narrower than with the rest of the field, and they are still
+the ones that matter:</p>
+<ul>
+<li><strong>SHACL constrains the shape of a graph</strong> — a <em>logical</em> artifact. By the time
+you write a <code>sh:NodeShape</code>, the decision about what is a node and what is a
+property has already been taken. That decision is exactly what a conceptual
+model defers.</li>
+<li><strong>There is no elementarity test.</strong> Nothing tells you a shape is quietly doing
+two jobs, which is where the interesting modelling mistakes live.</li>
+<li><strong><code>sh:severity</code> is not modality.</strong> It changes how loudly the validator
+complains, not whether the rule is a necessity or an obligation, and nothing
+downstream reads it.</li>
+<li><strong>It does not verbalize.</strong> A <code>sh:NodeShape</code> is not something you put in front
+of the person who knows whether the rule is right — and unread formal languages
+are how this discipline died the first time.</li>
+</ul>
+<h2 id="the-gap-two-half-layers-and-the-hole-between-them">The gap: two half-layers, and the hole between them</h2>
+<p>Sort your artifacts by two questions — <em>does it carry meaning a human can argue
+with?</em> and <em>does it enforce a rule against real data?</em> — and the shape of the
+problem falls out.</p>
+<div class="table-scroll"><table>
+<thead><tr><th></th><th>Weak on enforceable rules</th><th>Strong on enforceable rules</th></tr></thead>
+<tbody>
+<tr><td><strong>Rich semantics</strong></td><td>RDF, RDFS, OWL, most enterprise ontologies</td><td>← the empty quadrant</td></tr>
+<tr><td><strong>Thin semantics</strong></td><td><code>AGENTS.md</code>, wikis, vector memory</td><td>SQL DDL, JSON Schema, types, SHACL</td></tr>
+</tbody>
+</table></div>
+<p>The bottom-right is full of things that enforce rules <strong>about a representation</strong>.
+A JSON Schema constrains a <em>document</em>, so &quot;no two people share an email address&quot;
+is unwritable in it — not because the syntax is missing but because the subject
+of the sentence is not present; the schema is looking at one person and has no
+access to the others. A <code>NOT NULL</code> enforces a rule about a <em>column</em>. A
+<code>sh:NodeShape</code> enforces a rule about a <em>graph shape</em>.</p>
+<p>The top-left is full of things that carry meaning but decline to enforce it, by
+design.</p>
+<p>The empty quadrant is the fact layer: <strong>rules stated about the domain, checkable
+against data, readable as sentences.</strong> That is not a gap anybody left by
+accident. It is a gap left because the discipline that filled it went out of
+fashion around 2005.</p>
+<h2 id="why-conceptual-models-close-it">Why conceptual models close it</h2>
+<p>Object-Role Modeling — ORM, and specifically Halpin&#39;s ORM 2 — is a fifty-year-old
+answer to a problem we have just started calling new. It sits at the conceptual
+level: it has not yet decided what is a table, a column, a node or a property.</p>
+<p>That matters more than it sounds, because the three levels get conflated
+constantly:</p>
+<ul>
+<li><strong>Physical</strong> — files, indexes, partitions.</li>
+<li><strong>Logical</strong> — tables and columns, or node labels and relationship types. This
+is where most teams&#39; only written artifact lives. SHACL, DDL, GraphQL SDL and
+property-graph schemas are all here.</li>
+<li><strong>Conceptual</strong> — what the domain <em>is</em>, independent of how it is stored, and
+statable <em>without deciding</em>.</li>
+</ul>
+<p>An agent asked a conceptual question about a logical artifact is doing
+archaeology. That is the whole failure mode, in one sentence.</p>
+<h3 id="facts-not-attributes">Facts, not attributes</h3>
+<p>ORM describes a domain as <strong>elementary facts</strong>: <code>Person works for Company</code>,
+<code>Person has Skill</code>. Facts carry no attributes at all.</p>
+<p>That sounds like a restriction and is in fact the entire mechanism. An attribute
+is a place a decision can hide. Remove the hiding place and every decision about
+a fact has to surface as an explicit constraint — mandatory, uniqueness,
+frequency, value, subset, exclusion, ring, cardinality — each one an object with
+an identity, roles, a modality and a sentence. Not an annotation on a type. A
+thing that can be diffed, counted, cited and argued with.</p>
+<p>And because constraints are claims about <strong>populations</strong> rather than about
+documents or instances, uniqueness and frequency and ring constraints can exist
+at all. That is the boundary JSON Schema cannot cross, and it is the boundary the
+agent&#39;s hardest questions sit on the far side of.</p>
+<h3 id="modality-which-almost-nothing-else-has">Modality, which almost nothing else has</h3>
+<p>&quot;Spend over the budget must be approved&quot; and &quot;spend over the budget should be
+approved&quot; are different rules, and an agentic system that cannot tell them apart
+cannot audit itself.</p>
+<p>The first is <strong>alethic</strong> — it cannot be otherwise, and it becomes a <code>NOT NULL</code> or
+a foreign key. The second is <strong>deontic</strong> — it should not be otherwise, but the
+system must be able to <em>store the violation</em>, because an approval process that
+cannot record an unapproved spend has no work to do.</p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-deontic.png" alt="One schema carrying both modalities: the alethic rule becomes a constraint the database enforces, the deontic one becomes something the application checks and the schema can still record a violation of." loading="lazy"><figcaption>One schema carrying both modalities: the alethic rule becomes a constraint the database enforces, the deontic one becomes something the application checks and the schema can still record a violation of.</figcaption></figure>
+<p>Model a deontic rule as alethic and your system becomes incapable of representing
+the thing it exists to detect. No other format in the comparison scores anything
+on this question.</p>
+<h3 id="it-reads-back-as-a-sentence">It reads back as a sentence</h3>
+<p>Every constraint verbalizes. Not documentation generated <em>beside</em> the model —
+the model <em>rendered</em>:</p>
+<pre><code class="language-text">It is possible that some Person works for some Company.
+Each Person works for exactly one Company.
+It is necessary that the possible values of Status are {active, paused, ended}.
+It is necessary that no Incident is related to itself in &quot;Incident duplicates Incident&quot;.
+Each Person is exactly one of: Employee or Contractor.
+It is obligatory that if some Spend exceeds the budget
+  then some Spend is approved by some Approval.
+</code></pre>
+<p>The surface an agent parses is FORML — the Formal Object-Role Modeling Language —
+and it has a <strong>closed vocabulary of fifteen forms</strong>. Not a style. A finite list.</p>
+<p>This was designed in the 1970s and 80s for an entirely human reason: a schema a
+business expert cannot read is a schema nobody validated. Nobody planned for it
+to be the ideal input format for a language model. It is, and the properties that
+make it so are the same ones — natural language, closed vocabulary, every rule
+stated, nothing implied by an attribute.</p>
+<p>The corollary is the one that does the work: <strong>a rule that is not in the text is
+not in the model.</strong> Full stop, closed world, no reasoner required. Absence is
+information, and an agent can act on it.</p>
+<h2 id="the-wider-picture-literally">The wider picture, literally</h2>
+<p>Here is the part that surprises people who expect the fact layer to be a
+retrieval source. It is not. It does not get chunked, and it does not get
+embedded.</p>
+<p>A domain that occupies forty tables and several thousand lines of DDL is a few
+hundred FORML sentences. That fits in a context window <strong>whole</strong>.</p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-token-budget.png" alt="A domain rendered as DDL, as prose documentation, and as FORML sentences, against a context budget." loading="lazy"><figcaption>A domain rendered as DDL, as prose documentation, and as FORML sentences, against a context budget.</figcaption></figure>
+<p>Which removes an entire class of failure rather than mitigating it. Retrieval
+finds text similar to the query, and nothing in that pipeline establishes that
+what came back is true, current, or complete. A design doc from 2021 describing a
+rule changed in 2023 scores just as well as a correct one. Silence looks
+identical to permission. And you get chunks, not a domain — but <strong>constraints
+interact</strong>: a mandatory role plus a uniqueness constraint means <em>exactly one</em>;
+drop the mandatory and the same fact type means <em>at most one</em>. Reasoning about a
+rule you retrieved without the rule you did not is how you get an answer that is
+locally plausible and globally wrong.</p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-retrieval-vs-model.png" alt="Three retrieved chunks — a superseded design doc, a ticket comment, and the passage nearest the query — against a complete verbalization of the domain." loading="lazy"><figcaption>Three retrieved chunks — a superseded design doc, a ticket comment, and the passage nearest the query — against a complete verbalization of the domain.</figcaption></figure>
+<p>Give the agent all of it at once and the interactions are in front of it. That is
+the wider picture: not more context, but <em>complete</em> context, small enough to be
+complete.</p>
+<p>The model is also <strong>grounded</strong>. Sample populations live in the same file, so the
+rules arrive with worked examples in the same vocabulary — and a population can
+contradict a constraint you just drew, which is one of only two mechanisms
+standing between you and a well-formed lie. (The other is a domain expert reading
+a sentence. Both are cheap. Neither is automatic.)</p>
+<p>And a quoted sentence is <strong>checkable</strong>. When an agent tells you &quot;the model says
+each Person works for exactly one Company&quot;, that is a claim about a file you can
+grep — not a paraphrase of something it half-remembers from a wiki.</p>
+<h2 id="where-this-actually-runs">Where this actually runs</h2>
+<p>None of the above is worth much as philosophy. It is worth something as a
+toolchain, which is why I built <strong><a href="index.html">Factum</a></strong> — an
+ORM 2 editor, CLI and MCP server for VS Code.</p>
+<p><strong>The editor</strong> draws ORM 2 diagrams and verbalizes them as you go, so the formal
+artifact is a by-product of an act of modelling a domain expert can watch and
+correct in real time. That is the only reason formal languages ever survive.</p>
+<p><strong>The CLI</strong> is the part that goes in CI:</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>factum validate</code></td><td>Checks the model, and reports where your sample data contradicts a constraint you drew</td></tr>
+<tr><td><code>factum verbalize</code></td><td>Prints the domain as FORML sentences — pipe it into <code>.agent/domain.md</code></td></tr>
+<tr><td><code>factum ddl</code> / <code>factum graph</code></td><td>Generates relational and property-graph schemas <em>from</em> the model</td></tr>
+<tr><td><code>factum diff</code></td><td>Renders a schema change as sentences a reviewer can read</td></tr>
+<tr><td><code>factum drift</code></td><td>Compares the model against a production <code>pg_dump</code> and says where reality moved on without you</td></tr>
+<tr><td><code>factum convert --to ossie</code></td><td>Emits an Apache Ossie ontology — the conceptual layer travels</td></tr>
+</tbody>
+</table></div>
+<p><strong>The MCP server</strong> gives Claude Code, Copilot or Cursor eight tools over the model
+— seven read-only and one guarded write — with one line of config:</p>
+<pre><code class="language-jsonc">{ &quot;mcpServers&quot;: { &quot;factum&quot;: { &quot;command&quot;: &quot;factum-mcp&quot; } } }
+</code></pre>
+<p>The guarded write is the load-bearing part of the design. <code>apply_model</code> validates
+before it writes and refuses a model with blocking errors:</p>
+<pre><code class="language-text">Refused: the model has 2 blocking error(s).
+error: [uniqueness-too-narrow] An internal uniqueness constraint on
+&quot;AuditEvent records that Actor performed Action on Resource&quot; spans 1 of 4 roles.
+</code></pre>
+<p>An agent can be wrong. That is expected, and no amount of prompting changes it.
+What matters is that it <strong>cannot quietly commit an incoherent schema</strong>. The
+failure mode you are defending against is not &quot;the agent proposes something bad&quot;;
+it is &quot;the agent proposes something bad and nothing notices until it is a
+migration&quot;.</p>
+<p>Here is the difference on the same repository with the same prompt. Without the
+fact layer:</p>
+<pre><code class="language-text">&gt; add support for contractors who work for more than one company
+
+// Looked at: schema.sql, Person.ts
+- I&#39;ll add a `company_id_2` column
+- ...or a join table, if you prefer?
+- Note: existing rows assume one company; I can&#39;t tell whether that was a rule
+  or just the data.
+</code></pre>
+<p>With it:</p>
+<pre><code class="language-text">&gt; add support for contractors who work for more than one company
+
+// verbalize_model, read_population
+- &quot;Each Person works for exactly one Company&quot; is a mandatory role plus a
+  uniqueness constraint — a stated rule, not an accident of the data.
+- Contractor and Employee are already subtypes of Person, so I moved the
+  uniqueness onto Employee rather than relaxing it for everyone.
+  validate_model passes.
+- Diff for review:
+    - Each Person works for at most one Company.
+    + Each Employee works for at most one Company.
+</code></pre>
+<p>The second answer is not a smarter model. It is the same model with the
+constraint in front of it, and a validator that would have caught it had it
+relaxed the rule for everyone.</p>
+<p><strong>And nothing here calls a language model.</strong> Factum&#39;s verbalizer, validator and
+mappers are deterministic code that would have worked identically in 2005. The
+agent is your agent, running where you already run it, reading a file you own.</p>
+<h2 id="you-do-not-have-to-choose">You do not have to choose</h2>
+<p>The practical arrangement is not a competition between a fact layer and your
+ontology or your graph. It is <strong>a source and its renderings</strong>:</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Artifact</th><th>Generated from the model by</th></tr></thead>
+<tbody>
+<tr><td>Relational schema</td><td><code>factum ddl</code></td></tr>
+<tr><td>Property-graph schema</td><td><code>factum graph</code></td></tr>
+<tr><td>Conceptual ontology (Apache Ossie)</td><td><code>factum convert --to ossie</code></td></tr>
+<tr><td>The domain half of <code>AGENTS.md</code></td><td><code>factum verbalize</code></td></tr>
+<tr><td>Test fixtures</td><td><code>factum verbalize --population</code></td></tr>
+<tr><td>A review comment on a schema change</td><td><code>factum diff</code></td></tr>
+<tr><td>A CI check against production</td><td><code>factum drift</code></td></tr>
+</tbody>
+</table></div>
+<p>Nothing on that list is a new artifact you have to maintain. They are artifacts
+you already maintain, with the rule moved to the one place able to state it and
+the rest derived. Keep OWL for integration and inference, where it is excellent.
+Keep SHACL for validating the graph you ship. Author neither by hand.</p>
+<p>And keep your <code>AGENTS.md</code> — it is the highest-leverage file most teams have. Just
+split it in two and generate the half that can be generated:</p>
+<pre><code class="language-bash">factum verbalize model/domain.orm.json &gt; .agent/domain.md
+</code></pre>
+<p>leaving the hand-written half for what only a human can write, plus one line
+making the relationship explicit:</p>
+<pre><code class="language-text">The conceptual schema in model/domain.orm.json is authoritative for domain
+rules. Read it before answering questions about what the system means.
+</code></pre>
+<p>Without that line, the fact layer is a file nobody reads. Agents reconcile
+sources by averaging unless told not to.</p>
+<h2 id="where-a-fact-layer-does-not-help">Where a fact layer does not help</h2>
+<p>Six situations. If you are in one of them, do something else.</p>
+<ul>
+<li><strong>The domain has not been decided.</strong> Modelling an undecided domain produces
+fiction with a validator attached — worse than a wiki page, because the wiki
+page does not look authoritative. If nobody can give you a real example of a
+fact type, it does not exist yet.</li>
+<li><strong>The prototype changes daily.</strong> The cost is paid at authoring time and
+returned over the life of the schema. A schema with no life expectancy returns
+nothing.</li>
+<li><strong>The model goes stale.</strong> The serious one, and worse than having no model,
+because people trust it. It is also what killed conceptual modelling as a
+discipline the first time around. <code>factum drift</code> in CI is not optional; it is
+the thing that makes everything else defensible.</li>
+<li><strong>The rule is behavioural.</strong> &quot;Retry three times with backoff&quot; is not a claim
+about which populations are legal, and pretending otherwise produces models
+with fake fact types in them.</li>
+<li><strong>The agent has the model and ignores it.</strong> One line of project instruction
+fixes it; without that line, see above.</li>
+<li><strong>The model is confidently wrong.</strong> ORM makes claims explicit; it does not make
+them correct. A wrong constraint stated explicitly is worse than no constraint
+for exactly as long as it takes one domain expert to read the sentence — which
+is the entire design.</li>
+</ul>
+<h2 id="the-book">The book</h2>
+<p>I wrote <strong><a href="https://leanpub.com/fact-basedagents">Fact-Based Agents: ORM 2, FORML and Factum for agentic memory</a></strong>
+because the argument above is one chapter and the other twenty-two are what makes
+it usable.</p>
+<p>Six parts: the case for a fact layer, with an honest format-by-format comparison
+against JSON Schema, types, OWL, SHACL, property-graph schemas, <code>AGENTS.md</code> and
+vector memory, scored on eight questions; the ORM 2 notation in full, about a
+dozen marks, every one drawn beside the sentence it generates; Halpin&#39;s
+seven-step design procedure worked end to end, with six named anti-patterns and a
+chapter on sample populations; the Factum toolchain in depth; three real schemas
+modelled properly — a six-layer agentic memory architecture, a promise graph for
+multi-agent coordination where rejections are first-class, and an audit log whose
+hash chain is stated as a constraint rather than assumed by the code that writes
+it; and interoperability with NORMA, FBM, Apache Ossie and UMS.</p>
+<figure class="figure"><img src="assets/blog/fact-layer-vs-ontology/fig-memory-layers.png" alt="Six layers of agentic memory, each as an ORM 2 schema." loading="lazy"><figcaption>Six layers of agentic memory, each as an ORM 2 schema.</figcaption></figure>
+<p>Some numbers, because they are what I would want to know:</p>
+<ul>
+<li><strong>73 figures</strong>, every ORM diagram rendered by Factum&#39;s own renderer from a model
+file that ships with the book.</li>
+<li><strong>79 downloadable models</strong> carrying <strong>1,069 sample facts</strong>, in the exact layout
+the text prints — a path quoted in a chapter is the path you have after
+cloning.</li>
+<li><strong>63 exercises</strong> across three chapters, built around one on-call rota case study
+running through four chapters. Every expected validator error is quoted
+verbatim from real output and asserted by the build; every answer model
+validates clean. Ten models are deliberately wrong, and four of those validate
+clean and are <em>still</em> wrong — which is where every interesting modelling
+mistake lives.</li>
+<li><strong>A benchmark harness</strong> for the book&#39;s central claim: two question sets, three
+conditions including a prose-documentation control, a scorer reporting
+confident errors and correct declines separately, and a citation check that
+verifies mechanically whether a constraint an agent quoted actually exists. The
+book contains the harness and says plainly that it does not contain the study.</li>
+</ul>
+<p>If you have read <em>Metagraph for AI Agents</em>, this is its counterpart rather than
+its sequel. That book asks how to <strong>represent</strong> agent knowledge — hypergraphs,
+reification, six layers of memory. This one asks how to <strong>specify and check</strong> it.</p>
+<hr>
+<p><strong><a href="https://leanpub.com/fact-basedagents">Read the free sample →</a></strong>
+<strong><a href="index.html">Get Factum →</a></strong>
+<strong><a href="https://github.com/Volland/factum-book-models">The models on GitHub →</a></strong></p>
+<p><em>You do not need prior ORM. You do need to have built a knowledge layer and
+watched an agent ignore it.</em></p>
+
+<nav class="chapter-nav">
+  <a class="prev" href="blog-fact-layer-for-agents.html"><span>← Older</span>Your Agent Is Guessing About Your Domain</a>
+  <a class="next" href="blog-orm2-actions-and-rules.html"><span>Newer →</span>Actions and Rules for Agents in ORM 2</a>
+</nav>
+
+</div></section>
+</article>
+
+</main>
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For AI &amp; agents</h4>
+      <ul>
+        <li><a href="ai-native.html">Human-first, AI-native</a></li>
+        <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="skills.html">The skill pack</a></li>
+        <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
+        <li><a href="forml-for-llms.html">FORML for language models</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="book-full.html">Fact-Based Agents (book)</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="impressum.html">Impressum</a></li>
+        <li><a href="datenschutz.html">Datenschutz</a></li>
+        <li><a href="agb.html">AGB</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

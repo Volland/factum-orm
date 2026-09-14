@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actions and Rules for Agents in ORM 2 · Factum</title>
+<meta name="description" content="A little-cited paper on dynamic rules in Object-Role Modeling turns out to be an action-schema language for agents. Here is what it got right, the one thing it left unfinished, and how to model agent actions today in a formalism a validator can actually check.">
+<link rel="icon" href="assets/icon-256.png">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="application/rss+xml" title="Factum blog" href="blog.xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Actions and Rules for Agents in ORM 2">
+<meta property="og:description" content="A little-cited paper on dynamic rules in Object-Role Modeling turns out to be an action-schema language for agents. Here is what it got right, the one thing it left unfinished, and how to model agent actions today in a formalism a validator can actually check.">
+<meta property="og:image" content="assets/screenshot-diagram.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/icon-256.png" alt=""> Factum</a>
+  <nav class="nav-links">
+    <a href="ai-native.html">AI-native</a>
+    <a href="book.html">Book</a>
+    <a href="getting-started.html">Guide</a>
+    <a href="mapping.html">Mapping</a>
+    <a href="reference.html">Reference</a>
+    <a href="compare.html">Why Factum</a>
+    <a href="faq.html">FAQ</a>
+    <a href="blog.html" aria-current="page">Blog</a>
+    <a href="https://github.com/Volland/factum-orm">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+
+<article>
+<div class="page-head wrap">
+  <a class="eyebrow" href="blog.html">Blog</a>
+  <h1>Actions and Rules for Agents in ORM 2</h1>
+  <p>A little-cited paper on dynamic rules in Object-Role Modeling turns out to be an action-schema language for agents. Here is what it got right, the one thing it left unfinished, and how to model agent actions today in a formalism a validator can actually check.</p>
+  <p class="post-meta"><time datetime="2026-09-07">7 September 2026</time> · 20 min read · Volodymyr Pavlyshyn</p>
+  <div class="badges left"><span>AI agents</span><span>ORM</span><span>conceptual modelling</span><span>state machines</span><span>promise theory</span><span>causal graphs</span><span>Factum</span><span>knowledge graphs</span></div>
+</div>
+
+<section><div class="wrap prose">
+
+<nav class="toc">
+  <strong>In this article</strong>
+  <ul>
+    <li><a href="#1-why-an-obscure-orm-paper-matters-to-agent-builders">1. Why an obscure ORM paper matters to agent builders</a></li>
+    <li><a href="#2-the-core-pattern-context-precondition-and-the-old-new-pair">2. The core pattern: context, precondition, and the old/new pair</a></li>
+    <li><a href="#3-the-unfinished-part-the-notation-was-never-implemented">3. The unfinished part: the notation was never implemented</a></li>
+    <li><a href="#4-enumerated-transitions-the-fsm-hiding-in-the-fact-type">4. Enumerated transitions: the FSM hiding in the fact type</a></li>
+    <li><a href="#5-historical-facts-and-who-guarantees-the-ordering">5. Historical facts, and who guarantees the ordering</a></li>
+    <li><a href="#6-non-functional-fact-types-actions-with-two-owners">6. Non-functional fact types: actions with two owners</a></li>
+    <li><a href="#7-two-participants-one-atomic-effect">7. Two participants, one atomic effect</a></li>
+    <li><a href="#8-deletion-and-the-rule-that-only-needs-a-before">8. Deletion, and the rule that only needs a <code>before</code></a></li>
+    <li><a href="#9-a-template-for-agent-action-rules">9. A template for agent action rules</a></li>
+    <li><a href="#10-doing-it-modelling-agent-actions-with-factum">10. Doing it: modelling agent actions with Factum</a></li>
+    <li><a href="#11-where-this-connects-to-formal-verification">11. Where this connects to formal verification</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+  </ul>
+</nav>
+
+<p><em>From state-transition constraints to multi-agent causal graphs — a close reading
+of Balsters, Carver, Halpin &amp; Morgan&#39;s &quot;Modeling Dynamic Rules in ORM,&quot; and what
+it offers people building agentic systems on causal temporal event graphs,
+promise theory, and verifiable trust infrastructure.</em></p>
+<hr>
+<h2 id="1-why-an-obscure-orm-paper-matters-to-agent-builders">1. Why an obscure ORM paper matters to agent builders</h2>
+<p>Object-Role Modeling is usually filed under &quot;conceptual data modeling&quot; — a
+fact-oriented alternative to ER and UML class diagrams, valued for producing
+constraint diagrams a domain expert can actually read. Balsters, Carver, Halpin
+and Morgan&#39;s paper on dynamic rules is a narrower, less-cited contribution: it
+extends ORM&#39;s static constraint language — facts about a single state — into a
+declarative language for <strong>state transitions</strong>, with old state, new state, and a
+relationship between them.</p>
+<p>At first glance this is database-schema housekeeping. Don&#39;t let a salary
+decrease. Don&#39;t let a marital status jump from <em>single</em> straight to <em>divorced</em>.
+Don&#39;t let a seating claim a table that isn&#39;t vacant.</p>
+<p>Squint at the structure and it is something else entirely: <strong>an action schema</strong>.
+<code>Context</code> / <code>needed before</code> / <code>after</code> is STRIPS&#39;s <code>precondition</code> / <code>effect</code>
+wearing different clothes. The <code>old</code>/<code>new</code> pair is a state-transition edge. The
+case-statement transition tables in Figures 3 and 4 are finite-state-machine
+transition matrices, written in a syntax aimed at a non-technical reader instead
+of a planner.</p>
+<p>That&#39;s the interesting part. The language was built for business analysts
+validating rules about payroll and restaurant seatings, and it independently
+arrived at a representation that overlaps heavily with the action-and-effect
+languages used in classical planning, with event-condition-action rules in active
+databases, and — closer to home if you work on Semantic Spacetime and causal
+temporal event graphs — with the <strong><code>LEADS_TO</code></strong> edge that links a state-node to
+its causal successor.</p>
+<p>This piece works through the patterns one at a time, translates each into agent
+vocabulary, and then does the thing the paper could not: shows how to express
+each one <strong>in a model file a validator will check today</strong>, because the paper&#39;s own
+notation was never implemented anywhere.</p>
+<hr>
+<h2 id="2-the-core-pattern-context-precondition-and-the-old-new-pair">2. The core pattern: context, precondition, and the old/new pair</h2>
+<p>The simplest example is the salary rule:</p>
+<pre><code class="language-text">Context: Employee
+For each Employee,
+  new salary &gt;= old salary
+</code></pre>
+<p>Generalized, any functional binary fact type <code>A R&#39;s B</code> with role <code>p</code> gets:</p>
+<pre><code class="language-text">Context: A | For each A,
+  new p &lt;op&gt; old p
+</code></pre>
+<p>where <code>&lt;op&gt;</code> is whatever comparison the domain needs. Three things in there map onto three different pieces of agent-action machinery.</p>
+<p><strong>(a) The context is a fact type, not a class.</strong> This is the paper&#39;s real
+methodological insight, and it makes it explicit in Section 4 by comparing
+against OCL. OCL forces every constraint&#39;s context to be an object or class,
+which produces artificial side effects the moment a transaction naturally spans
+two of them — their <code>Seating occupies Table</code> example, Figures 8 through 11. ORM
+lets the <em>fact type itself</em> — the relationship, not either participant — be the
+unit of transition.</p>
+<p>That is exactly the difference between an object-oriented action model (a method
+call on one object that mutates a neighbour as a side effect) and a
+<strong>relational action model</strong>, where an action is a first-class edge connecting
+several participants. If you have been thinking of agent actions as verbs owned
+by a single agent object, the fact-type context is the nudge toward an action as
+a <strong>hyperedge that several parties co-author</strong> — which is how a causal temporal
+event graph, or a promise-theoretic promise/imposition pair, actually needs to be
+represented.</p>
+<p><strong>(b) <code>old</code>/<code>new</code> denotes a rule-scoped, single-step transaction.</strong> The paper is
+disciplined about scope: application of dynamic rules is restricted to
+&quot;single-step transactions.&quot; No constraint spanning arbitrary numbers of states —
+one edge, <code>old</code> to <code>new</code>. That restriction is precisely what makes the rules
+checkable like SQL check-clauses rather than requiring general temporal logic. It
+is the same choice STRIPS makes with effects axioms, and the same choice a CTEG
+makes at the level of a single <code>LEADS_TO</code> edge: each edge is a local, checkable
+step, and global properties — safety, liveness, &quot;paid within 30 days&quot; — are built
+by composing edges rather than by writing one omniscient constraint over the
+whole timeline.</p>
+<p><strong>(c) An undefined <code>old</code> value doesn&#39;t violate the rule; it makes it vacuously
+true.</strong> If the employee had no prior salary, the inequality evaluates to unknown,
+and unknown is not a violation. Small decision, large consequence: <strong>first
+occurrences need a different rule from updates</strong>, and the paper says so
+explicitly. Any framework that collapses &quot;create&quot; and &quot;update&quot; into one mutation
+event will get this wrong, and it will get it wrong silently — the precondition
+for creating a fact is a different rule from the precondition for updating one,
+and pretending otherwise produces null-shaped bugs in the constraint layer rather
+than in the code, which is where nobody looks.</p>
+<hr>
+<h2 id="3-the-unfinished-part-the-notation-was-never-implemented">3. The unfinished part: the notation was never implemented</h2>
+<p>Here is the thing you find out when you try to use any of this.</p>
+<p>The dynamic-rule extension was a proposal. NORMA never implemented it; neither
+has anything since. There is no validator that reads <code>needed before</code>, no
+verbalizer that emits it, no serialization that carries it. A rule expressed in a
+notation no tool can check is a comment — and a comment about a state transition
+is exactly the artifact that goes stale first, because it is the artifact that
+never fails a build.</p>
+<p>So the practical question isn&#39;t <em>how do I write <code>old</code> and <code>new</code></em>. It&#39;s:</p>
+<div class="note">
+<p><strong>What do I have to make into an object type so that <code>old</code> and <code>new</code> are both
+facts about it?</strong></p>
+</div>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-two-states.png" alt="Three bands: a single population that an ORM constraint can see; an old and a new population with the rule drawn as the arrow between them; and a single population in which the transition itself is a row." loading="lazy"><figcaption>Three bands: a single population that an ORM constraint can see; an old and a new population with the rule drawn as the arrow between them; and a single population in which the transition itself is a row.</figcaption></figure>
+<p>A static constraint is a predicate over one population. A dynamic rule is a
+predicate over a pair. <strong>Reify the transition</strong> — make the change itself a thing
+in the model — and old state and new state become two roles on one object type,
+in one population, where an ordinary static constraint can compare them.</p>
+<p>This is not a workaround. It&#39;s the same move ORM already makes for facts about
+facts, and it is the move a CTEG makes when it turns an event into a node. If you
+cannot say it about a thing, make it a thing.</p>
+<hr>
+<h2 id="4-enumerated-transitions-the-fsm-hiding-in-the-fact-type">4. Enumerated transitions: the FSM hiding in the fact type</h2>
+<p>Section 2 of the paper generalizes the salary rule to non-ordered domains via a
+case statement:</p>
+<pre><code class="language-text">Context: A
+in case old p =
+  &#39;B1&#39;: new p in (B2, B3, ...)
+  ...
+end cases
+</code></pre>
+<p>That&#39;s a transition table. The marital-status matrix — single to married,
+married to widowed or divorced — is a finite-state-machine transition relation in
+role-based syntax rather than a state diagram.</p>
+<p>Here&#39;s how the same thing looks when you reify it. Start with what most people
+model, which is the state and nothing else:</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-state.png" alt="Task is in TaskState as one functional mandatory binary, with a value constraint listing six states." loading="lazy"><figcaption>Task is in TaskState as one functional mandatory binary, with a value constraint listing six states.</figcaption></figure>
+<pre><code class="language-text">It is necessary that the possible values of TaskState are
+  {&#39;queued&#39;, &#39;running&#39;, &#39;paused&#39;, &#39;done&#39;, &#39;failed&#39;, &#39;abandoned&#39;}.
+Each Task is in exactly one TaskState.
+</code></pre>
+<p>Correct, and useless for the question an agent asks. It permits <code>queued</code> and it
+permits <code>done</code>, so it permits an agent to write <code>done</code> over <code>queued</code> and skip the
+work. The value constraint enumerates the <strong>states</strong>. Nothing enumerates the
+<strong>steps</strong>.</p>
+<p>Now reify:</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-transition.png" alt="TaskState may be followed by TaskState, objectified as Step, with Action applies Step and Action changes Task as functional mandatory binaries." loading="lazy"><figcaption>TaskState may be followed by TaskState, objectified as Step, with Action applies Step and Action changes Task as functional mandatory binaries.</figcaption></figure>
+<pre><code class="language-text">Each Step objectifies exactly one &quot;TaskState may be followed by TaskState&quot; fact.
+In each population of &quot;TaskState may be followed by TaskState&quot;,
+  each TaskState, TaskState combination occurs at most once.
+It is necessary that no TaskState is related to itself in
+  &quot;TaskState may be followed by TaskState&quot;.
+Each Action applies exactly one Step.
+Each Action changes exactly one Task.
+</code></pre>
+<p><code>TaskState may be followed by TaskState</code> is a fact type <strong>whose population is the
+transition table</strong>. <code>Step</code> objectifies it, so a step is a referenceable thing.
+<code>Action applies exactly one Step</code> says an action must name one of the steps that
+exists.</p>
+<p>An illegal transition is not rejected by a rule. It is <strong>unrepresentable</strong>, because
+there is no <code>Step</code> for it to apply.</p>
+<h3 id="the-model-as-code">The model, as code</h3>
+<p>This is an ORM 2 model file — the format Factum&#39;s editor, validator and CLI read.
+Populations live in the model beside the constraints, which is what makes the
+transition table part of the schema rather than a fixture:</p>
+<pre><code class="language-json">{
+  &quot;objectTypes&quot;: [
+    { &quot;id&quot;: &quot;state&quot;,  &quot;name&quot;: &quot;TaskState&quot;, &quot;kind&quot;: &quot;value&quot;, &quot;dataType&quot;: &quot;string&quot; },
+    { &quot;id&quot;: &quot;step&quot;,   &quot;name&quot;: &quot;Step&quot;,   &quot;kind&quot;: &quot;entity&quot;, &quot;objectifiedFactTypeId&quot;: &quot;mayFollow&quot; },
+    { &quot;id&quot;: &quot;action&quot;, &quot;name&quot;: &quot;Action&quot;, &quot;kind&quot;: &quot;entity&quot;, &quot;refMode&quot;: &quot;id&quot; },
+    { &quot;id&quot;: &quot;task&quot;,   &quot;name&quot;: &quot;Task&quot;,   &quot;kind&quot;: &quot;entity&quot;, &quot;refMode&quot;: &quot;id&quot; }
+  ],
+  &quot;factTypes&quot;: [
+    {
+      &quot;id&quot;: &quot;mayFollow&quot;,
+      &quot;roles&quot;: [
+        { &quot;id&quot;: &quot;mayFollow.r0&quot;, &quot;objectTypeId&quot;: &quot;state&quot; },
+        { &quot;id&quot;: &quot;mayFollow.r1&quot;, &quot;objectTypeId&quot;: &quot;state&quot; }
+      ],
+      &quot;readings&quot;: [
+        { &quot;id&quot;: &quot;mayFollow.rd&quot;, &quot;roleOrder&quot;: [&quot;mayFollow.r0&quot;, &quot;mayFollow.r1&quot;],
+          &quot;text&quot;: &quot;{0} may be followed by {1}&quot;, &quot;isPrimary&quot;: true }
+      ],
+      &quot;meta&quot;: {
+        &quot;description&quot;: &quot;The lifecycle rule, held as data. A step absent from this population is not a step an Action can apply, because there is no Step to apply.&quot;
+      },
+      &quot;population&quot;: [
+        { &quot;values&quot;: [&quot;queued&quot;,  &quot;running&quot;] },
+        { &quot;values&quot;: [&quot;running&quot;, &quot;paused&quot;] },
+        { &quot;values&quot;: [&quot;paused&quot;,  &quot;running&quot;] },
+        { &quot;values&quot;: [&quot;running&quot;, &quot;done&quot;] },
+        { &quot;values&quot;: [&quot;running&quot;, &quot;failed&quot;] },
+        { &quot;values&quot;: [&quot;failed&quot;,  &quot;queued&quot;] },
+        { &quot;values&quot;: [&quot;queued&quot;,  &quot;abandoned&quot;] },
+        { &quot;values&quot;: [&quot;paused&quot;,  &quot;abandoned&quot;] }
+      ]
+    },
+    {
+      &quot;id&quot;: &quot;applies&quot;,
+      &quot;roles&quot;: [
+        { &quot;id&quot;: &quot;applies.r0&quot;, &quot;objectTypeId&quot;: &quot;action&quot; },
+        { &quot;id&quot;: &quot;applies.r1&quot;, &quot;objectTypeId&quot;: &quot;step&quot; }
+      ],
+      &quot;readings&quot;: [
+        { &quot;id&quot;: &quot;applies.rd&quot;, &quot;roleOrder&quot;: [&quot;applies.r0&quot;, &quot;applies.r1&quot;],
+          &quot;text&quot;: &quot;{0} applies {1}&quot;, &quot;isPrimary&quot;: true }
+      ]
+    }
+  ],
+  &quot;constraints&quot;: [
+    { &quot;id&quot;: &quot;u-mayfollow&quot;, &quot;kind&quot;: &quot;uniqueness&quot;,
+      &quot;roles&quot;: [&quot;mayFollow.r0&quot;, &quot;mayFollow.r1&quot;] },
+    { &quot;id&quot;: &quot;ring-step&quot;, &quot;kind&quot;: &quot;ring&quot;,
+      &quot;roles&quot;: [&quot;mayFollow.r0&quot;, &quot;mayFollow.r1&quot;], &quot;types&quot;: [&quot;irreflexive&quot;] },
+    { &quot;id&quot;: &quot;u-applies&quot;, &quot;kind&quot;: &quot;uniqueness&quot;, &quot;roles&quot;: [&quot;applies.r0&quot;] },
+    { &quot;id&quot;: &quot;m-applies&quot;, &quot;kind&quot;: &quot;mandatory&quot;,  &quot;roles&quot;: [&quot;applies.r0&quot;] },
+    { &quot;id&quot;: &quot;vc-state&quot;, &quot;kind&quot;: &quot;value&quot;, &quot;objectTypeId&quot;: &quot;state&quot;,
+      &quot;ranges&quot;: [
+        { &quot;value&quot;: &quot;queued&quot; }, { &quot;value&quot;: &quot;running&quot; }, { &quot;value&quot;: &quot;paused&quot; },
+        { &quot;value&quot;: &quot;done&quot; }, { &quot;value&quot;: &quot;failed&quot; }, { &quot;value&quot;: &quot;abandoned&quot; }
+      ] }
+  ]
+}
+</code></pre>
+<p>The irreflexive ring is worth a sentence. <code>no TaskState is related to itself</code>
+forbids a step from a state to the same state — the schema-level way of saying
+<strong>a no-op is not an action</strong>. If your domain has meaningful self-steps, a retry
+that stays <code>running</code>, drop the ring and say so. The point is that the decision is
+now written down rather than being whatever the code happened to do.</p>
+<p>And the transition table comes back out as English:</p>
+<pre><code class="language-bash">$ factum verbalize task-lifecycle.orm.json --population
+</code></pre>
+<pre><code class="language-text">## Sample population
+
+- queued may be followed by running
+- running may be followed by paused
+- paused may be followed by running
+- running may be followed by done
+- running may be followed by failed
+- failed may be followed by queued
+- queued may be followed by abandoned
+- paused may be followed by abandoned
+</code></pre>
+<p>That is the finite-state machine, in eight lines a domain expert can approve and
+an agent can read, in the same file as the rest of the domain. Not a state chart
+in a wiki that stopped matching the code in March.</p>
+<h3 id="the-trade-you-are-making">The trade you are making</h3>
+<p>Holding the lifecycle as a population rather than as a constraint means the
+validator checks that every <em>referenced</em> step exists, not that the <em>set</em> of steps
+is right. Nothing stops a migration from adding <code>queued may be followed by done</code>.</p>
+<p>For an agentic system that&#39;s the correct trade, because lifecycles change — and a
+lifecycle held as data changes with a reviewable diff (<code>factum diff before.orm.json after.orm.json</code>) rather than with a schema migration and a deploy. If yours
+genuinely never changes, promote the table to a value constraint on a <code>StepCode</code>
+value type and take the stronger check. Most don&#39;t.</p>
+<hr>
+<h2 id="5-historical-facts-and-who-guarantees-the-ordering">5. Historical facts, and who guarantees the ordering</h2>
+<p>The salary rule above assumes a <strong>snapshot</strong>: one current value, overwritten on
+update. Once you retain history — append rather than overwrite — the rule shape
+changes:</p>
+<pre><code class="language-text">Context: Employee
+For each salary added
+if before:
+  Employee was awarded some salary on some Date
+then after:
+  salary &gt;= previous salary
+</code></pre>
+<p>Note the substitution. <code>new</code>/<code>old</code> become <code>if before</code> / <code>then after</code>, and a
+<code>previous</code> function replaces direct reference to <code>old p</code>, because in an
+append-only history there is no single old value — there is a most recent one,
+selected by an ordering. The paper generalizes this over <code>(A, p, B, Tag)</code>, where
+<code>Tag</code> is &quot;some value that consistently increases for a given A as new facts are
+added&quot;: dates, incident numbers, version numbers, anything totally ordered.</p>
+<p>That is a description of an <strong>append-only event log with a monotonic sequence
+key</strong>, and the rule is a constraint on <em>consecutive events in that log for a given
+subject</em>. If you build agentic memory — event-sourced world models, CTEGs, audit
+trails for multi-agent decisions — this is the generalization to reach for. Don&#39;t
+force &quot;did the value change legally&quot; into a mutable-snapshot rule when the
+representation is a growing history. Ask instead whether the new event&#39;s <code>p</code> is a
+legal successor of the most recent prior event&#39;s <code>p</code>, ordered by the <code>Tag</code>.</p>
+<p>That reframing is what lets a CTEG&#39;s <code>LEADS_TO</code> edges carry the same legality
+constraint the paper puts on a salary update without re-checking the whole graph
+for every new event. Each new edge is checked against its immediate predecessor
+along that subject&#39;s causal chain — the paper&#39;s single-step restriction, arrived
+at from the other direction.</p>
+<p><strong>Now the part that does not port for free.</strong> The paper assumes the Tag history is
+complete for each subject and that you never add a fact earlier than an existing
+one. A single centralized database enforces that trivially. <strong>A multi-agent system
+does not.</strong> Distributed agents proposing facts about one subject at overlapping
+wall-clock times need a consensus-ordered log, a logical clock, or a
+trust-anchored sequencing mechanism — which is the job KERI&#39;s key event logs and
+ACDC chains do for identity and credential state, where each event references its
+prior event&#39;s digest and <code>previous</code> becomes cryptographically, not merely
+logically, well-defined.</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-audit-chain.png" alt="An audit chain: AuditEvent immediately follows AuditEvent as an irreflexive acyclic ring, belongs to a Run, has a canonical form, and is sealed with a derived Digest." loading="lazy"><figcaption>An audit chain: AuditEvent immediately follows AuditEvent as an irreflexive acyclic ring, belongs to a Run, has a canonical form, and is sealed with a derived Digest.</figcaption></figure>
+<p>Porting the historical-fact pattern into a multi-agent setting without also
+porting some version of that guarantee is the single most common way these rules
+quietly stop meaning what they say.</p>
+<p>In the model, the guarantee is one external uniqueness constraint:</p>
+<pre><code class="language-text">It is necessary that each combination of Task and Seq refers to at most one Action.
+</code></pre>
+<p>That sentence is what makes <em>the previous action on this task</em> well-defined: a
+<code>Seq</code> is used at most once per task, so actions on a task are totally ordered and
+<code>previous</code> means <code>Seq - 1</code>. It says nothing about <strong>who</strong> assigns the numbers. What
+it does is make the requirement visible, so an implementation without one fails a
+check instead of failing a post-mortem.</p>
+<hr>
+<h2 id="6-non-functional-fact-types-actions-with-two-owners">6. Non-functional fact types: actions with two owners</h2>
+<p>Section 4&#39;s seating example is the paper&#39;s best argument against object-oriented
+action modelling, and the clearest bridge to promise theory.</p>
+<pre><code class="language-text">Context: Seating occupies Table
+For each fact added
+needed before: the table is vacant
+after: the table is not vacant
+</code></pre>
+<p>The authors then spend two pages (Figures 9–11) making one point: <strong>there is no
+single object whose method could carry this precondition without a side effect on
+the other participant</strong>. <code>Seating.addTable(t)</code> mutates <code>t</code>, which is not the
+seating&#39;s to mutate. <code>Table.allocateSeating(s)</code> mutates <code>s</code>&#39;s table property as a
+side effect of a <code>Table</code> method. Their resolution is to introduce an artificial
+class purely to satisfy OCL&#39;s class-centric context requirement — and they call it
+&quot;roundabout and artificial,&quot; correctly.</p>
+<p>That failure mode is what promise theory was built to name. An agent can make
+voluntary claims about its <strong>own</strong> state and never impose obligations on another
+autonomous agent&#39;s state as a side effect of its own action. The table&#39;s vacancy
+is not the seating&#39;s to promise; the seating&#39;s table-assignment is not the
+table&#39;s to promise.</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-promise-core.png" alt="Three mandatory functional binaries from Promise: is made by Agent, is made to Agent, and promises PromiseBody." loading="lazy"><figcaption>Three mandatory functional binaries from Promise: is made by Agent, is made to Agent, and promises PromiseBody.</figcaption></figure>
+<p>What ORM&#39;s fact-type context gets right — treating <code>Seating occupies Table</code> as a
+first-class relationship distinct from either participant — is structurally the
+move promise theory makes when it insists a joint fact requires <strong>both</strong> parties
+to have made compatible promises: the seating promises to accept assignment to a
+vacant table, the table promises to accept a seating only while vacant, and the
+fact <code>occupies</code> exists only where those two are simultaneously honoured. The
+dynamic rule is the effect condition on that joint promise. It just doesn&#39;t name
+the promise structure underneath, because ORM&#39;s audience never needed the word
+&quot;agent.&quot;</p>
+<h3 id="and-then-something-better-happens">And then something better happens</h3>
+<p>Write the joint action down as a relationship and most of the precondition
+evaporates.</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-guard.png" alt="Session claims Sandbox as a one-to-one binary with a mandatory dot on Session, plus Session was opened by Agent." loading="lazy"><figcaption>Session claims Sandbox as a one-to-one binary with a mandatory dot on Session, plus Session was opened by Agent.</figcaption></figure>
+<pre><code class="language-text">Each Session claims exactly one Sandbox.
+Each Sandbox is claimed by at most one Session.
+Each Session was opened by exactly one Agent.
+</code></pre>
+<p><em>The sandbox is free</em> is not an extra rule. It is the reading of the uniqueness
+bar on the sandbox role, evaluated against the current population: a sandbox is
+free exactly when it plays no role in <code>claims</code>. The dynamic rule&#39;s <code>needed before</code>
+and <code>after</code> clauses were both restating one static invariant — and the invariant
+is the better thing to write down, because it holds at every instant rather than
+only at the moment of the write.</p>
+<p>Which generalizes into a rule of thumb worth more than the rest of this section:</p>
+<div class="note">
+<p><strong>Before writing a precondition, look for the invariant it protects.</strong> Most
+preconditions on shared resources are an at-most-one bar nobody drew. The ones
+that survive the search are the genuinely temporal rules — monotonicity,
+ordering, budgets over a window — and those are what the reified action is for.</p>
+</div>
+<hr>
+<h2 id="7-two-participants-one-atomic-effect">7. Two participants, one atomic effect</h2>
+<p>Section 5&#39;s banking example combines everything: a functional 1:1 update rule for
+account balances, a case statement branching on transaction type, and a genuinely
+two-account joint action.</p>
+<pre><code class="language-text">Context: TransferTransaction
+For each instance added
+balance1 = (old account1.balance - amount) and
+balance2 = (old account2.balance + amount) and
+new account1.balance = balance1 and
+new account2.balance = balance2
+</code></pre>
+<p>One dynamic rule, whose context is a subtype of a fact type, whose effect touches
+two independent accounts atomically. Read as an agent-action schema it is a
+two-phase-commit effect: meaningful only if both balances update together, with no
+legal intermediate state.</p>
+<p>The declarative framing sidesteps locking and commit protocols — the paper notes
+that each transaction is &quot;always considered to be isolated (serializable)&quot; and,
+for the seating example, that &quot;an appropriate locking mechanism is assumed.&quot; That
+is honest about where the scope ends. It specifies <strong>what must be true of the
+before/after pair</strong>, not <strong>how a distributed system guarantees that pair is
+observed atomically by everyone</strong>. The second question is where CTEGs,
+promise-based coordination and consensus-ordered logs pick up the work the paper
+deliberately leaves undone.</p>
+<hr>
+<h2 id="8-deletion-and-the-rule-that-only-needs-a-before">8. Deletion, and the rule that only needs a <code>before</code></h2>
+<p>Section 6&#39;s payment-retention rule is the odd one out, and useful because it is
+minimal:</p>
+<pre><code class="language-text">Context: MoneyAmount is paid to Company on Date
+For each fact deleted
+needed before: the date &lt; today - 2 years
+</code></pre>
+<p>No <code>after</code> clause. Deletion rules only need a precondition, because there&#39;s no
+new state of a fact that no longer exists.</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-rule-shapes.png" alt="Three panels - add, update, delete - each showing the dynamic-rule template for that transaction and the ORM 2 constraint it becomes." loading="lazy"><figcaption>Three panels - add, update, delete - each showing the dynamic-rule template for that transaction and the ORM 2 constraint it becomes.</figcaption></figure>
+<p><strong>The three elementary transaction types have structurally different rule
+shapes</strong>, and a general agent-action language needs all three natively rather than
+pretending delete is &quot;update to null&quot; and add is &quot;update from null.&quot;</p>
+<div class="table-scroll"><table>
+<thead><tr><th>Transaction</th><th>Rule shape</th><th>What it becomes when you reify</th></tr></thead>
+<tbody>
+<tr><td><strong>add</strong></td><td><code>needed before</code> guard, <code>after</code> effect</td><td>A mandatory or subset constraint on the created fact. There is no prior value, so the rule may not mention one</td></tr>
+<tr><td><strong>update</strong></td><td><code>new p</code> compared with <code>old p</code></td><td>A constraint on the Action, which carries both values as roles</td></tr>
+<tr><td><strong>delete</strong></td><td><code>needed before</code> guard only</td><td>A precondition with no effect clause</td></tr>
+</tbody>
+</table></div>
+<p>The one that bites is <strong>add</strong>, for the reason in section 2(c). A system that models
+creation as &quot;update from null&quot; inherits the hole silently: the guard finds no
+prior state, evaluates to something falsy or something vacuous depending on the
+language, and either refuses every first write or permits every first write. Both
+bugs are common. Neither produces an error message.</p>
+<hr>
+<h2 id="9-a-template-for-agent-action-rules">9. A template for agent action rules</h2>
+<p>Pulling it together, the patterns suggest a compact template — more declarative
+than STRIPS/PDDL, more checkable than free-text ECA rules:</p>
+<pre><code class="language-text">Context:      &lt;fact type / joint relation the action operates on&gt;
+Transaction:  added | updated | deleted
+Precondition: needed before: &lt;condition on current state, or on the most
+              recent prior event via `previous`, for append-only history&gt;
+Effect:       after: &lt;condition on new state, possibly relating it to the
+              old state, or via a case/transition table&gt;
+</code></pre>
+<p>Four design decisions, each easy to get wrong when translating into a multi-agent
+or LLM-agent setting:</p>
+<ol>
+<li><strong>Scope each rule to a single-step transition.</strong> Resist writing one rule that
+reasons over an unbounded history; compose single-step rules the way a CTEG
+composes <code>LEADS_TO</code> edges, and let global properties emerge from composition.</li>
+<li><strong>Let the context be a fact type, not necessarily a single agent or object</strong>,
+whenever the precondition or effect genuinely spans more than one party. If you
+cannot state the rule without an artificial coordinating class, you have found
+a joint action — model it as a hyperedge or a pair of compatible promises.</li>
+<li><strong>Give create, update and delete distinct rule shapes.</strong> Collapsing them loses
+the &quot;first occurrence is vacuously legal&quot; behaviour that update rules need.</li>
+<li><strong>When history is retained, replace <code>old</code> with a <code>previous</code>-of-the-ordering-key
+function, and name who guarantees the ordering.</strong> In one database the DBMS does
+it for free. In a multi-agent system something else has to — a consensus log, a
+logical clock, a KERI-style hash chain — and the rule is only as trustworthy as
+that guarantee.</li>
+</ol>
+<hr>
+<h2 id="10-doing-it-modelling-agent-actions-with-factum">10. Doing it: modelling agent actions with Factum</h2>
+<p>Everything above is representable in plain ORM 2 today, which means it is
+representable in a file a tool checks. This section is the concrete version.</p>
+<p><a href="index.html">Factum</a> is an ORM 2 editor, validator, verbalizer
+and MCP server. The model is one <code>.orm.json</code> file; the toolchain reads it four
+ways.</p>
+<h3 id="the-whole-action-ledger">The whole action ledger</h3>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-full.png" alt="The action ledger: Action applies an objectified Step over the TaskState transition table, and has functional binaries to Task, Agent, Instant, Seq and Promise, with an external uniqueness circle over Task and Seq." loading="lazy"><figcaption>The action ledger: Action applies an objectified Step over the TaskState transition table, and has functional binaries to Task, Agent, Instant, Seq and Promise, with an external uniqueness circle over Task and Seq.</figcaption></figure>
+<pre><code class="language-bash">$ factum validate action-ledger.orm.json
+No problems found. 28 sample fact(s).
+</code></pre>
+<pre><code class="language-text">Each Action applies exactly one Step.
+Each Action changes exactly one Task.
+Each Action was taken by exactly one Agent.
+Each Action occurred at exactly one Instant.
+Each Action has exactly one Seq.
+In each population of &quot;Action is authorized by Promise&quot;,
+  each Action, Promise combination occurs at most once.
+It is obligatory that each Action is authorized by some Promise.
+It is necessary that each combination of Task and Seq refers to at most one Action.
+</code></pre>
+<p>Six facts about one action, and each answers a question that gets asked in a
+post-mortem.</p>
+<p><code>applies exactly one Step</code> — what changed, and that the change was one the
+lifecycle permits.</p>
+<p><code>was taken by exactly one Agent</code> — mandatory, because an action with no actor is
+the modelling error that makes accountability impossible. Same decision the
+promise graph makes when it refuses a promise without a promiser.</p>
+<p><code>is authorized by Promise</code> is <strong>deontic</strong> — <code>It is obligatory that</code>, not <code>It is necessary that</code>. An unauthorized action is a thing that happens: an agent exceeds
+its remit, a token is stale, a human overrides. The whole value of a ledger is
+that it can record one. Making the constraint alethic wouldn&#39;t prevent the act, it
+would prevent the <em>row</em>, and the evidence would move to wherever the write went
+instead. The test: <em>if this is violated, should the write fail, or should there be
+a record of the violation?</em></p>
+<p>That distinction — necessity versus obligation, on the same constraint syntax —
+is native to ORM 2 and has no equivalent in SHACL&#39;s <code>sh:severity</code>, which changes
+how loudly a validator complains rather than what kind of rule it is.</p>
+<h3 id="four-ways-the-same-file-gets-used">Four ways the same file gets used</h3>
+<p><strong>1. As the agent&#39;s prompt.</strong> <code>factum verbalize</code> turns the model into FORML
+sentences — controlled English, complete, and small enough for a context window:</p>
+<pre><code class="language-bash">$ factum verbalize action-ledger.orm.json &gt; .agent/domain.md
+</code></pre>
+<p>The agent no longer infers the lifecycle from status strings in the codebase. It
+reads eight sentences that state it.</p>
+<p><strong>2. As CI.</strong> <code>factum validate --strict --exit-code</code> fails a build when the model
+is inconsistent. Because the transition table lives in the model&#39;s population,
+a pull request that adds <code>queued may be followed by done</code> shows up as a diff a
+reviewer reads in English, not as a constant buried in a service.</p>
+<p><strong>3. As the graph schema.</strong> <code>factum graph</code> maps the conceptual model to property
+graph DDL, and objectification maps the way you want it to:</p>
+<pre><code class="language-cypher">// Objectified fact type &quot;TaskState may be followed by TaskState&quot; (Step)
+CREATE NODE TABLE Step(
+    id SERIAL PRIMARY KEY  // Generated key for the reified fact
+);
+
+// Links each reified fact to its TaskState role player
+CREATE REL TABLE HAS_TASK_STATE(FROM Step TO TaskState, MANY_ONE);
+
+// Fact type &quot;Action applies Step&quot;
+CREATE REL TABLE APPLIES(FROM Action TO Step, MANY_ONE);
+</code></pre>
+<p>The reified transition becomes a node with edges to both states — which is exactly
+the CTEG shape, derived from the conceptual model rather than hand-drawn.</p>
+<p><strong>4. As the guard.</strong> This is the payoff.</p>
+<figure class="figure"><img src="assets/blog/orm2-actions-and-rules/fig-action-guarded-write.png" alt="An agent proposes an action; a guard reading domain.orm.json runs four checks - the Step table, the deontic authorization, the at-most-one claim, the external uniqueness on Seq - and either appends the action to the ledger or records a refusal." loading="lazy"><figcaption>An agent proposes an action; a guard reading domain.orm.json runs four checks - the Step table, the deontic authorization, the at-most-one claim, the external uniqueness on Seq - and either appends the action to the ledger or records a refusal.</figcaption></figure>
+<p>Every check in that diagram is a constraint quoted from earlier in this article,
+and none of them is written twice. That&#39;s the property worth protecting: the
+sentence the agent reads when it plans and the predicate the guard evaluates when
+it writes come from <strong>one file</strong>, so they cannot drift apart. An agent told &quot;tasks
+go queued, running, done&quot; in a system prompt and guarded by a hand-written <code>if</code>
+has two copies of a rule, and every interesting failure lives in the gap between
+them.</p>
+<h3 id="refusals-are-the-evidence">Refusals are the evidence</h3>
+<p>A refused action is not a non-event. It is often the most informative row you
+have — the same reason a promise graph keeps <code>rejected</code> in its status list.</p>
+<pre><code class="language-text">a-7  changes t-4  applies (running, done)   taken by agent-9   refused
+a-8  changes t-4  applies (running, failed) taken by agent-9   applied
+</code></pre>
+<p>The agent tried to mark work complete, was refused by the lifecycle, and took the
+honest path. Drop the first row and you see a failure and have to guess.</p>
+<p>Which is also why <code>Outcome</code> doesn&#39;t belong as a nullable field on <code>Action</code>. A
+refused action never changed a task and never applied a step. Model the attempt
+and the effect as different things — a <code>Proposal</code> that may become an <code>Action</code> — or
+keep refusals in the audit log, which is designed for observations rather than
+state changes. Merging them into one entity with a nullable outcome is the
+wide-table mistake in new clothes.</p>
+<h3 id="what-still-doesn-t-fit">What still doesn&#39;t fit</h3>
+<p>Being explicit about the boundary is what makes the rest trustworthy.</p>
+<ul>
+<li><strong>Two-state comparisons over stored values.</strong> <code>new salary &gt;= old salary</code>, where
+salary is a snapshot on <code>Employee</code> rather than a fact about a <code>SalaryChange</code>,
+isn&#39;t expressible. Reify the change; then both values are roles and the
+comparison is a derivation rule you write into the model&#39;s <code>derivationRule</code>
+field and check in your code.</li>
+<li><strong>Join constraints across a path.</strong> <em>The previous action on this task must have
+been taken by the same agent</em> needs a join between two fact types. ORM 2 states
+such things awkwardly and Factum doesn&#39;t check them; write the intent into
+<code>meta.description</code> so the agent reading the model still gets the rule.</li>
+<li><strong>Temporal windows.</strong> <em>At most three actions per task per hour</em> is a frequency
+constraint over a window, and neither ORM 2 nor Factum has windows. Enforce it
+in the guard.</li>
+</ul>
+<p>None of that is a reason to skip the model. A model that states eight of ten rules
+and marks the other two unenforced beats a codebase that states none and implies
+all ten.</p>
+<hr>
+<h2 id="11-where-this-connects-to-formal-verification">11. Where this connects to formal verification</h2>
+<p>The paper repeatedly emphasizes that its syntax is designed to be validated by
+non-technical domain experts, trading formal completeness for readability and
+explicitly declining to give a complete formal grammar. Reasonable for a
+business-rules audience. But if these patterns are going to gate real state
+transitions in a multi-agent system rather than be reviewed by a human analyst,
+each has a natural formalization worth pursuing:</p>
+<ul>
+<li>The single-step <code>old</code>/<code>new</code> rule is a two-state Hoare triple:
+<code>{P(old)} action {Q(old, new)}</code>.</li>
+<li>The enumerated case-statement pattern is a finite-state-machine transition
+relation — expressible as a SHACL shape over a property-graph encoding of
+allowed transitions, or as a small inductive type with one constructor per legal
+edge in a dependently-typed setting. Or, as above, as a populated fact type,
+which is the version a domain expert will actually read.</li>
+<li>The two-party joint-action pattern is naturally a conjunction of two
+promise-compatibility predicates rather than a single-context postcondition —
+which also gives you a place to hang an authorization check (&quot;who is permitted
+to assert this promise&quot;) that a business-rule syntax has no need to express and
+a multi-agent trust system cannot do without.</li>
+</ul>
+<p>None of this is a criticism of the paper; it did the job it set out to do for the
+audience it had. But read now, with agentic memory, causal temporal event graphs and
+verifiable multi-agent coordination as the working context, &quot;Modeling Dynamic
+Rules in ORM&quot; is less a niche extension to a modelling notation and more an early,
+independently-derived sketch of the action-schema and joint-promise structures
+agent frameworks are still formalizing.</p>
+<p>The part it left unfinished — a notation a tool can check — turns out not to need
+a new notation at all. Reify the transition, and the language you already have is
+enough.</p>
+<hr>
+<h2 id="checklist">Checklist</h2>
+<p>Before you ship an action model:</p>
+<ol>
+<li><strong>Is the transition a thing?</strong> If old and new state are not both roles on one
+object type, no static constraint can relate them.</li>
+<li><strong>Is the lifecycle a population or a constraint?</strong> Either is defensible. Not
+deciding is not.</li>
+<li><strong>Does every action have an actor, mandatory?</strong> Attribution is why the ledger
+exists.</li>
+<li><strong>Did you look for the invariant before writing the precondition?</strong> Most
+resource preconditions are an at-most-one bar nobody drew.</li>
+<li><strong>Is <code>previous</code> well defined, and by what?</strong> Name the mechanism — external
+uniqueness on a sequence, a hash chain, a consensus log. &quot;The database&quot; is not
+an answer in a multi-agent system.</li>
+<li><strong>Is authority deontic?</strong> If violating it should produce a record rather than a
+rejected write, it is obligatory, not necessary.</li>
+</ol>
+<hr>
+<p><em>The models in this article ship with <a href="https://leanpub.com/fact-basedagents">Fact-Based Agents</a>,
+which covers ORM 2, FORML and Factum for agentic memory — including a chapter on
+actions and rules that works through the ledger above in full, and chapters on
+agentic memory, promise graphs and audit logs. Every diagram is rendered by
+Factum&#39;s own renderer from a model file you can open and take apart.</em></p>
+<p><em>Source: H. Balsters, A. Carver, T. Halpin &amp; T. Morgan, &quot;Modeling Dynamic Rules in
+ORM.&quot;</em></p>
+
+<nav class="chapter-nav">
+  <a class="prev" href="blog-fact-layer-vs-ontology.html"><span>← Older</span>An Ontology Is Not a Fact Layer</a>
+  <a class="next" href="blog.html"><span>All posts →</span>Blog</a>
+</nav>
+
+</div></section>
+</article>
+
+</main>
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <h4>Factum</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="getting-started.html">Getting started</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>For AI &amp; agents</h4>
+      <ul>
+        <li><a href="ai-native.html">Human-first, AI-native</a></li>
+        <li><a href="for-agents.html">Factum for coding agents</a></li>
+        <li><a href="skills.html">The skill pack</a></li>
+        <li><a href="llm-fact-gap.html">The fact layer LLMs miss</a></li>
+        <li><a href="forml-for-llms.html">FORML for language models</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="book.html">ORM 2 mini book</a></li>
+        <li><a href="book-full.html">Fact-Based Agents (book)</a></li>
+        <li><a href="mapping.html">Mapping rules</a></li>
+        <li><a href="reference.html">Commands &amp; settings</a></li>
+        <li><a href="file-format.html">File format</a></li>
+        <li><a href="interop.html">File formats compared</a></li>
+        <li><a href="compare.html">Why Factum</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul>
+        <li><a href="https://github.com/Volland/factum-orm">Source on GitHub</a></li>
+        <li><a href="https://github.com/Volland/factum-orm/issues">Report an issue</a></li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=pavlyshyn.factum-orm">Marketplace listing</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="impressum.html">Impressum</a></li>
+        <li><a href="datenschutz.html">Datenschutz</a></li>
+        <li><a href="agb.html">AGB</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://www.ormfoundation.org/">ORM Foundation</a></li>
+        <li><a href="https://docs.ladybugdb.com/">LadybugDB</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="colophon">
+    MIT licensed. Object-Role Modeling is the work of Terry Halpin and the fact-oriented modeling
+    community; Factum is an independent implementation, not affiliated with the ORM Foundation or the
+    NORMA project.
+  </p>
+</div></footer>
+
+</body>
+</html>

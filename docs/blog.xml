@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Factum blog</title>
+  <link>https://www.factum-orm.com/blog.html</link>
+  <description>Essays on fact-based modelling, ORM 2 and the fact layer AI agents are missing.</description>
+  <item>
+    <title>Actions and Rules for Agents in ORM 2</title>
+    <link>https://www.factum-orm.com/blog-orm2-actions-and-rules.html</link>
+    <guid>https://www.factum-orm.com/blog-orm2-actions-and-rules.html</guid>
+    <pubDate>Mon, 07 Sep 2026 09:00:00 GMT</pubDate>
+    <description>A little-cited paper on dynamic rules in Object-Role Modeling turns out to be an action-schema language for agents. Here is what it got right, the one thing it left unfinished, and how to model agent actions today in a formalism a validator can actually check.</description>
+  </item>
+  <item>
+    <title>An Ontology Is Not a Fact Layer</title>
+    <link>https://www.factum-orm.com/blog-fact-layer-vs-ontology.html</link>
+    <guid>https://www.factum-orm.com/blog-fact-layer-vs-ontology.html</guid>
+    <pubDate>Thu, 03 Sep 2026 09:00:00 GMT</pubDate>
+    <description>Your ontology says what exists. Your agent needs to know what is allowed. Those are different artifacts, and the gap between them is where agents quietly go wrong.</description>
+  </item>
+  <item>
+    <title>Your Agent Is Guessing About Your Domain</title>
+    <link>https://www.factum-orm.com/blog-fact-layer-for-agents.html</link>
+    <guid>https://www.factum-orm.com/blog-fact-layer-for-agents.html</guid>
+    <pubDate>Sun, 30 Aug 2026 09:00:00 GMT</pubDate>
+    <description>A nullable column can't tell your coding agent whether the rule was optional or nobody ever decided. Here's the layer that can.</description>
+  </item>
+</channel>
+</rss>
