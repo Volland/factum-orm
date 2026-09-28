@@ -371,14 +371,30 @@ export interface Shape extends Extensible {
   /** Explicit size; when absent the renderer measures the content. */
   w?: number;
   h?: number;
-  /** Hides a shape that exists in the model but not on this diagram. */
+  /**
+   * Keeps the element off this page. A hidden shape on the first page keeps an
+   * element that is on no other page off the diagram altogether.
+   */
   hidden?: boolean;
 }
 
-export interface Diagram extends Extensible {
+/**
+ * One page of the diagram. An element may be drawn on several pages, with one
+ * shape per page.
+ */
+export interface DiagramPage extends Extensible {
   name?: string;
   /** Keyed by object type / fact type / constraint / subtype relation id. */
   shapes: Record<Id, Shape>;
+}
+
+// @lat: [[file-format#Diagram pages]]
+/**
+ * The diagram is its first page. Further pages, in order, live in `pages`, so
+ * a reader that knows nothing of pages still sees a valid diagram.
+ */
+export interface Diagram extends DiagramPage {
+  pages?: DiagramPage[];
 }
 
 /** Identifies the software that wrote the file, for interchange provenance. */

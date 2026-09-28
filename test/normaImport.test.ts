@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { importNormaFile } from '../src/io/normaImport.js';
+import { pageCount, pageShapes, pagesOf } from '../src/model/pages.js';
 import { validateModel } from '../src/core/validate.js';
 import { verbalizeModel } from '../src/core/verbalize.js';
 
@@ -255,4 +256,67 @@ test('an imported model verbalizes and validates', () => {
 
 test('a non-NORMA file is rejected with a clear message', () => {
   assert.throws(() => importNormaFile('<html><body>nope</body></html>'), /no <ORMModel> element/);
+});
+
+/**
+ * The fixture's diagram written as NORMA writes it: shapes nested in
+ * `<Shapes>`, and a second diagram holding Company and a duplicate Person.
+ */
+const NORMA_PAGES_XML = NORMA_XML.replace(
+  /<ormDiagram:ORMDiagram id="_D1"[\s\S]*<\/ormDiagram:ORMDiagram>/,
+  `<ormDiagram:ORMDiagram id="_D1" Name="People">
+    <ormDiagram:Shapes>
+      <ormDiagram:ObjectTypeShape id="_S1" AbsoluteBounds="1.5, 2, 0.6, 0.35">
+        <ormDiagram:Subject ref="_Person"/>
+      </ormDiagram:ObjectTypeShape>
+    </ormDiagram:Shapes>
+  </ormDiagram:ORMDiagram>
+  <ormDiagram:ORMDiagram id="_D2" Name="Employment">
+    <ormDiagram:Shapes>
+      <ormDiagram:ObjectTypeShape id="_S3" AbsoluteBounds="5, 6, 0.6, 0.35">
+        <ormDiagram:Subject ref="_Company"/>
+      </ormDiagram:ObjectTypeShape>
+      <ormDiagram:ObjectTypeShape id="_S4" AbsoluteBounds="7, 6, 0.6, 0.35">
+        <ormDiagram:Subject ref="_Person"/>
+      </ormDiagram:ObjectTypeShape>
+      <ormDiagram:ObjectTypeShape id="_S5" AbsoluteBounds="9, 9, 0.6, 0.35">
+        <ormDiagram:Subject ref="_Person"/>
+      </ormDiagram:ObjectTypeShape>
+      <ormDiagram:FactTypeShape id="_S6" AbsoluteBounds="6, 6.1, 0.5, 0.2">
+        <ormDiagram:Subject ref="_F1"/>
+      </ormDiagram:FactTypeShape>
+    </ormDiagram:Shapes>
+  </ormDiagram:ORMDiagram>`,
+);
+
+// @lat: [[tests#Interchange#NORMA shapes nested in Shapes are imported]]
+test('NORMA shapes nested in Shapes are imported', () => {
+  assert.notEqual(NORMA_PAGES_XML, NORMA_XML, 'the fixture replacement must apply');
+  const { model } = importNormaFile(NORMA_PAGES_XML);
+  assert.deepEqual(model.diagram.shapes['_Person'], { x: 40, y: 40, w: 0.6 * 96, h: 0.35 * 96 });
+});
+
+// @lat: [[tests#Interchange#Every NORMA diagram becomes a page]]
+test('every NORMA diagram becomes a page, normalized on its own', () => {
+  const { model } = importNormaFile(NORMA_PAGES_XML);
+  assert.equal(pageCount(model), 2);
+  assert.equal(model.diagram.name, 'People');
+  assert.equal(model.diagram.pages?.[0].name, 'Employment');
+  const employment = pageShapes(model, 1);
+  assert.equal(employment['_Company'].x, 40);
+  assert.equal(employment['_Company'].y, 40);
+  // A duplicate shape of one element on one page keeps the first.
+  assert.equal(employment['_Person'].x, 40 + 2 * 96);
+  assert.equal(employment['_F1'].x, 40 + 96);
+  assert.deepEqual(pagesOf(model, '_Person'), [0, 1]);
+});
+
+// @lat: [[tests#Interchange#What NORMA draws on no diagram stays off the diagram]]
+test('what NORMA draws on no diagram is imported on no page', () => {
+  const { model } = importNormaFile(NORMA_PAGES_XML);
+  const drawn = new Set(['_Person', '_Company', '_F1']);
+  for (const id of [...model.objectTypes.map((o) => o.id), ...model.factTypes.map((f) => f.id)]) {
+    if (drawn.has(id)) continue;
+    assert.deepEqual(pagesOf(model, id), [], id);
+  }
 });

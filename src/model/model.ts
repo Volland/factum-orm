@@ -2,6 +2,7 @@ import {
   Annotated,
   Constraint,
   Diagram,
+  DiagramPage,
   FactInstance,
   FactType,
   GraphHints,
@@ -20,6 +21,7 @@ import {
   SubtypeRelation,
   UniquenessConstraint,
 } from './types.js';
+import { deleteShapes } from './pages.js';
 
 let counter = 0;
 
@@ -322,10 +324,13 @@ export function parseModel(text: string): OrmModel {
     throw new ModelParseError('Expected a JSON object at the top level.');
   }
   const source = raw as Partial<OrmModel>;
-  const diagram: Diagram = {
-    shapes: isRecord(source.diagram?.shapes) ? (source.diagram!.shapes as Record<Id, Shape>) : {},
-  };
-  if (typeof source.diagram?.name === 'string') diagram.name = source.diagram.name;
+  const diagram: Diagram = parsePage(source.diagram);
+  if (Array.isArray(source.diagram?.pages)) {
+    // A page that is not an object carries nothing to keep; the rest keep
+    // their order, since a page is addressed by its position.
+    const pages = source.diagram!.pages.filter(isRecord).map(parsePage);
+    if (pages.length) diagram.pages = pages;
+  }
   const extras = Object.fromEntries(
     Object.entries(source as Record<string, unknown>).filter(([key]) => !KNOWN_MODEL_KEYS.has(key)),
   );
@@ -439,6 +444,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** One diagram page: its name, its shapes and its `x-` extensions. */
+function parsePage(source: unknown): DiagramPage {
+  const raw = isRecord(source) ? source : {};
+  const page: DiagramPage = {
+    ...Object.fromEntries(Object.entries(raw).filter(([key]) => key.startsWith('x-'))),
+    shapes: isRecord(raw.shapes) ? (raw.shapes as Record<Id, Shape>) : {},
+  };
+  if (typeof raw.name === 'string') page.name = raw.name;
+  return page;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Mutation helpers shared by the editor and the commands                      */
 /* -------------------------------------------------------------------------- */
@@ -498,7 +514,7 @@ export function deleteElement(model: OrmModel, id: Id): void {
         other.objectifiedFactTypeId = undefined;
       }
     }
-    delete model.diagram.shapes[id];
+    deleteShapes(model, id);
     return;
   }
 
@@ -510,7 +526,7 @@ export function deleteElement(model: OrmModel, id: Id): void {
     for (const ot of model.objectTypes) {
       if (ot.objectifiedFactTypeId === id) ot.objectifiedFactTypeId = undefined;
     }
-    delete model.diagram.shapes[id];
+    deleteShapes(model, id);
     return;
   }
 
@@ -524,12 +540,12 @@ export function deleteElement(model: OrmModel, id: Id): void {
           : c,
       )
       .filter((c) => c.kind !== 'subtypeSet' || c.subtypeRelationIds.length > 0);
-    delete model.diagram.shapes[id];
+    deleteShapes(model, id);
     return;
   }
 
   model.constraints = model.constraints.filter((c) => c.id !== id);
-  delete model.diagram.shapes[id];
+  deleteShapes(model, id);
 }
 
 function constraintTouchesRoles(constraint: Constraint, roleIds: Set<Id>): boolean {

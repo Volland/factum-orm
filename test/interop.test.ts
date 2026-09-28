@@ -8,6 +8,7 @@ import { exportOssieFile, importOssieFile } from '../src/io/ossie.js';
 import { exportUmsFile, importUmsFile } from '../src/io/ums.js';
 import { validateModel } from '../src/core/validate.js';
 import { primaryReading } from '../src/model/model.js';
+import { pageCount, pageName, pageShapes } from '../src/model/pages.js';
 import { sampleModel } from '../src/model/sample.js';
 import { Constraint, OrmModel } from '../src/model/types.js';
 
@@ -261,6 +262,26 @@ test('page instances for constraints and reading text do not become shapes', () 
   assert.deepEqual(Object.keys(model.diagram.shapes).sort(), ['Code', 'Person']);
   // A marker at the origin must not overwrite the position of what it labels.
   assert.deepEqual(model.diagram.shapes.Person, { x: 137, y: 54 });
+});
+
+// @lat: [[tests#Interchange#Every FBM page survives a round trip]]
+test('every FBM page survives a round trip', () => {
+  const model = sampleModel();
+  model.diagram = {
+    name: 'Staff',
+    shapes: { ot_person: { x: 40, y: 40 }, ot_company: { x: 300, y: 40 } },
+    pages: [
+      { name: 'Skills', shapes: { ot_person: { x: 500, y: 500 }, ot_skill: { x: 800, y: 500 } } },
+      { name: 'Codes', shapes: { ot_gender: { x: 100, y: 100 } } },
+    ],
+  };
+  const { model: back, warnings } = importFbmFile(exportFbmFile(model).text);
+  assert.ok(!warnings.some((w) => /page/i.test(w)), warnings.join('\n'));
+  assert.equal(pageCount(back), 3);
+  assert.deepEqual([0, 1, 2].map((index) => pageName(back, index)), ['Staff', 'Skills', 'Codes']);
+  const skill = back.objectTypes.find((o) => o.name === 'Skill')!.id;
+  assert.deepEqual(pageShapes(back, 1)[skill], { x: 800, y: 500 });
+  assert.equal(pageShapes(back, 0)[skill], undefined);
 });
 
 // @lat: [[tests#Interchange#An FBM subtype fact type takes its constraints with it]]

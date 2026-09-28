@@ -161,6 +161,33 @@
    position; anything without one is placed automatically. Deleting a shape entry simply re-places
    the element — the model itself is unaffected.</p>
 
+<h3 id="pages">Pages</h3>
+<p>A large model is split into pages. <code>diagram</code> is the first page; further pages, in
+   order, go in <code>diagram.pages</code>, each with an optional <code>name</code> and its own
+   <code>shapes</code>. An element can be on several pages, with one shape on each.</p>
+<pre><code>"diagram": {
+  "name": "Policy",
+  "shapes": { "ot_policy": { "x": 40, "y": 40 }, "ot_person": { "x": 300, "y": 40 } },
+  "pages": [
+    { "name": "Claims", "shapes": { "ot_claim": { "x": 40, "y": 40 }, "ot_person": { "x": 300, "y": 90 } } }
+  ]
+}</code></pre>
+<p>An element is on a page when that page has a shape for it without <code>"hidden": true</code>.
+   An element with no shape on <em>any</em> page is drawn on the first page — which is why a
+   single-page file needs no <code>pages</code> at all. To keep an element in the model but off
+   every page, give it a hidden shape on the first page. An entity type that objectifies a fact
+   type goes wherever its fact type goes; a subtype link is drawn where both its ends are, and a
+   constraint where all the roles it constrains are.</p>
+<p><code>pages</code> is optional and additive, so the format stays at version 2: a tool that does
+   not know about pages still reads a valid first page, and nothing is lost when it saves.
+   Importing from NORMA turns every <code>&lt;ORMDiagram&gt;</code> into a page; FBM pages are
+   imported and exported one for one.</p>
+<p>In the editor, pages are tabs under the canvas: click to switch (or <kbd>PageUp</kbd> /
+   <kbd>PageDown</kbd>), <strong>+</strong> to add, double-click to rename, × to delete. Deleting a
+   page never deletes elements. <kbd>Delete</kbd> removes the selection from the model;
+   <kbd>Shift</kbd>+<kbd>Delete</kbd> only takes it off the current page. An element's properties
+   list the pages it is on, and <em>Add to this page…</em> places one that is not on the page yet.</p>
+
 <h2 id="populations">Sample populations</h2>
 <p>A fact type may carry a <code>population</code>: sample tuples, one value per role in the fact
    type&rsquo;s own role order. A value type may carry a flat list of the values it takes.</p>

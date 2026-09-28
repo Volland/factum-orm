@@ -1,5 +1,21 @@
 import { Constraint, Id, OrmModel, Shape } from '../model/types.js';
-import { deleteElement, newId } from '../model/model.js';
+import { deleteElement, newId, primaryReading } from '../model/model.js';
+import {
+  addPage,
+  clampPage,
+  deletePage,
+  isOnPage,
+  movePage,
+  pageAt,
+  pageCount,
+  pageName,
+  pageShapes,
+  pageView,
+  pagesOf,
+  placeOnPage,
+  removeFromPage,
+  renamePage,
+} from '../model/pages.js';
 import { Issue } from '../core/validate.js';
 import { HostMessage, WebviewMessage, WebviewSettings } from '../protocol.js';
 import { autoLayout } from './autolayout.js';
@@ -26,6 +42,12 @@ declare function acquireVsCodeApi(): {
 };
 
 const vscode = acquireVsCodeApi();
+
+/** What the webview remembers across a reload: the page and each page's view. */
+interface SavedState {
+  page?: number;
+  views?: (View | null)[];
+}
 
 type Tool = 'select' | 'entity' | 'value' | 'fact1' | 'fact2' | 'fact3' | 'subtype' | 'connect';
 
@@ -73,7 +95,29 @@ const state = {
   drag: undefined as DragState | undefined,
   pendingSubtype: undefined as Id | undefined,
   pointer: { x: 0, y: 0 } as Point,
+  /** Index of the diagram page being shown; see `src/model/pages.ts`. */
+  page: 0,
+  /** Pan and zoom per page, so switching back returns to where the user was. */
+  views: [] as (View | null)[],
+  /** Page whose tab is being renamed in place. */
+  renaming: undefined as number | undefined,
 };
+
+(function restoreState(): void {
+  const saved = vscode.getState() as SavedState | undefined;
+  if (typeof saved?.page === 'number') state.page = saved.page;
+  if (Array.isArray(saved?.views)) state.views = saved.views;
+})();
+
+function saveState(): void {
+  state.views[state.page] = { ...state.view };
+  vscode.setState({ page: state.page, views: state.views } satisfies SavedState);
+}
+
+/** The model as the active page draws it. */
+function current(): OrmModel {
+  return pageView(state.model, state.page);
+}
 
 /* -------------------------------------------------------------------------- */
 /* Shell                                                                       */
@@ -89,11 +133,13 @@ const panel = h('div', { class: 'panel' });
 const panelBody = h('div', { class: 'panel-body' });
 const tabs = h('div', { class: 'tabs' });
 const status = h('div', { class: 'status-bar' });
+const pageBar = h('div', { class: 'page-bar' });
+const footer = h('div', { class: 'canvas-footer' }, [pageBar, status]);
 const inlineEditor = h('input', { class: 'inline-editor', type: 'text' }) as HTMLInputElement;
 
 function buildShell(): void {
   svg.append(defs(), viewport);
-  canvasWrap.append(svg, inlineEditor, status);
+  canvasWrap.append(svg, inlineEditor, footer);
   panel.append(tabs, panelBody);
   app.append(toolbar, canvasWrap, panel);
   inlineEditor.style.display = 'none';
@@ -195,8 +241,14 @@ function buildToolbar(): void {
     button('{ }', 'Open the model source as JSON', () => post({ type: 'openJson' })),
   ]);
 
-  const trash = button('🗑', 'Delete selection (Delete)', deleteSelection, () => state.selection.size > 0);
-  addGroup([trash]);
+  const trash = button('🗑', 'Delete selection from the model (Delete)', deleteSelection, () => state.selection.size > 0);
+  const unplace = button(
+    '⊟',
+    'Remove selection from this page, keeping it in the model (Shift+Delete)',
+    removeSelectionFromPage,
+    () => state.selection.size > 0,
+  );
+  addGroup([unplace, trash]);
 }
 
 function addGroup(buttons: ToolButton[]): void {
@@ -241,6 +293,7 @@ function setTool(tool: Tool): void {
 
 function render(): void {
   renderCanvas();
+  renderPageBar();
   renderStatus();
   buildToolbar();
   renderSidePanel();
@@ -272,7 +325,7 @@ function renderCanvas(): void {
   }
 
   viewport.append(
-    renderDiagram(state.model, {
+    renderDiagram(current(), {
       selection: state.selection,
       selectedRoles: state.selectedRoles,
       showGrid: state.settings.showGrid,
@@ -292,8 +345,13 @@ function renderStatus(): void {
   const errors = state.issues.filter((i) => i.severity === 'error').length;
   const warnings = state.issues.filter((i) => i.severity === 'warning').length;
   clear(status);
+  const view = current();
+  const onPage =
+    pageCount(state.model) > 1 ? ` (${view.objectTypes.length} · ${view.factTypes.length} on this page)` : '';
   const parts: HTMLElement[] = [
-    h('span', { text: `${state.model.objectTypes.length} object types · ${state.model.factTypes.length} fact types` }),
+    h('span', {
+      text: `${state.model.objectTypes.length} object types · ${state.model.factTypes.length} fact types${onPage}`,
+    }),
     h('span', {
       class: `status-problems${errors ? ' has-errors' : warnings ? ' has-warnings' : ''}`,
       text: errors || warnings ? `${errors} error(s), ${warnings} warning(s)` : 'No problems',
@@ -314,6 +372,9 @@ function renderStatus(): void {
 function renderSidePanel(): void {
   const host: PanelHost = {
     model: state.model,
+    page: state.page,
+    showPage,
+    movePage: reorderPage,
     selection: state.selection,
     selectedRoles: state.selectedRoles,
     issues: state.issues,
@@ -322,8 +383,8 @@ function renderSidePanel(): void {
     select: (id, options) => {
       state.selection = new Set([id]);
       state.selectedRoles.clear();
-      if (options?.reveal) revealElement(id);
       render();
+      if (options?.reveal) revealElement(id);
     },
     notify: (level, message) => post({ type: 'notify', level, message }),
   };
@@ -351,6 +412,18 @@ function deleteSelection(): void {
   const ids = [...state.selection];
   commit('Delete', (model) => {
     for (const id of ids) deleteElement(model, id);
+  });
+  state.selection.clear();
+  state.selectedRoles.clear();
+  render();
+}
+
+function removeSelectionFromPage(): void {
+  if (!state.selection.size) return;
+  const ids = [...state.selection];
+  const page = state.page;
+  commit('Remove from page', (model) => {
+    for (const id of ids) removeFromPage(model, page, id);
   });
   state.selection.clear();
   state.selectedRoles.clear();
@@ -423,9 +496,10 @@ function addSetConstraint(kind: 'subset' | 'exclusion' | 'equality'): void {
 }
 
 function applyAutoLayout(): void {
+  const page = state.page;
   commit('Auto-layout', (model) => {
-    const laid = autoLayout(model);
-    model.diagram = laid.diagram;
+    // Only the active page is laid out; the view shares that page's shapes.
+    pageAt(model, page).shapes = autoLayout(pageView(model, page)).diagram.shapes;
   });
   zoomToFit();
 }
@@ -511,7 +585,7 @@ svg.addEventListener('pointerdown', (event: PointerEvent) => {
         last: point,
         moved: false,
         ids: [ownerId],
-        startShapes: structuredClone(state.model.diagram.shapes),
+        startShapes: structuredClone(pageShapes(state.model, state.page)),
       });
       svg.setPointerCapture(event.pointerId);
     }
@@ -533,7 +607,7 @@ svg.addEventListener('pointerdown', (event: PointerEvent) => {
     last: point,
     moved: false,
     ids: [...state.selection],
-    startShapes: structuredClone(state.model.diagram.shapes),
+    startShapes: structuredClone(pageShapes(state.model, state.page)),
   });
   svg.setPointerCapture(event.pointerId);
   render();
@@ -559,9 +633,10 @@ svg.addEventListener('pointermove', (event: PointerEvent) => {
       if (!drag.ids?.length || !state.editable) break;
       const totalX = point.x - drag.origin.x;
       const totalY = point.y - drag.origin.y;
+      const shapes = pageShapes(state.model, state.page);
       for (const id of drag.ids) {
-        const start = drag.startShapes?.[id] ?? shapeOf(state.model, id);
-        state.model.diagram.shapes[id] = {
+        const start = drag.startShapes?.[id] ?? shapeOf(current(), id);
+        shapes[id] = {
           ...start,
           x: snap(start.x + totalX, state.settings.gridSize, state.settings.snapToGrid),
           y: snap(start.y + totalY, state.settings.gridSize, state.settings.snapToGrid),
@@ -589,11 +664,12 @@ svg.addEventListener('pointerup', (event: PointerEvent) => {
   svg.releasePointerCapture?.(event.pointerId);
 
   if (drag.kind === 'move' && drag.moved && drag.ids?.length && state.editable) {
-    const moved = structuredClone(state.model.diagram.shapes);
+    const page = state.page;
+    const moved = structuredClone(pageShapes(state.model, page));
     const before = drag.startShapes;
-    state.model.diagram.shapes = before ?? moved;
+    pageAt(state.model, page).shapes = before ?? moved;
     commit('Move shapes', (model) => {
-      model.diagram.shapes = moved;
+      pageAt(model, page).shapes = moved;
     });
     return;
   }
@@ -681,10 +757,11 @@ function drawPendingConnector(roleId: Id, to: Point): void {
 }
 
 function roleLocation(roleId: Id): Point | undefined {
-  for (const ft of state.model.factTypes) {
+  const view = current();
+  for (const ft of view.factTypes) {
     const position = ft.roles.findIndex((r) => r.id === roleId);
     if (position < 0) continue;
-    const rect = roleRect(state.model, ft, position);
+    const rect = roleRect(view, ft, position);
     return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
   }
   return undefined;
@@ -702,11 +779,12 @@ function rectFromPoints(a: Point, b: Point): Rect {
 function selectWithin(area: Rect): void {
   state.selection.clear();
   state.selectedRoles.clear();
-  for (const ot of state.model.objectTypes) {
-    if (intersects(area, objectTypeRect(state.model, ot))) state.selection.add(ot.id);
+  const view = current();
+  for (const ot of view.objectTypes) {
+    if (intersects(area, objectTypeRect(view, ot))) state.selection.add(ot.id);
   }
-  for (const ft of state.model.factTypes) {
-    if (intersects(area, factTypeRect(state.model, ft))) state.selection.add(ft.id);
+  for (const ft of view.factTypes) {
+    if (intersects(area, factTypeRect(view, ft))) state.selection.add(ft.id);
   }
 }
 
@@ -717,6 +795,7 @@ function selectWithin(area: Rect): void {
 function createObjectType(point: Point, kind: 'entity' | 'value'): void {
   const id = newId('ot');
   const base = kind === 'entity' ? 'EntityType' : 'ValueType';
+  const page = state.page;
   commit(`Add ${kind} type`, (model) => {
     let name = base;
     let suffix = 1;
@@ -731,7 +810,7 @@ function createObjectType(point: Point, kind: 'entity' | 'value'): void {
       refMode: kind === 'entity' ? 'id' : undefined,
       dataType: kind === 'value' ? 'string' : 'integer',
     });
-    model.diagram.shapes[id] = {
+    pageShapes(model, page)[id] = {
       x: snap(point.x - 40, state.settings.gridSize, state.settings.snapToGrid),
       y: snap(point.y - 17, state.settings.gridSize, state.settings.snapToGrid),
     };
@@ -744,6 +823,7 @@ function createObjectType(point: Point, kind: 'entity' | 'value'): void {
 
 function createFactType(point: Point, arity: number): void {
   const id = newId('ft');
+  const page = state.page;
   commit(`Add ${arity}-ary fact type`, (model) => {
     const roles = Array.from({ length: arity }, () => ({ id: newId('r'), objectTypeId: null }));
     const text = roles.map((_, position) => `{${position}}`).join(' ... ');
@@ -752,7 +832,7 @@ function createFactType(point: Point, arity: number): void {
       roles,
       readings: [{ id: newId('rd'), roleOrder: roles.map((r) => r.id), text, isPrimary: true }],
     });
-    model.diagram.shapes[id] = {
+    pageShapes(model, page)[id] = {
       x: snap(point.x - 26, state.settings.gridSize, state.settings.snapToGrid),
       y: snap(point.y - 9, state.settings.gridSize, state.settings.snapToGrid),
       orientation: 'horizontal',
@@ -858,7 +938,7 @@ inlineEditor.addEventListener('keydown', (event: KeyboardEvent) => {
 inlineEditor.addEventListener('blur', commitInlineEdit);
 
 function screenRectOf(id: Id, kind: 'objectType' | 'factType'): Rect | undefined {
-  const model = state.model;
+  const model = current();
   let rect: Rect | undefined;
   if (kind === 'objectType') {
     const ot = model.objectTypes.find((o) => o.id === id);
@@ -877,6 +957,190 @@ function screenRectOf(id: Id, kind: 'objectType' | 'factType'): Rect | undefined
     w: rect.w * state.view.scale,
     h: rect.h * state.view.scale,
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Pages                                                                       */
+/* -------------------------------------------------------------------------- */
+
+// @lat: [[file-format#Diagram pages#Editing pages]]
+/** Switches to a page, keeping the pan and zoom of the one being left. */
+function showPage(index: number): void {
+  state.views[state.page] = { ...state.view };
+  enterPage(index);
+}
+
+function enterPage(index: number): void {
+  state.page = clampPage(state.model, index);
+  state.selection.clear();
+  state.selectedRoles.clear();
+  state.renaming = undefined;
+  hideInlineEditor();
+  render();
+  const saved = state.views[state.page];
+  if (!saved) {
+    zoomToFit();
+    return;
+  }
+  state.view = { ...saved };
+  applyView();
+  renderStatus();
+  saveState();
+}
+
+function addNewPage(): void {
+  let index = state.page;
+  commit('Add page', (model) => {
+    index = addPage(model);
+  });
+  showPage(index);
+}
+
+function removePage(index: number): void {
+  const was = state.page;
+  commit('Delete page', (model) => deletePage(model, index));
+  state.views[was] = { ...state.view };
+  state.views.splice(index, 1);
+  enterPage(was > index ? was - 1 : was === index ? Math.max(0, index - 1) : was);
+}
+
+/** Moves a page, keeping the same page on screen and each page's saved view with it. */
+function reorderPage(from: number, to: number): void {
+  commit('Move page', (model) => movePage(model, from, to));
+  state.views[state.page] = { ...state.view };
+  const [view] = state.views.splice(from, 1);
+  state.views.splice(to, 0, view ?? null);
+  const page = state.page;
+  if (page === from) state.page = to;
+  else if (from < to && page > from && page <= to) state.page = page - 1;
+  else if (from > to && page >= to && page < from) state.page = page + 1;
+  render();
+  saveState();
+}
+
+function renderPageBar(): void {
+  clear(pageBar);
+  const count = pageCount(state.model);
+  for (let index = 0; index < count; index += 1) {
+    if (state.renaming === index) {
+      pageBar.append(pageRenameInput(index));
+      continue;
+    }
+    const active = index === state.page;
+    pageBar.append(
+      h(
+        'div',
+        {
+          class: `page-tab${active ? ' active' : ''}`,
+          title: state.editable ? 'Double-click to rename' : undefined,
+          onclick: () => {
+            if (!active) showPage(index);
+          },
+          ondblclick: () => {
+            if (!state.editable) return;
+            state.renaming = index;
+            renderPageBar();
+          },
+        },
+        [
+          h('span', { class: 'page-tab-name', text: pageName(state.model, index) }),
+          count > 1 && state.editable
+            ? h('button', {
+                class: 'page-tab-close',
+                title: 'Delete this page. Its elements stay in the model.',
+                text: '×',
+                onclick: (event: Event) => {
+                  event.stopPropagation();
+                  removePage(index);
+                },
+              })
+            : null,
+        ],
+      ),
+    );
+  }
+  pageBar.append(
+    h('button', { class: 'page-add', title: 'Add a page', text: '+', disabled: !state.editable, onclick: addNewPage }),
+    placePicker(),
+  );
+}
+
+function pageRenameInput(index: number): HTMLInputElement {
+  const input = h('input', { class: 'page-rename', type: 'text', value: pageName(state.model, index) });
+  const finish = (save: boolean): void => {
+    if (state.renaming !== index) return;
+    state.renaming = undefined;
+    const value = input.value.trim();
+    if (save && value && value !== pageName(state.model, index)) {
+      commit('Rename page', (model) => renamePage(model, index, value));
+    } else {
+      renderPageBar();
+    }
+  };
+  input.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === 'Escape') {
+      event.preventDefault();
+      finish(event.key === 'Enter');
+    }
+    event.stopPropagation();
+  });
+  input.addEventListener('blur', () => finish(true));
+  window.setTimeout(() => {
+    input.focus();
+    input.select();
+  });
+  return input;
+}
+
+/**
+ * Lists the object and fact types the active page does not draw, and places
+ * the chosen one in the middle of the visible canvas.
+ */
+function placePicker(): HTMLSelectElement {
+  const model = state.model;
+  const view = current();
+  const drawn = new Set([...view.objectTypes.map((o) => o.id), ...view.factTypes.map((f) => f.id)]);
+  const players = new Map(model.objectTypes.map((o) => [o.id, o.name]));
+  const entries: [Id, string][] = [
+    // An objectifying entity type is placed by placing its fact type.
+    ...model.objectTypes.filter((o) => !o.objectifiedFactTypeId).map((o): [Id, string] => [o.id, o.name]),
+    ...model.factTypes.map((ft): [Id, string] => {
+      const reading = primaryReading(ft);
+      const text = reading
+        ? reading.text.replace(/\{(\d+)\}/g, (_, n: string) => {
+            const role = ft.roles.find((r) => r.id === reading.roleOrder[Number(n)]);
+            return (role?.objectTypeId && players.get(role.objectTypeId)) || '…';
+          })
+        : ft.id;
+      return [ft.id, text];
+    }),
+  ]
+    .filter(([id]) => !drawn.has(id))
+    .sort((a, b) => a[1].localeCompare(b[1]));
+
+  const picker = h('select', {
+    class: 'page-place',
+    title: 'Place an element that is not on this page',
+    disabled: !state.editable || !entries.length,
+  });
+  picker.append(h('option', { value: '', text: entries.length ? 'Add to this page…' : 'All elements are on this page' }));
+  for (const [id, label] of entries) picker.append(h('option', { value: id, text: label }));
+  picker.addEventListener('change', () => {
+    const id = picker.value;
+    if (!id) return;
+    const rect = svg.getBoundingClientRect();
+    const x = snap((rect.width / 2 - state.view.x) / state.view.scale - 40, state.settings.gridSize, state.settings.snapToGrid);
+    const y = snap((rect.height / 2 - state.view.y) / state.view.scale - 17, state.settings.gridSize, state.settings.snapToGrid);
+    const page = state.page;
+    commit('Add to page', (m) => {
+      placeOnPage(m, page, id);
+      const shapes = pageShapes(m, page);
+      shapes[id] = { ...shapes[id], x, y };
+    });
+    state.selection = new Set([id]);
+    render();
+  });
+  return picker;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -904,7 +1168,7 @@ function zoomAround(point: Point, factor: number): void {
 }
 
 function zoomToFit(): void {
-  const bounds = diagramBounds(state.model);
+  const bounds = diagramBounds(current());
   const rect = svg.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
   const scale = Math.min(2, Math.max(0.15, Math.min(rect.width / (bounds.w + 80), rect.height / (bounds.h + 80))));
@@ -913,10 +1177,14 @@ function zoomToFit(): void {
   state.view.y = (rect.height - bounds.h * scale) / 2 - bounds.y * scale;
   applyView();
   renderStatus();
+  saveState();
 }
 
 function revealElement(id: Id): void {
-  const model = state.model;
+  // An element on another page is revealed where it is drawn.
+  const target = pageShowing(id);
+  if (target !== undefined && target !== state.page) showPage(target);
+  const model = current();
   let rect: Rect | undefined;
   const ot = model.objectTypes.find((o) => o.id === id);
   if (ot) rect = objectTypeRect(model, ot);
@@ -949,6 +1217,30 @@ function revealElement(id: Id): void {
   state.view.x = view.width / 2 - center.x * state.view.scale;
   state.view.y = view.height / 2 - center.y * state.view.scale;
   applyView();
+  saveState();
+}
+
+/** A page that draws an element: the active one if it does, else the first that does. */
+function pageShowing(id: Id): number | undefined {
+  const model = state.model;
+  const constraint = model.constraints.find((c) => c.id === id);
+  if (constraint) {
+    // A constraint is drawn wherever the fact types it constrains are.
+    const roleIds = new Set(
+      constraint.kind === 'subset' || constraint.kind === 'exclusion' || constraint.kind === 'equality'
+        ? constraint.roleSequences.flat()
+        : (constraint as { roles?: Id[] }).roles ?? [],
+    );
+    const owners = model.factTypes.filter((ft) => ft.roles.some((r) => roleIds.has(r.id))).map((ft) => ft.id);
+    const fits = (page: number): boolean => owners.every((ft) => isOnPage(model, page, ft));
+    if (!owners.length || fits(state.page)) return state.page;
+    return Array.from({ length: pageCount(model) }, (_, page) => page).find(fits);
+  }
+  const subtype = model.subtypeRelations.find((s) => s.id === id);
+  const pages = subtype
+    ? pagesOf(model, subtype.subtypeId).filter((page) => isOnPage(model, page, subtype.supertypeId))
+    : pagesOf(model, id);
+  return pages.includes(state.page) ? state.page : pages[0];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -956,7 +1248,8 @@ function revealElement(id: Id): void {
 /* -------------------------------------------------------------------------- */
 
 function buildExportSvg(): string {
-  const bounds = diagramBounds(state.model);
+  const view = current();
+  const bounds = diagramBounds(view);
   const margin = 24;
   const root = document.createElementNS(SVG_NS, 'svg');
   root.setAttribute('xmlns', SVG_NS);
@@ -979,7 +1272,7 @@ function buildExportSvg(): string {
     }),
   );
   root.append(
-    renderDiagram(state.model, {
+    renderDiagram(view, {
       selection: new Set(),
       selectedRoles: new Set(),
       showGrid: false,
@@ -1006,7 +1299,7 @@ async function exportDiagram(format: 'svg' | 'png'): Promise<void> {
 
 function rasterize(svgText: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const bounds = diagramBounds(state.model);
+    const bounds = diagramBounds(current());
     const scale = 2;
     const image = new Image();
     image.onload = () => {
@@ -1048,8 +1341,16 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
     case 'Delete':
     case 'Backspace':
       event.preventDefault();
-      deleteSelection();
+      if (event.shiftKey) removeSelectionFromPage();
+      else deleteSelection();
       break;
+    case 'PageUp':
+    case 'PageDown': {
+      event.preventDefault();
+      const next = state.page + (event.key === 'PageUp' ? -1 : 1);
+      if (next >= 0 && next < pageCount(state.model)) showPage(next);
+      break;
+    }
     case 'Escape':
       state.selection.clear();
       state.selectedRoles.clear();
@@ -1112,12 +1413,13 @@ window.addEventListener('message', (event: MessageEvent<HostMessage>) => {
       state.settings = message.settings;
       state.editable = message.editable;
       buildTabs();
-      render();
-      zoomToFit();
+      enterPage(state.page);
       break;
     case 'update':
       state.model = message.model;
       state.issues = message.issues;
+      // Undo can take away the page being shown.
+      if (state.page !== clampPage(state.model, state.page)) enterPage(state.page);
       pruneSelection();
       buildTabs();
       render();

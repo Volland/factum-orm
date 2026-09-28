@@ -80,6 +80,38 @@ Any key beginning with `x-` is an extension: legal anywhere, ignored by the edit
 
 The loader is more permissive than the schema on purpose. [[src/model/model.ts#parseModel]] preserves *every* unrecognised top-level key, not only `x-` ones, and [[src/model/model.ts#serializeModel]] writes them back after the keys it owns. So a misspelled key produces a schema warning in the editor rather than silent data loss on the next save.
 
+## Diagram pages
+
+A model's diagram can be split into named pages. `diagram` is the first page and `diagram.pages` holds the rest, in order, each with a `name` and its own `shapes`.
+
+Real models do not fit on one canvas: NORMA models are routinely split into subject-area diagrams — seven in the `Insurance` example, fifteen in the ActiveFacts metamodel, thirty or more in production models. One page per model made such a model unusable.
+
+The shape is chosen to stay inside version 2. A `diagrams` array replacing `diagram` would be tidier, but it removes a key, and [[file-format#Versioning]] reserves that for a version 3 with a migration. Nesting the further pages inside `diagram` is additive: a reader that ignores `pages` still sees a valid first page, and [[src/model/model.ts#parseModel]] keeps the key, so nothing is lost on a round trip through such a reader. See [[src/model/types.ts#Diagram]].
+
+Pages are addressed by position — nothing in the model refers to a page, so an id would only be one more thing to keep unique. An element can be drawn on several pages, with one shape on each; NORMA's several shapes of one element on the *same* page are not kept.
+
+### Membership
+
+An element is on a page when the page holds a shape for it that is not `hidden`. An element with no shape on any page is on the first page. [[src/model/pages.ts#isOnPage]] is the rule.
+
+The fallback keeps every single-page file drawing exactly as it did, and it means an element added by hand or by a generator that writes no layout is visible somewhere rather than silently absent.
+
+Its consequence is that "on no page" has to be written down: a hidden shape on the first page. That is what `hidden` was always documented to mean, and it is what removing an element's last placement, deleting a page, and a NORMA import of something NORMA draws nowhere all write.
+
+Three kinds of element follow others rather than having a membership of their own. An entity type that objectifies a fact type is drawn as the frame around it, so it goes where the fact type goes — [[src/model/pages.ts#shapeIdOf]]. A subtype link is drawn where both its ends are, and a constraint where every role it constrains is.
+
+[[src/model/pages.ts#pageView]] turns the rule into a model filtered to one page, whose `diagram` shares that page's shape record. The renderer, geometry and auto-layout run on it unchanged, and a drag that writes into the view's shapes moves them on the page. Constraints are left unfiltered because the renderer already skips a constraint whose roles it cannot find.
+
+### Editing pages
+
+The diagram editor shows pages as tabs under the canvas, and every edit to layout acts on the active page only: moving, creating, auto-layout, zoom-to-fit and SVG/PNG export.
+
+Double-clicking a tab renames it in place and its × deletes it; the model properties list the pages for renaming and reordering. PageUp and PageDown switch pages, and each page keeps its own pan and zoom, saved with the webview state so a reload returns to the same place.
+
+*Delete* removes an element from the model, as before. *Remove from page* (Shift+Delete) removes only its shape from the active page — [[src/model/pages.ts#removeFromPage]]. The properties of an object or fact type list the pages with a checkbox each, and the page bar's "Add to this page…" picker places an element the page does not yet draw. Selecting an element from the Problems panel or a link switches to a page that draws it.
+
+Deleting a page never deletes elements — [[src/model/pages.ts#deletePage]] keeps what was only on that page in the model, on no page, and the last page cannot be deleted. Webviews have neither `prompt()` nor `confirm()`, which is why renaming is in place and deleting is undoable instead of confirmed.
+
 ## Versioning
 
 The format uses a single integer major version. Version 2 is additive over version 1, so upgrading is a version bump and nothing else — [[src/model/model.ts#parseModel]] performs it on load, and the next save writes `2`.

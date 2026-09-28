@@ -21,9 +21,11 @@ import {
   RingType,
   Meta,
   Role,
+  Shape,
   ValueRange,
 } from '../model/types.js';
 import { constraintRoles, emptyModel, indexModel, newId, primaryReading } from '../model/model.js';
+import { addPage, pageCount, pageName, pageShapes } from '../model/pages.js';
 import {
   dataTypeFromNorma,
   dataTypeToNorma,
@@ -80,7 +82,7 @@ export function importFbmFile(xml: string): ImportResult {
   importRoleConstraints(ormModel, model, warnings);
   dropConstraintsOverRoles(model, subtypeFactRoles);
   importNotesAndSynonyms(ormModel, model);
-  importDiagram(root, model, warnings);
+  importDiagram(root, model);
 
   return { model, warnings };
 }
@@ -504,22 +506,29 @@ function importNotesAndSynonyms(ormModel: XmlNode, model: OrmModel): void {
   }
 }
 
-function importDiagram(root: XmlNode, model: OrmModel, warnings: string[]): void {
+// @lat: [[interop#The converters#FBM#Pages]]
+/** Every `<Page>` becomes a diagram page, in document order. */
+function importDiagram(root: XmlNode, model: OrmModel): void {
   const diagram = (first(root.FBMDiagram) ?? first(root.ORMDiagram)) as XmlNode | undefined;
   if (!diagram) return;
-  const pages = list(diagram.Page);
-  if (pages.length > 1) {
-    warnings.push(`The document has ${pages.length} diagram pages; only the first was kept.`);
-  }
-  const page = pages[0] as XmlNode | undefined;
-  if (!page) return;
-  const name = str(page['@Name']);
-  if (name) model.diagram.name = name;
-  const language = str(page['@Language']);
-  // FBM's page language names the notation ("ORMModel"), not a natural language,
-  // so it is only carried when it looks like a BCP 47 tag.
-  if (language && /^[a-z]{2}(-[A-Za-z0-9]+)*$/.test(language)) model.lang = language;
+  list(diagram.Page).forEach((node, position) => {
+    const page = node as XmlNode;
+    const name = str(page['@Name']);
+    let index = 0;
+    if (position === 0) {
+      if (name) model.diagram.name = name;
+    } else {
+      index = addPage(model, name);
+    }
+    const language = str(page['@Language']);
+    // FBM's page language names the notation ("ORMModel"), not a natural language,
+    // so it is only carried when it looks like a BCP 47 tag.
+    if (language && /^[a-z]{2}(-[A-Za-z0-9]+)*$/.test(language)) model.lang = model.lang ?? language;
+    importPageShapes(page, model, pageShapes(model, index));
+  });
+}
 
+function importPageShapes(page: XmlNode, model: OrmModel, shapes: Record<Id, Shape>): void {
   // A page draws more than the model holds shapes for — reading text, fact type
   // names, role names and constraint markers each get an instance of their own.
   // Taking all of them made a shape out of every one, and let an invisible
@@ -550,7 +559,7 @@ function importDiagram(root: XmlNode, model: OrmModel, warnings: string[]): void
       if (x === undefined || y === undefined) continue;
       const w = num(shape['@Width']);
       const h = num(shape['@Height']);
-      model.diagram.shapes[id] = {
+      shapes[id] = {
         x,
         y,
         ...(w && w > 0 ? { w } : {}),
@@ -604,7 +613,7 @@ export function exportFbmFile(model: OrmModel): ExportResult {
         ModelNotes: { ModelNote: noteNodes(model) },
         Synonyms: { Synonym: synonymNodes(model) },
       },
-      ORMDiagram: { Page: pageNode(model) },
+      ORMDiagram: { Page: Array.from({ length: pageCount(model) }, (_, index) => pageNode(model, index)) },
     },
   };
 
@@ -916,11 +925,11 @@ function conceptInstanceOf(model: OrmModel): Map<Id, { symbol: string; conceptTy
   return byId;
 }
 
-function pageNode(model: OrmModel): XmlNode {
+function pageNode(model: OrmModel, index: number): XmlNode {
   const byId = conceptInstanceOf(model);
   const instances: XmlNode[] = [];
   let n = 0;
-  for (const [id, shape] of Object.entries(model.diagram.shapes)) {
+  for (const [id, shape] of Object.entries(pageShapes(model, index))) {
     const concept = byId.get(id);
     // A shape for something the model no longer holds has nothing to name.
     if (!concept) continue;
@@ -940,7 +949,7 @@ function pageNode(model: OrmModel): XmlNode {
   }
   return {
     '@Id': newId('page'),
-    '@Name': model.diagram.name ?? model.name,
+    '@Name': pageName(model, index),
     '@Language': 'ORMModel',
     '@IsCoreModelPage': 'false',
     ConceptInstance: { ConceptInstance: instances },

@@ -13,6 +13,7 @@ import {
   ValueRange,
 } from '../model/types.js';
 import { emptyModel, newId } from '../model/model.js';
+import { addPage, pageCount, pageShapes, shapeIdOf } from '../model/pages.js';
 import { dropConstraintsOverRoles } from './interop.js';
 
 /** NORMA stores diagram geometry in inches; VS Code draws in CSS pixels. */
@@ -515,60 +516,90 @@ function modality(node: XmlNode): 'alethic' | 'deontic' | undefined {
 /* Diagram                                                                     */
 /* -------------------------------------------------------------------------- */
 
+// @lat: [[interop#The converters#NORMA#Diagram pages]]
+/**
+ * Every `<ORMDiagram>` becomes a page, in document order. NORMA nests a
+ * diagram's shapes in `<Shapes>`; reading them from the diagram element itself
+ * found none in a real file, so they are read from both.
+ */
 function importDiagram(root: XmlNode, model: OrmModel): void {
   const diagrams = list(root.ORMDiagram);
-  const diagram = first(diagrams) as XmlNode | undefined;
-  if (!diagram) return;
-  model.diagram.name = str(diagram['@Name']);
+  if (!diagrams.length) return;
+  const known = new Set<Id>([
+    ...model.objectTypes.map((o) => o.id),
+    ...model.factTypes.map((f) => f.id),
+    ...model.constraints.map((c) => c.id),
+  ]);
+  diagrams.forEach((diagram, position) => {
+    const name = str(diagram['@Name']);
+    let index = 0;
+    if (position === 0) {
+      if (name) model.diagram.name = name;
+    } else {
+      index = addPage(model, name);
+    }
+    Object.assign(pageShapes(model, index), importPageShapes(diagram, known));
+  });
+  // What NORMA draws on no diagram stays off the diagram here too, rather than
+  // piling up on the first page.
+  // An objectifying entity type needs no shape of its own: it follows its fact type.
+  for (const id of [...model.objectTypes.map((o) => o.id), ...model.factTypes.map((f) => f.id)]) {
+    if (shapeIdOf(model, id) !== id || hasShapeOnAnyPage(model, id)) continue;
+    pageShapes(model, 0)[id] = { x: 60, y: 60, hidden: true };
+  }
+}
+
+function hasShapeOnAnyPage(model: OrmModel, id: Id): boolean {
+  for (let index = 0; index < pageCount(model); index += 1) if (pageShapes(model, index)[id]) return true;
+  return false;
+}
+
+/** One diagram's shapes, in pixels, shifted so the page starts near the origin. */
+function importPageShapes(diagram: XmlNode, known: Set<Id>): Record<Id, Shape> {
+  const container = (first(diagram.Shapes) as XmlNode | undefined) ?? {};
+  const shapes = new Map<Id, Shape>();
+
+  const collect = (node: XmlNode, kind: 'element' | 'constraint', orientation?: Shape['orientation']): void => {
+    const subject = first(node.Subject) as XmlNode | undefined;
+    const ref = subject ? str(subject['@ref']) : undefined;
+    const bounds = str(node['@AbsoluteBounds']);
+    // NORMA may draw one element several times on a page; the first is kept.
+    if (!ref || !bounds || !known.has(ref) || shapes.has(ref)) return;
+    const [x, y, w, h] = bounds.split(',').map((part) => Number(part.trim()) * PIXELS_PER_INCH);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    const sized = Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0;
+    if (kind === 'constraint') {
+      // A constraint is drawn around its centre, not from its corner.
+      shapes.set(ref, sized ? { x: x + w / 2, y: y + h / 2 } : { x, y });
+      return;
+    }
+    shapes.set(ref, { x, y, ...(sized ? { w, h } : {}), ...(orientation ? { orientation } : {}) });
+  };
+
+  for (const source of [container, diagram]) {
+    for (const shape of list(source.ObjectTypeShape)) collect(shape, 'element');
+    for (const shape of list(source.FactTypeShape)) {
+      const orientation = str(shape['@DisplayOrientation'])?.startsWith('Vertical') ? 'vertical' : 'horizontal';
+      collect(shape, 'element', orientation);
+    }
+    for (const kind of ['ExternalConstraintShape', 'FrequencyConstraintShape', 'RingConstraintShape'] as const) {
+      for (const shape of list(source[kind])) collect(shape, 'constraint');
+    }
+  }
 
   let minX = Infinity;
   let minY = Infinity;
-  const shapes: [Id, Shape][] = [];
-
-  const collect = (node: unknown, orientation?: Shape['orientation']): void => {
-    const shapeNode = node as XmlNode;
-    const subject = first(shapeNode.Subject) as XmlNode | undefined;
-    const ref = subject ? str(subject['@ref']) : undefined;
-    const bounds = str(shapeNode['@AbsoluteBounds']);
-    if (!ref || !bounds) return;
-    const [x, y, w, h] = bounds.split(',').map((part) => Number(part.trim()) * PIXELS_PER_INCH);
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    shapes.push([
-      ref,
-      {
-        x,
-        y,
-        w: Number.isFinite(w) && w > 0 ? w : undefined,
-        h: Number.isFinite(h) && h > 0 ? h : undefined,
-        orientation,
-      },
-    ]);
-  };
-
-  for (const shape of list(diagram.ObjectTypeShape)) collect(shape);
-  for (const shape of list(diagram.FactTypeShape)) {
-    const orientation = str((shape as XmlNode)['@DisplayOrientation'])?.startsWith('Vertical')
-      ? 'vertical'
-      : 'horizontal';
-    collect(shape, orientation);
+  for (const shape of shapes.values()) {
+    minX = Math.min(minX, shape.x);
+    minY = Math.min(minY, shape.y);
   }
-  for (const shape of list(diagram.ExternalConstraintShape)) collect(shape);
-  for (const shape of list(diagram.FrequencyConstraintShape)) collect(shape);
-  for (const shape of list(diagram.RingConstraintShape)) collect(shape);
-  for (const shape of list(diagram.ValueConstraintShape)) collect(shape);
-
-  // Shift the imported diagram so it starts near the canvas origin.
   const offsetX = Number.isFinite(minX) ? minX - 40 : 0;
   const offsetY = Number.isFinite(minY) ? minY - 40 : 0;
+  const result: Record<Id, Shape> = {};
   for (const [id, shape] of shapes) {
-    model.diagram.shapes[id] = {
-      ...shape,
-      x: Math.round(shape.x - offsetX),
-      y: Math.round(shape.y - offsetY),
-    };
+    result[id] = { ...shape, x: Math.round(shape.x - offsetX), y: Math.round(shape.y - offsetY) };
   }
+  return result;
 }
 
 /* -------------------------------------------------------------------------- */

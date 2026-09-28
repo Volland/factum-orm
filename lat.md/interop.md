@@ -104,6 +104,12 @@ Boston writes `<ORMModel>` and newer exports write `<FBMModel>`; both appear in 
 
 The page is the third mismatch. FBM draws more than Factum keeps shapes for — an instance each for reading text, fact type names, role names and constraint markers, several sharing one symbol — so import matches on `ConceptType` and keeps only what names an object or fact type, rather than letting an invisible marker at the origin overwrite the position of the thing it labels. Export goes the same way through [[src/io/fbm.ts#conceptInstanceOf]]: a value type is written as `ValueType` and not as an entity, and a fact type instance carries the name [[src/io/fbm.ts#fbmFactTypeName]] wrote its `FactType` element under, which is how a reader matches a shape to what it draws.
 
+#### Pages
+
+Every FBM `<Page>` is imported as a diagram page and every page is exported as one, so a multi-page model survives the round trip. See [[file-format#Diagram pages]].
+
+Import used to keep the first page and warn about the rest; with [[file-format#Diagram pages]] in the format there is nowhere left that a page has to be dropped.
+
 ### Ossie
 
 [[src/io/ossie.ts#importOssieFile]] and [[src/io/ossie.ts#exportOssieFile]] convert the ontology section, which is conceptual and close to term-for-term with ORM.
@@ -132,6 +138,14 @@ Reading a NORMA file means undoing three encodings that are internal to the tool
 
 Each of those leaves roles behind that the model never gets, so both importers gather them and [[src/io/interop.ts#dropConstraintsOverRoles]] takes their constraints with them. Anything else dangling is a real fault and is left for the validator to report.
 
+#### Diagram pages
+
+Every `<ORMDiagram>` becomes a page, in document order, named as in NORMA and moved to the canvas origin on its own. See [[file-format#Diagram pages]].
+
+NORMA nests a diagram's shapes in `<ORMDiagram><Shapes>`. The importer once read them from the diagram element itself, which a hand-written test fixture satisfied and a real file never did, so every real NORMA model arrived with no layout at all. Shapes are now read from `<Shapes>`, and from the diagram element for tolerance.
+
+Three details keep a page looking as NORMA drew it. A constraint's circle is stored at its centre, which is what the renderer draws around, rather than at the corner NORMA's bounds give. A second shape of the same element on one page is dropped. And an object or fact type NORMA draws on no diagram — in practice a reference mode's value type and the fact type naming it, which NORMA folds into `(.nr)` — gets a hidden shape, so it stays off the diagram instead of piling up on the first page.
+
 ## Fidelity
 
 What each converter keeps is a property of the formats, not of the effort spent, and it is worth stating plainly rather than discovering.
@@ -140,4 +154,4 @@ FBM and NORMA are conceptual and round-trip the whole model: every object type, 
 
 The metadata added in format version 2 is what makes the first three work: `meta.guid` carries identity, `hints.relational.tableName` is FBM's `DBName`, `hints.graph.label` is its `GraphLabel`, `meta.synonyms` is `Synonyms`, and `meta.description` is `LongDescription`.
 
-Still missing: FBM sample populations and multi-page diagrams, join paths on set-comparison constraints, external identification from an Ossie `identify_by` that names more than a one-to-one binary, and Ossie's `ontology_mappings`, which is where a `hints.ossie` target would land.
+Still missing: FBM sample populations, join paths on set-comparison constraints, external identification from an Ossie `identify_by` that names more than a one-to-one binary, and Ossie's `ontology_mappings`, which is where a `hints.ossie` target would land.

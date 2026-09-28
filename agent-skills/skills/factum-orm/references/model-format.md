@@ -172,7 +172,29 @@ Every constraint has `id`, `kind`, an optional `name`, `note` and
 Keyed by object type, fact type, constraint or subtype-relation id. `x`/`y` are the
 top-left in diagram units; `w`/`h` are optional; `orientation` (`horizontal` or
 `vertical`) lays out a fact type's role boxes; `hidden` keeps an element in the model
-but off this diagram. Layout guidance is in `notation.md`.
+but off this page. Layout guidance is in `notation.md`.
+
+### Pages
+
+A large model is split into pages. `diagram` is the first page; further pages, in order,
+go in `diagram.pages`, each `{ "name": …, "shapes": { … } }`. One element may have a
+shape on several pages.
+
+```json
+"diagram": {
+  "name": "Employment",
+  "shapes": { "person": { "x": 40, "y": 60 }, "company": { "x": 300, "y": 60 } },
+  "pages": [
+    { "name": "Skills", "shapes": { "person": { "x": 40, "y": 60 }, "skill": { "x": 300, "y": 60 } } }
+  ]
+}
+```
+
+An element is on a page when that page has a shape for it that is not `hidden`. An
+element with no shape on any page is drawn on the first page, so a small model needs no
+`pages` at all. To keep an element off every page, give it `"hidden": true` on the first
+page. Split by subject area — one page per hub entity and what hangs off it — and repeat
+a shared entity on each page that needs it rather than drawing long connectors.
 
 ## meta and hints — and the line between them
 

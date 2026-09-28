@@ -663,7 +663,8 @@ export function diagramBounds(model: OrmModel): Rect {
       h: rect.h + 54,
     });
   }
-  for (const [, shape] of Object.entries(model.diagram.shapes)) {
+  for (const shape of Object.values(model.diagram.shapes)) {
+    if (shape.hidden) continue;
     rects.push({ x: shape.x - 20, y: shape.y - 20, w: (shape.w ?? 40) + 40, h: (shape.h ?? 40) + 40 });
   }
   if (!rects.length) return { x: 0, y: 0, w: 400, h: 300 };

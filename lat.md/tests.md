@@ -210,6 +210,82 @@ Value constraints are written inside a `ValueRestriction` on the object type or 
 
 The format is taken from the extension where that is decisive, and from a marker in the text where it is not. Ossie and UMS share `.yaml`, so the extension alone cannot tell them apart.
 
+### NORMA shapes nested in Shapes are imported
+
+A NORMA diagram whose shapes sit inside `<ORMDiagram><Shapes>`, as every real NORMA file writes them, imports with their positions and sizes. The original fixture left out `<Shapes>`, so real files imported with no layout and nothing failed.
+
+### Every NORMA diagram becomes a page
+
+A file with two `<ORMDiagram>` elements imports as two pages, named as in NORMA, each moved to the origin on its own. An element on both is on both pages, and a second shape of one element on one page keeps the first.
+
+### What NORMA draws on no diagram stays off the diagram
+
+An object or fact type that no NORMA diagram draws is imported on no page, rather than falling back onto the first page at a default position — which for a reference mode's value types would pile dozens of boxes on one spot.
+
+### Every FBM page survives a round trip
+
+A model with three pages exported to FBM and imported back has three pages with the same names, and each shape is on the page it was on. FBM import used to keep only the first page.
+
+## Diagram pages
+
+Covers the split of a diagram into pages described in [[file-format#Diagram pages]]: the file shape, the membership rule, and the page operations the editor is built on.
+
+### A single-page file has no pages key
+
+A model with one page serializes without `diagram.pages` and round-trips byte-for-byte, so every existing file is untouched by the feature.
+
+### Pages survive a round trip
+
+A document with further pages, including `x-` keys on a page and on `diagram`, comes back from a parse and serialize with the same pages in the same order. The loader used to drop `x-` keys on `diagram`.
+
+### The schema accepts pages
+
+A model with `diagram.pages` validates against the published schema, and a page carrying an unknown key that is not an `x-` extension does not.
+
+### An element can be on several pages
+
+An object type with a shape on two pages is drawn on both, each at its own position, and not on a page that has no shape for it.
+
+### An unplaced element falls on the first page
+
+An element with no shape on any page is drawn on the first page and on no other — the rule that keeps single-page files drawing as they always did.
+
+### A hidden shape keeps an element off the diagram
+
+An element whose only shape is a hidden one on the first page is on no page. This is how "in the model but not drawn" is written down.
+
+### A page view draws only what is on the page
+
+Rendering a page's view draws only that page's object and fact types, and a subtype link only on a page holding both of its ends.
+
+### An objectifying entity type follows its fact type
+
+An entity type that objectifies a fact type is on the pages its fact type is on, and taking it off a page takes the fact type's shape, since the frame is drawn from it.
+
+### Adding and moving pages
+
+A new page is appended, empty, with a generated name. Moving a page to the front makes it `diagram`, with the others following in order.
+
+### Deleting a page keeps its elements in the model
+
+Deleting a page leaves what was only on it in the model and on no page, leaves shapes on other pages alone, and refuses to delete the last page.
+
+### Deleting the first page promotes the next
+
+Deleting the first page makes the second page the diagram, and elements that were only on the deleted page end up on no page rather than on the new first page.
+
+### Removing the last placement keeps the element off the diagram
+
+Removing an element from the only page it is on keeps it in the model, drawn nowhere; placing it back puts it where it was and removes the off-diagram marker.
+
+### Removing one of several placements
+
+Removing an element from one of two pages leaves it on the other, with no marker written.
+
+### Deleting an element removes it from every page
+
+Deleting an element from the model removes its shape from every page, not only from the first.
+
 ## Populations
 
 Covers sample facts and the constraint checking they make possible, described in [[file-format#Populations]]. The value of a population is that it can contradict the schema, so most of these tests are about that contradiction being caught.

@@ -325,11 +325,118 @@ text {
   font-size: 12px;
 }
 
-.status-bar {
+/* The page bar and the status bar share a footer pinned under the canvas. */
+.canvas-footer {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+.page-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px 6px 0;
+  overflow-x: auto;
+  border-top: 1px solid var(--orm-border);
+  background: var(--vscode-editorWidget-background, var(--orm-panel));
+  font-size: 11px;
+}
+
+.page-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  max-width: 200px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  color: var(--orm-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.page-tab:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
+}
+
+.page-tab.active {
+  border-color: var(--orm-border);
+  border-top: 2px solid var(--orm-accent);
+  background: var(--orm-surface);
+  color: var(--vscode-foreground);
+}
+
+.page-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-tab-close,
+.page-add {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.page-tab-close {
+  padding: 0 2px;
+  opacity: 0;
+}
+
+.page-tab:hover .page-tab-close,
+.page-tab.active .page-tab-close {
+  opacity: 0.7;
+}
+
+.page-add {
+  flex: 0 0 auto;
+  padding: 0 8px;
+  color: var(--orm-muted);
+}
+
+.page-rename,
+.page-place {
+  flex: 0 0 auto;
+  margin-bottom: 2px;
+  border: 1px solid var(--vscode-input-border, var(--orm-border));
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font-size: 11px;
+}
+
+.page-rename {
+  width: 140px;
+}
+
+.page-place {
+  max-width: 220px;
+  margin-left: auto;
+}
+
+.page-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.page-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-row.active input {
+  border-color: var(--orm-accent);
+}
+
+.status-bar {
   display: flex;
   gap: 16px;
   padding: 3px 10px;

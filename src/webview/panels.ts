@@ -10,6 +10,15 @@ import {
   ValueRange,
 } from '../model/types.js';
 import { factTypeOfRole, indexModel, newId, primaryReading } from '../model/model.js';
+import {
+  pageCount,
+  pageName,
+  pageShapes,
+  pagesOf,
+  placeOnPage,
+  removeFromPage,
+  renamePage,
+} from '../model/pages.js';
 import { Issue } from '../core/validate.js';
 import { verbalizeModel } from '../core/verbalize.js';
 import { mapToRelational } from '../core/rmap.js';
@@ -23,6 +32,10 @@ export type PanelTab = 'properties' | 'verbalization' | 'relational' | 'graph' |
 
 export interface PanelHost {
   model: OrmModel;
+  /** The diagram page being shown. */
+  page: number;
+  showPage(index: number): void;
+  movePage(from: number, to: number): void;
   selection: Set<Id>;
   selectedRoles: Set<Id>;
   issues: Issue[];
@@ -132,7 +145,66 @@ function renderModelProperties(host: PanelHost): HTMLElement {
       h('dd', { text: String(model.subtypeRelations.length) }),
     ]),
     h('p', { class: 'hint', text: 'Select a shape to edit it. Click role boxes to build constraints.' }),
+    renderPages(host),
   ]);
+}
+
+// @lat: [[file-format#Diagram pages#Editing pages]]
+/** The model's pages: rename, reorder and delete, and jump to one. */
+function renderPages(host: PanelHost): HTMLElement {
+  const { model } = host;
+  const count = pageCount(model);
+  const rows = Array.from({ length: count }, (_, index) =>
+    h('div', { class: `page-row${index === host.page ? ' active' : ''}` }, [
+      h('input', {
+        type: 'text',
+        value: pageName(model, index),
+        title: 'Page name',
+        onchange: (event: Event) => {
+          const value = (event.target as HTMLInputElement).value;
+          host.commit('Rename page', (m) => renamePage(m, index, value));
+        },
+      }),
+      h('button', { text: 'Show', disabled: index === host.page, onclick: () => host.showPage(index) }),
+      h('button', {
+        text: '↑',
+        title: 'Move up',
+        disabled: index === 0,
+        onclick: () => host.movePage(index, index - 1),
+      }),
+      h('button', {
+        text: '↓',
+        title: 'Move down',
+        disabled: index === count - 1,
+        onclick: () => host.movePage(index, index + 1),
+      }),
+    ]),
+  );
+  return section('Pages', [
+    ...rows,
+    h('p', {
+      class: 'hint',
+      text: 'An element can be on several pages. Shift+Delete removes the selection from the current page but keeps it in the model.',
+    }),
+  ]);
+}
+
+/** Which pages draw an element, with a toggle to place it on or take it off each. */
+function renderElementPages(host: PanelHost, id: Id): HTMLElement {
+  const { model } = host;
+  const on = new Set(pagesOf(model, id));
+  const toggles = Array.from({ length: pageCount(model) }, (_, index) =>
+    checkbox(pageName(model, index), on.has(index), (value) =>
+      host.commit(value ? 'Add to page' : 'Remove from page', (m) => {
+        if (value) placeOnPage(m, index, id);
+        else removeFromPage(m, index, id);
+      }),
+    ),
+  );
+  return section('Pages', [
+    ...toggles,
+    on.size ? null : h('p', { class: 'hint', text: 'On no page: the element is in the model but not drawn.' }),
+  ].filter(Boolean) as HTMLElement[]);
 }
 
 function renderMultiSelection(host: PanelHost): HTMLElement {
@@ -267,6 +339,7 @@ function renderObjectTypeProperties(host: PanelHost, ot: ObjectType): HTMLElemen
   return h('div', {}, [
     section(ot.kind === 'entity' ? 'Entity type' : 'Value type', fields.filter(Boolean) as HTMLElement[]),
     section('Plays roles in', [roleList]),
+    renderElementPages(host, ot.id),
   ]);
 }
 
@@ -375,11 +448,11 @@ function renderFactTypeProperties(host: PanelHost, ft: FactType): HTMLElement {
             ['horizontal', 'Horizontal'],
             ['vertical', 'Vertical'],
           ],
-          model.diagram.shapes[ft.id]?.orientation ?? 'horizontal',
+          pageShapes(model, host.page)[ft.id]?.orientation ?? 'horizontal',
           (value) =>
             host.commit('Change orientation', (m) => {
-              const shape = m.diagram.shapes[ft.id] ?? { x: 100, y: 100 };
-              m.diagram.shapes[ft.id] = { ...shape, orientation: value as 'horizontal' | 'vertical' };
+              const shapes = pageShapes(m, host.page);
+              shapes[ft.id] = { ...(shapes[ft.id] ?? { x: 100, y: 100 }), orientation: value as 'horizontal' | 'vertical' };
             }),
         ),
       ),
@@ -457,13 +530,15 @@ function renderFactTypeProperties(host: PanelHost, ft: FactType): HTMLElement {
                 if (!target) return;
                 const reading = primaryReading(target);
                 const name = suggestObjectificationName(m, reading?.text ?? 'Fact');
-                const shape = m.diagram.shapes[ft.id] ?? { x: 100, y: 100 };
+                const shapes = pageShapes(m, host.page);
+                const shape = shapes[ft.id] ?? { x: 100, y: 100 };
                 const id = newId('ot');
                 m.objectTypes.push({ id, name, kind: 'entity', objectifiedFactTypeId: ft.id });
-                m.diagram.shapes[id] = { x: shape.x, y: shape.y - 70 };
+                shapes[id] = { x: shape.x, y: shape.y - 70 };
               }),
           }),
     ]),
+    renderElementPages(host, ft.id),
   ]);
 }
 

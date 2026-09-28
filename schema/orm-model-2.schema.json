@@ -870,7 +870,7 @@
         },
         "hidden": {
           "type": "boolean",
-          "description": "Exists in the model but not on this diagram."
+          "description": "Keeps the element off this page. A hidden shape on the first page keeps an element that is on no other page off the diagram altogether."
         }
       },
       "patternProperties": {
@@ -880,6 +880,35 @@
     },
     "diagram": {
       "type": "object",
+      "description": "The diagram layout. The diagram itself is the first page; further pages, in order, are in `pages`. An element with no shape on any page is drawn on the first page.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the first page."
+        },
+        "shapes": {
+          "type": "object",
+          "description": "Shapes on the first page, keyed by object type, fact type, constraint or subtype relation id.",
+          "additionalProperties": {
+            "$ref": "#/$defs/shape"
+          }
+        },
+        "pages": {
+          "type": "array",
+          "description": "Pages after the first, in order. An element may be drawn on several pages, with one shape on each.",
+          "items": {
+            "$ref": "#/$defs/diagramPage"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "diagramPage": {
+      "type": "object",
+      "description": "One page of the diagram. An element is drawn on a page when the page holds a shape for it that is not hidden.",
       "properties": {
         "name": {
           "type": "string"
@@ -892,6 +921,9 @@
           }
         }
       },
+      "required": [
+        "shapes"
+      ],
       "patternProperties": {
         "^x-": true
       },
