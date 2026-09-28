@@ -34,6 +34,14 @@
 <div class="page-head wrap prose"><h1>Changelog</h1><p>What changed in each release.</p></div>
 
 <section><div class="wrap prose">
+<h2 id="0-6-0">0.6.0</h2>
+<ul>
+  <li><strong>Diagram pages.</strong> A model&rsquo;s diagram can now be split into named pages, as NORMA and FBM models are. Pages are tabs under the canvas: switch, add, rename, reorder and delete them. An element can be on several pages; moving, creating, auto-layout and export act on the current page, and each page keeps its own pan and zoom. <kbd>Shift</kbd>+<kbd>Delete</kbd> takes the selection off the page without deleting it from the model, and <em>Add to this page&hellip;</em> places an element the page does not show yet.</li>
+  <li>In the file, further pages go in the new optional <code>diagram.pages</code>; <code>diagram</code> stays the first page, so the format remains version 2 and a reader that ignores pages still sees a valid diagram. See <a href="file-format.html#pages">Pages</a>.</li>
+  <li><strong>NORMA import brings the layout, every page of it.</strong> The importer was looking for shapes where NORMA does not write them, so a real NORMA file arrived with no layout at all. Every <code>&lt;ORMDiagram&gt;</code> now becomes a page &mdash; the seven pages of the ActiveFacts <code>Insurance</code> example, the fifteen of its metamodel &mdash; and what NORMA draws on no diagram stays off it.</li>
+  <li>FBM import and export carry every page instead of only the first.</li>
+</ul>
+
 <h2 id="0-5-0">0.5.0</h2>
 <ul>
   <li><strong>The <a href="skills.html">skill pack</a>, and <code>factum skills install</code>.</strong> Ten slash commands and two skills distilled from <a href="book-full.html"><em>Fact-Based Agents</em></a>, teaching an agent the modelling procedure rather than only handing it a model. <code>/orm-model</code> runs Halpin&rsquo;s seven steps and stops at each for a yes or no; <code>/orm-review</code> reads a model back and argues with it; <code>/orm-fix</code> works through validator codes; <code>/orm-memory</code> designs an agent&rsquo;s memory, promise graph or audit log as a conceptual schema.</li>

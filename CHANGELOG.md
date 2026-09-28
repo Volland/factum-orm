@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.0 — 2026-09-28
+
+- **Diagram pages.** A model's diagram can now be split into named pages, as NORMA and FBM models
+  are. Pages are tabs under the canvas: switch, add, rename, reorder and delete them; an element can
+  be on several pages; moving, creating, auto-layout and export act on the current page, and each
+  page keeps its own pan and zoom. Shift+Delete takes the selection off the page without deleting
+  it from the model, and "Add to this page…" places an element the page does not show yet. Reported
+  by a user modelling with the NORMA examples in
+  [activefacts-examples](https://github.com/cjheath/activefacts-examples), where a single page made
+  a seven-page model unusable.
+
+  In the file, further pages go in the new optional `diagram.pages`; `diagram` stays the first
+  page, so the format remains version 2 and a reader that ignores pages still sees a valid diagram.
+  An element with no shape on any page is drawn on the first page, so existing files are unchanged.
+- **NORMA import brings the layout, every page of it.** NORMA nests a diagram's shapes in
+  `<Shapes>`, and the importer was reading them from the diagram element itself — so a real NORMA
+  file imported with no layout at all. Shapes are now read from where NORMA writes them, and every
+  `<ORMDiagram>` becomes a page: the seven pages of the ActiveFacts `Insurance` example, the fifteen
+  of its metamodel. What NORMA draws on no diagram, such as the value type behind a reference mode,
+  stays off the diagram instead of piling up on the first page.
+- FBM import and export carry every page instead of only the first.
+- The loader kept `x-` keys everywhere except on `diagram`; it keeps them there too now.
+
 ## 0.5.0 — 2026-08-30
 
 - **The skill pack, and `factum skills install`.** Ten slash commands and two skills distilled from
