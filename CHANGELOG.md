@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1 — 2026-09-29
+
+- **Connecting a role to an object type works again.** With the Connect tool, dragging from a role
+  to an object type drew the dashed line, but releasing the mouse over the object type did nothing.
+  The drag captures the pointer on the canvas, so the release was always reported on the canvas
+  itself and never on the object type under it; the drop is now resolved from the point under the
+  cursor. Choosing the role's player in the fact type's properties was unaffected.
+
 ## 0.6.0 — 2026-09-28
 
 - **Diagram pages.** A model's diagram can now be split into named pages, as NORMA and FBM models
