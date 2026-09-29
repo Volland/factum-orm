@@ -517,7 +517,17 @@ function toDiagram(event: PointerEvent | WheelEvent | MouseEvent): Point {
 }
 
 function hitTarget(event: PointerEvent): { kind: string; id: Id } | undefined {
-  const target = (event.target as Element | null)?.closest('[data-kind]');
+  return hitElement(event.target as Element | null);
+}
+
+/** What lies under the pointer. A drag captures the pointer on the canvas, so
+ *  its events all target the `<svg>`; a drop has to look under the cursor. */
+function dropTarget(event: PointerEvent): { kind: string; id: Id } | undefined {
+  return hitElement(document.elementFromPoint(event.clientX, event.clientY));
+}
+
+function hitElement(element: Element | null): { kind: string; id: Id } | undefined {
+  const target = element?.closest('[data-kind]');
   if (!target) return undefined;
   const kind = target.getAttribute('data-kind');
   const id = target.getAttribute('data-id');
@@ -681,7 +691,7 @@ svg.addEventListener('pointerup', (event: PointerEvent) => {
   }
 
   if (drag.kind === 'connect' && drag.roleId) {
-    const hit = hitTarget(event);
+    const hit = dropTarget(event);
     if (hit?.kind === 'objectType') {
       const roleId = drag.roleId;
       const objectTypeId = hit.id;
