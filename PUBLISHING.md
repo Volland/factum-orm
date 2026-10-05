@@ -80,16 +80,15 @@ instead, so a release that skips it is invisible to every one of them.
 
 Open VSX takes the **same `.vsix`** — there is nothing to rebuild and no second manifest.
 
-Get a token once from <https://open-vsx.org/user-settings/tokens> (log in with GitHub, then
-*Access Tokens → Generate New Token*). Claim the publisher namespace once, before the first publish;
-it must match `publisher` in the manifest:
+Get a token from <https://open-vsx.org/user-settings/tokens> (log in with GitHub, then
+*Access Tokens → Generate New Token*).
 
-```bash
-export OVSX_PAT=<token>
-npx --yes ovsx create-namespace pavlyshyn      # once, ever
-```
+The `pavlyshyn` namespace is **already claimed and verified** — it carries `lpg-modeler` and
+`typegraph-vscode` — so there is nothing to create. A namespace must match `publisher` in the
+manifest, and for a new one the command is `npx --yes ovsx create-namespace <name>`; running it on an
+existing namespace fails rather than doing nothing.
 
-Then publish, using the package `npm run vsix` already built:
+Publish the package `npm run vsix` already built:
 
 ```bash
 npm run publish:ovsx                           # reads $OVSX_PAT
