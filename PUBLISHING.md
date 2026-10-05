@@ -61,7 +61,7 @@ Install the built `.vsix` locally and click through the diagram, the Verbalizati
 Graph tabs, and both generate commands before publishing:
 
 ```bash
-code --install-extension factum-orm-0.4.0.vsix
+code --install-extension factum-orm-0.6.1.vsix
 ```
 
 ## 6. Publish
@@ -71,6 +71,46 @@ npx vsce publish              # or: npx vsce publish minor
 ```
 
 Add `--pre-release` if you want the pre-release channel instead of a normal release.
+
+## 7. Mirror to Open VSX
+
+The Microsoft Marketplace is only reachable from Microsoft's own builds of VS Code. VSCodium, Cursor,
+Windsurf, Gitpod and Eclipse Theia all resolve extensions from [Open VSX](https://open-vsx.org)
+instead, so a release that skips it is invisible to every one of them.
+
+Open VSX takes the **same `.vsix`** — there is nothing to rebuild and no second manifest.
+
+Get a token once from <https://open-vsx.org/user-settings/tokens> (log in with GitHub, then
+*Access Tokens → Generate New Token*). Claim the publisher namespace once, before the first publish;
+it must match `publisher` in the manifest:
+
+```bash
+export OVSX_PAT=<token>
+npx --yes ovsx create-namespace pavlyshyn      # once, ever
+```
+
+Then publish, using the package `npm run vsix` already built:
+
+```bash
+npm run publish:ovsx                           # reads $OVSX_PAT
+```
+
+That script is `ovsx publish factum-orm-<version>.vsix`, so it always ships the version in the
+manifest. To publish a `.vsix` you already have without rebuilding:
+
+```bash
+npx --yes ovsx publish factum-orm-0.6.1.vsix -p <token>
+```
+
+Prefer `$OVSX_PAT` over `-p`: a token on the command line lands in your shell history.
+
+The listing appears at <https://open-vsx.org/extension/pavlyshyn/factum-orm>, which is the URL the
+documentation site links to. Open VSX enforces the same rule npm does — a version number is
+permanent — so bump rather than republish.
+
+Open VSX also requires that the publisher agree to its
+[publisher agreement](https://open-vsx.org/about) on first publish; `ovsx` prints the link if it is
+outstanding.
 
 ## Optional polish
 
@@ -93,7 +133,5 @@ Add `--pre-release` if you want the pre-release channel instead of a normal rele
 
   A published version number is permanent: npm allows unpublishing only within 72 hours, and never
   allows reusing the number. Bump rather than republish.
-- **Open VSX.** For VSCodium, Cursor and Windsurf users, mirror the release with
-  `npx ovsx publish factum-orm-0.4.0.vsix -p <token>`.
 - **A short GIF** of drawing a fact type and watching the verbalization update would carry the
   listing further than the two static screenshots.
